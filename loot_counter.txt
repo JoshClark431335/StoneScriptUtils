@@ -1,0 +1,71 @@
+var loot_ids = ["Humble Treasure",
+  ^"Common Treasure","tid_treasure_GT",
+  ^"tid_treasure_OT","tid_treasure_DT"]
+var loot_names = ["humble","common","giant",
+  ^"omega","delta"]
+
+var loot1 = ""
+var loot2 = ""
+var looted = false
+var put_time = 0
+
+?loc.begin|loc.loop
+  var tc = -1
+  loot1 = ""
+  loot2 = ""
+  looted = false
+  pu_time = 0
+
+var loot = [0,0,0,0,0]
+?item.GetTreasureCount() > tc
+  tc = item.GetTreasureCount()
+  resets[0] = true
+  resets[1] = true
+  var pu
+  pu = ""
+  ?string.Size(loot2)>0
+    pu = loot2
+  :?string.Size(loot1)>0
+    pu = loot1
+  ?loot_ids.Contains(pu)
+    var li
+    li = loot_ids.IndexOf(pu)
+    loot[li] = loot[li]+1
+
+var loot_list = []
+var pu_delay = 1
+?pickup
+  //>@pickup@
+  ?resets[0] & loot_ids.Contains(pickup)
+    resets[0] = false
+    pu_time = time
+  ?time >= pu_time + pu_delay
+  ^&loot_ids.Contains(pickup) & !looted
+    ?string.Size(loot1)>0
+      loot2 = pickup
+    :
+      loot1 = pickup
+    looted = true
+  ?!loot_list.Contains(pickup)
+    loot_list.Add(pickup)
+  //?loot_list.Count()>0
+    //for i = 0..loot_list.Count()-1
+      //>`0,@i+14@,@loot_list[i]@
+
+func draw_loot_counter(x,y,loot_counter)
+  var mw = 1
+  for i = 0..4
+    var s = string.Format("{0}",loot_counter[i])
+    ?string.Size(s)>mw
+      mw = string.Size(s)
+  draw.Box(x,y,10+mw,7,#888888,1)
+  >`@x+1@,@y@,#888888,Loot
+  var fs = string.Format(
+    ^"{0}0,-7{1} {0}1,{2}{1}",
+    ^"{","}",mw)
+  for i = 0..4
+    var s1 = string.Format("{0}:",
+      ^string.Capitalize(loot_names[i]))
+    var s2 = string.Format(fs,s1,
+      ^loot_counter[i])
+    >`@x+1@,@y+1+i@,@s2@

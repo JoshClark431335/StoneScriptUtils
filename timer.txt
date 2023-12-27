@@ -1,0 +1,33 @@
+var last_time = 0
+var lt = -1
+?loc.begin|loc.loop
+  last_time = lt+1
+lt = totalTime
+
+func draw_times(x,y)
+  var times = [totalTIme,last_time,
+    ^loc.averageTime,loc.bestTime]
+  var time_names = ["Time:","Prev:","Avg: ",
+    ^"Best:"]
+  var mw = 0
+  for i = 0..3
+    //?times[i] < 0
+      //times[i] = 0
+    times[i] = time.FormatDigital(
+      ^times[i],true)
+    ?string.Size(times[i])>mw
+      mw = string.Size(times[i])
+  draw.Box(x,y,8+mw,6,#888888,1)
+  >`@x+1@,@y@,#888888,Times
+  var color = "ffffff"
+  for i = 0..3
+    ?loc.bestTIme = last_time
+      ^&totalTime <= 60 & i = 3
+      ?totalTime - 15*(totalTime/15) >= 8
+        color = "ff0000"
+    var fs = string.Format(
+      ^"{0}0{1} {0}1,{2}{1}",
+      ^"{","}",mw)
+    var s = string.Format(fs,
+      ^time_names[i],times[i])
+    >`@x+1@,@y+1+i@,#@color@,@s@

@@ -1,0 +1,42 @@
+var items = [blade,mask,skeleton_arm,
+  ^fire_talisman,bash,dash]
+var items_names =
+  ^[blade_of_god,cult_mask,skeleton_arm,
+  ^fire_talisman,bashing_shield,
+  ^dashing_shield]
+
+func draw_cooldowns(x,y)
+  var items_times = []
+  items_times.Clear()
+  var mw1 = 1
+  var mw2 = 4
+  var i2
+  for i = 0..items.Count()-1
+    i2 = i
+    var w
+    w = string.Size(items_names[i])
+    ?w > mw1
+      mw1 = w
+    var t
+    t = item.GetCooldown(items[i])
+    ?t < 0
+      t = 0
+    var ts
+    ts = time.FormatDigital(t,true)
+    items_times.Add(ts)
+    w = string.Size(ts)
+    ?w > mw2
+      mw2 = w
+  draw.Box(x,y,4+mw1+mw2,items.Count()+2,
+    ^#888888,1)
+  >`@x+1@,@y@,#888888,Cooldowns
+  for i = 0..items.Count()-1
+    var fs
+    fs = string.Format(
+      ^"{0}0,-{2}{1} {0}1,{3}{1}","{","}",
+      ^mw1+1,mw2)
+    var s1
+    s1 = string.Format("{0}:",items_names[i])
+    var s2
+    s2 = string.Format(fs,s1,items_times[i])
+    >`@x+1@,@y+i+1@,@s2@
