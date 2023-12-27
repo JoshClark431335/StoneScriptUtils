@@ -9,6 +9,7 @@ var loot2 = ""
 var looted = false
 var loot_found = false
 var put_time = 0
+var pu_time = 0
 
 ?loc.begin|loc.loop
   var tc = -1
