@@ -7,6 +7,7 @@ var loot_names = ["humble","common","giant",
 var loot1 = ""
 var loot2 = ""
 var looted = false
+var loot_found = false
 var put_time = 0
 
 ?loc.begin|loc.loop
@@ -14,13 +15,12 @@ var put_time = 0
   loot1 = ""
   loot2 = ""
   looted = false
+  loot_found = false
   pu_time = 0
 
 var loot = [0,0,0,0,0]
 ?item.GetTreasureCount() > tc
   tc = item.GetTreasureCount()
-  resets[0] = true
-  resets[1] = true
   var pu
   pu = ""
   ?string.Size(loot2)>0
@@ -36,8 +36,8 @@ var loot_list = []
 var pu_delay = 1
 ?pickup
   //>@pickup@
-  ?resets[0] & loot_ids.Contains(pickup)
-    resets[0] = false
+  ?!loot_found & loot_ids.Contains(pickup)
+    loot_found = true
     pu_time = time
   ?time >= pu_time + pu_delay
   ^&loot_ids.Contains(pickup) & !looted
@@ -52,10 +52,10 @@ var pu_delay = 1
     //for i = 0..loot_list.Count()-1
       //>`0,@i+14@,@loot_list[i]@
 
-func draw_loot_counter(x,y,loot_counter)
+func draw_loot_counter(x,y)
   var mw = 1
   for i = 0..4
-    var s = string.Format("{0}",loot_counter[i])
+    var s = string.Format("{0}",loot[i])
     ?string.Size(s)>mw
       mw = string.Size(s)
   draw.Box(x,y,10+mw,7,#888888,1)
@@ -67,5 +67,5 @@ func draw_loot_counter(x,y,loot_counter)
     var s1 = string.Format("{0}:",
       ^string.Capitalize(loot_names[i]))
     var s2 = string.Format(fs,s1,
-      ^loot_counter[i])
+      ^loot[i])
     >`@x+1@,@y+1+i@,@s2@
