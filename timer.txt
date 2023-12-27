@@ -1,8 +1,9 @@
-var last_time = 0
-var lt = -1
-?loc.begin|loc.loop
-  last_time = lt+1
-lt = totalTime
+func timerMain()
+  var last_time = 0
+  var lt = -1
+  ?loc.begin|loc.loop
+    last_time = lt+1
+  lt = totalTime
 
 func draw_times(x,y)
   var times = [totalTIme,last_time,
