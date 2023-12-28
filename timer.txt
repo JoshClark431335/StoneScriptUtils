@@ -1,3 +1,5 @@
+timerMain()
+
 func timerMain()
   var last_time = 0
   var lt = -1
