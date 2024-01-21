@@ -1,0 +1,21 @@
+//This file is for utility functions that
+//don't belong to any specific category
+
+func format_time(time)
+  var m = time/(60*30)
+  var s = time/30 - 60*m
+  var f = (10/3)*(time - 30*(s + 60*m))
+  return string.Format(
+    ^＂｛0:00｝:｛1:00｝.｛2:00｝＂,m,s,f)
+
+func isDigit(char)
+  return string.Equals(char,＂0＂)
+  ^| string.Equals(char,＂1＂)
+  ^| string.Equals(char,＂2＂)
+  ^| string.Equals(char,＂3＂)
+  ^| string.Equals(char,＂4＂)
+  ^| string.Equals(char,＂5＂)
+  ^| string.Equals(char,＂6＂)
+  ^| string.Equals(char,＂7＂)
+  ^| string.Equals(char,＂8＂)
+  ^| string.Equals(char,＂9＂)

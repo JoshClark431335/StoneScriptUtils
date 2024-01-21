@@ -1,0 +1,54 @@
+func is_battle_loc()
+  return (loc=fungus_forest | loc=caustic_cave
+  ^| loc=bronze_mine | loc=deadwood_valley
+  ^l loc=rocky_plateau | loc=icy_ridge
+  ^| loc=undead_crypt | loc=temple)
+  ^& loc!undead_crypt_intro & !loc.isQuest
+
+func is_boss_loc()
+  ?loc = rocky_plateau
+    return screen.x = 2*69
+  :?loc = deadwood_valley
+    var boss_screen = ［1,1,5,5,5, 6,6,6,6,6,
+      ^6,1,1,1,1
+  :?loc = caustic_caves
+    var boss_screen = ［1,1,5,5,4, 9,9,9,9,9,
+    ^8,8,8,1,1
+  :?loc = fungus_forest
+    return loc = fungus_forest_boss
+  :?loc = undead_crypt & loc!undead_crypt_intro
+    return loc = undead_crypt_boss
+  :?loc = bronze_mine
+    return loc = bronze_guardian
+  :?loc = icy_ridge
+    var boss_screen = ［］
+  :?loc = temple
+    return false
+  :
+    return false
+  return screen.x =
+    ^boss_screen［loc.stars-1］*69
+
+func is_miniboss_loc()
+  ?loc.stars <= 10
+    return false
+  ?loc = rocky_plateau
+    return false
+  :?loc = deadwood_valley
+    var miniboss_screen = [4,1,1,1,1]
+  :?loc = caustic_caves
+    var miniboss_screen = [6,6,6,1,1]
+  :?loc = fungus_forest
+    var miniboss_screen = [6,6,1,1,1]
+  :?loc = undead_crypt & loc!undead_crypt_intro
+    var miniboss_screen = [7,7,7,7,7]
+  :?loc = bronze_mine
+    var miniboss_screen = [6,6,1,1,1]
+  :?loc = icy_ridge
+    var miniboss_screen = [6,5,5,1,1]
+  :?loc = temple
+    return false
+  :
+    return false
+  return screen.x = miniboss_screen[
+    ^loc.stars-11]*69

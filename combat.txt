@@ -1,0 +1,36 @@
+var buffs = ［smite,pick_pocket,poena_mirror］
+var debuffs = ［debuff_chill,debuff_dot,
+  ^debuff_yeti_chill,debuff_move_speed,
+  ^debuff_duration_damage］
+
+func get_effect_count(who,effect)
+  var es
+  var b_buff = false
+  ?buffs.Contains(effect)
+    b_buff = true
+  :?debuffs.Contains(effect)
+    b_buff = false
+  :
+    loc.Pause()
+    return -1
+  ?who = foe
+    ?b_buff
+      es = foe.buffs.string
+    :
+      es = foe.debuffs.string
+  :
+    ?b_buff
+      es = buffs.string
+    :
+      es = debuffs.string
+  var ei
+  ei = string.IndexOf(es,effect)
+  ?ei = -1 | string.Size(es) = 0
+    return 0
+  ei += string.Size(effect)+1
+  var eil = 0
+  for i = 0..2
+    ?!isDigit(string.Sub(es,ei+i,1))
+      eil = i
+      break
+  return int.Parse(string.Sub(es,ei,eil))

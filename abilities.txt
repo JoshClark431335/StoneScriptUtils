@@ -1,0 +1,136 @@
+var ability_used = none
+var smite_damage = 135
+var b_pickpocket = false
+var b_mask = false
+var b_talisman = false
+var b_smite = false
+var b_dash = false
+var b_hatchet = false
+var b_staff = false
+var n_smite = 0
+
+func reset_ability_bools()
+  b_pickpocket = false
+  b_mask = false
+  b_talisman = false
+  b_smite = false
+  b_dash = false
+  b_hatchet = false
+  b_staff = false
+
+func pickpocket()
+  ?item.GetCooldown(skeleton_arm) <= 0
+  ^& foe.distance <= 8 & foe.distance >= 4
+    ?ability_used = none
+      ability_used = skeleton_arm
+      equip skeleton_arm
+    :?ability_used = skeleton_arm
+    ^& get_effect_count(me,pick_pocket) >= 3
+    ^& item.CanActivate(skeleton_arm)
+      activate right
+
+func do_smite(x)
+  ?item.GetCooldown(blade) <= 0
+  ^& foe.count >= x
+  ^& screen.x/69.0 = screen.i
+  ^& foe ! spawner
+  ^& foe.hp <= smite_damage
+    ?ability_used = none
+      ability_used = blade_of_god
+      equip blade_of_god
+    :?ability_used = blade_of_god
+    ^&item.CanActivate(blade)
+      activate right
+
+func wear_mask()
+  ?item.GetCooldown(mask) <= 0
+  ^& foe ! immune_to_ranged
+    ?ability_used = none 
+      ability_used = cult_mask
+      //unequip everything
+      loadout 7
+      equipr cult_mask
+    ?ability_used = cult_mask
+    ^&item.CanActivate(mask)
+      activate right
+
+func use_talisman()
+  ?item.GetCooldown(fire_talisman) <= 0
+  ^& summon.count = 0
+    ?ability_used = none
+      ability_used = fire_talisman
+      equipl fire_talisman
+    :?ability_used = fire_talisman
+    ^&item.CanActivate(fire_talisman)
+      activate left
+
+func use_hatchet()
+  ?harvest = tree & (ability_used = none
+  ^| ability_used = hatchet)
+  ^& harvest.distance < 5
+    equipr hatchet
+    ability_used = hatchet
+    ?pickup.distance < 7
+      equipl star_stone
+    :
+      equipl moondial
+    ?item.CanActivate(hatchet)
+      activate right
+
+func use_dash()
+  ?battle_mode = melee
+  ^& ability_used = none
+  ^& foe.distance >= 11 & foe.distance <= 15
+    ?item.GetCooldown(bashing_shield) <= 0
+      equipr bashing_shield
+    :?item.GetCooldown(dashing_shield) <= 0
+      equipr dashing_shield
+
+func use_staff(distance)
+  ?foe.distance > distance
+  ^& harvest.distance > 7
+  ^& item.GetCooldown(quarterstaff) <= 0
+    ?!b_using_staff
+      b_using_staff = true
+      equip quarterstaff
+    ?b_using_staff
+    ^&item.CanActivate(quarterstaff)
+      activate right
+
+func use_abilities()
+  ?item.CanActivate()
+    ?b_pickpocket
+      pickpocket()
+    ?b_smite
+      do_smite(n_smite)
+    ?b_mask
+      wear_mask()
+    ?b_talisman
+      use_talisman()
+    ?b_hatchet
+      use_hatchet()
+    ?b_dash
+      use_dash()
+    ?b_staff
+      use_staff(10)
+      ?b_using_staff
+        ability_used = quarterstaff
+  ?ability_used = hatchet
+  ^& harvest.distance > 5
+    ability_used = none
+  :?ability_used = quarterstaff
+  ^&item.GetCooldown(quarterstaff) > 0
+    ability_used = none
+    b_using_staff = false
+  :?ability_used = cult_mask
+  ^&item.GetCooldown(mask) > 0
+    ability_used = none
+  :?ability_used = blade_of_god
+  ^&item.GetCooldown(blade) > 0
+    ability_used = none
+  :?ability_used = skeleton_arm
+  ^&item.GetCooldown(skeleton_arm) > 0
+    ability_used = none
+  :?ability_used = fire_talisman
+  ^& summon.GetId() = cinderwisp
+    ability_used = none

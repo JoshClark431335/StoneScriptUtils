@@ -1,0 +1,51 @@
+
+var current_lo = 0
+var loadouts = []
+
+func is_twohanded(item)
+  ?item = crossbow
+    return item = heavy | item = repeating
+      ^| item = poison | item = vigor
+      ^| item = aether | item = fire
+      ^| item = ice
+  :?item = sword
+    return item = big
+  :?item = hammer
+    return item = heavy
+  :
+    for i : [staff,bardiche,blade,skeleton]
+      ?item = i
+        return true
+    return false
+
+func is_melee(item)
+  return (item = sword | item = hammer
+    ^| item = quarterstaff)
+    ^& string.Size(item) > 0
+
+func use_loadout(lo)
+  var new_lo = ［none,none］
+  new_lo = ［item.left,item.right］
+  ?type(lo) = int
+    new_lo = loadouts［lo］
+  :
+    new_lo = lo
+  ?type(new_lo) = array & new_lo.Count() = 2
+    ?type(new_lo［0］) = int & new_lo［0］ ! 0
+      new_lo［0］ = loadouts［new_lo［0］］［0］
+    ?type(new_lo［1］) = int & new_lo［1］ ! 0
+      new_lo［1］ = loadouts［new_lo［1］］［1］
+  :?type(new_lo) = string
+  ^& string.Size(new_lo) > 0
+    new_lo = ［＂＂,new_lo］
+  ?new_lo［0］ = none | new_lo［1］ = none
+    loadout 7
+  ?string.Size(new_lo［0］) > 0
+  ^& new_lo［0］ ! none
+    equipl @new_lo［0］@
+  ?string.Size(new_lo［1］) > 0
+  ^& new_lo［1］ ! none
+    ?is_twohanded(new_lo［1］)
+      equip @new_lo［1］@
+    :
+      equipr @new_lo［1］@
