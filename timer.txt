@@ -1,8 +1,9 @@
 timerMain()
 
+var last_time = 0
+var lt = -1
+
 func timerMain()
-  var last_time = 0
-  var lt = -1
   ?loc.begin|loc.loop
     last_time = lt+1
   lt = totalTime
@@ -14,8 +15,8 @@ func draw_times(x,y)
     ^"Best:"]
   var mw = 0
   for i = 0..3
-    //?times[i] < 0
-      //times[i] = 0
+    ?times[i] < 0
+      times[i] = 0
     times[i] = time.FormatDigital(
       ^times[i],true)
     ?string.Size(times[i])>mw
@@ -24,7 +25,7 @@ func draw_times(x,y)
   >`@x+1@,@y@,#888888,Times
   var color = "ffffff"
   for i = 0..3
-    ?loc.bestTIme = last_time
+    ?loc.bestTime = last_time
       ^&totalTime <= 60 & i = 3
       ?totalTime - 15*(totalTime/15) >= 8
         color = "ff0000"
