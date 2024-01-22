@@ -1,0 +1,104 @@
+
+// Playing Cards v1.3
+// by: standardcombo
+
+// Example usage:
+// var cards = import PlayingCards
+// cards.DrawCompact(9, 5, 12, heart)
+// cards.Draw(10, 5, 3, spade)
+
+var cardFront = ""
+cardFront = ascii
+#__
+│  │
+│  │
+#‾‾
+asciiend
+
+var cardBack = ""
+cardBack = ascii
+#__
+│::│
+│::│
+#‾‾
+asciiend
+
+var cardCompact = ""
+cardCompact = ascii
+#_ 
+│  │
+│  │
+#‾ 
+asciiend
+
+
+var compact = false
+
+
+func DrawBack(x, y)
+  >`@x@,@y@,#666666,@cardBack@
+
+
+func Draw(x, y, value, suit)
+
+  var color = #999999
+  >`@x@,@y@,@color@,@cardFront@
+
+  var numberX = x + 1
+  y = y + 1
+  
+  // Suit can be int or string
+  ?Type(suit) = int
+    >Int suit = @suit@
+    ?suit = 0
+      suit = heart
+    :?suit = 1
+      suit = diamond
+    :?suit = 2
+      suit = club
+    :
+      suit = spade
+  
+  // Card value can be int or string
+  ?Type(value) = int
+    ?value = 10 & compact
+      numberX--
+    ?value = 11
+      value = "J"
+    :?value = 12
+      value = "Q"
+    :?value = 13
+      value = "K"
+    :?value = 1 | value = 14
+      value = "A"
+  
+  color = #ff0000
+  ?suit = club | suit = spade
+    color = #ffffff
+
+  
+  >`@numberX@,@y@,@color@,@value@
+
+  x++
+  ?compact = false
+    x++
+  y = y + 1
+  ?suit = heart
+    suit = "♥"
+  :?suit = diamond
+    suit = "♦"
+  :?suit = club
+    suit = "♣"
+  :
+    suit = "♠"
+
+  >`@x@,@y@,@color@,@suit@
+
+
+func DrawCompact(x, y, value, suit)
+  compact = true
+  Draw(x, y, value, suit)
+  compact = false
+
+  
+

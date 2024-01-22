@@ -1,0 +1,46 @@
+var phase
+var cursor = 0
+var confirm = false
+
+func Battle()
+	?key = "ability1" & key = "ability2End"
+		phase = "Restart"
+	:?key = "backEnd"
+		phase = "startPlayerStats"
+	:?key = "bumpLEnd"
+		phase = "startFoeStats"
+
+func playerStats()
+	?key = "backEnd"
+		phase = "endStats"
+	:?key = "bumpLEnd"
+		phase = "startFoeStats"
+
+func foeStats()
+	?key = "bumpLEnd"
+		phase = "endStats"
+	:?key = "backEnd"
+		phase = "startPlayerStats"
+
+func optionsControl()
+	cursorMovement()
+	confirmAction()
+
+func cursorMovement()
+	?key = "downEnd"
+		cursor = cursor + 2
+	:?key = "upEnd"
+		cursor = cursor - 2
+	:?key = "leftEnd"
+		cursor--
+	:?key = "rightEnd"
+		cursor++
+	cursor = math.Clamp(cursor,0,3)
+
+func confirmAction()
+	confirm = key = "bumpREnd"
+	return confirm
+
+func Restart()
+	phase = ""
+	cursor = 0

@@ -1,0 +1,111 @@
+//DigitsPuzzle/DigitsPuzzleCore
+//Version: v1.0
+//Author: Okamiroy
+
+//Core of the whole gameplay, including reading the map, drawing the game, controlling the moves
+
+var puzzleGenerator = new Games/DigitsPuzzle/PuzzleGenerator
+var puzzle = []
+var puzzleRowCount = 0
+var puzzleColCount = 0
+
+var runningPuzzle = []
+var panelWidth = 0
+var panelHeight = 0
+var panelPosX = 0
+var panelPosY = 0
+
+//Index of current EMPTY cell (digit = 0)
+var emptyRowIndex = 0
+var emptyColIndex = 0
+
+func InitGame(isCustomPuzzle)
+  InitPanel()
+  return InitRunningPuzzle(isCustomPuzzle)
+
+func InitPanel()
+  var tempCell = new Games/DigitsPuzzle/DigitCell
+  panelWidth = tempCell.boxWidth * puzzleGenerator.COL_COUNT + 2
+  panelHeight = tempCell.boxHeight * puzzleGenerator.ROW_COUNT + 2
+  panelPosX = (screen.w - panelWidth) / 2
+  panelPosY = (screen.h - panelHeight) / 2
+
+func InitRunningPuzzle(isCustomPuzzle)
+  puzzle = puzzleGenerator.GetPuzzle(isCustomPuzzle)
+  ?puzzle = null
+    return false
+  puzzleRowCount = puzzle.Count()
+  puzzleColCount = puzzle[0].Count()
+  ResetGame()
+  return true
+
+func ResetGame()
+  runningPuzzle = []
+  var oneDigitCell = null
+  for i = 0 .. puzzle.Count() - 1
+    var oneRow = null
+    oneRow = []
+    for j = 0 .. puzzle[i].Count() - 1
+      oneDigitCell = new Games/DigitsPuzzle/DigitCell
+      oneDigitCell.digit = puzzle[i][j]
+      oneDigitCell.digitColor = white
+      oneDigitCell.boxPosX = panelPosX + 1 + j * oneDigitCell.boxWidth
+      oneDigitCell.boxPosY = panelPosY + 1 + i * oneDigitCell.boxHeight
+      oneRow.Add(oneDigitCell)
+
+      ?puzzle[i][j] = 0
+        emptyRowIndex = i
+        emptyColIndex = j
+
+    runningPuzzle.Add(oneRow)
+
+func JudgeToWin()
+  for i = 0 .. runningPuzzle.Count() - 1
+    for j = 0 .. runningPuzzle[i].Count() - 1
+      ?runningPuzzle[i][j].digit = (i * puzzleRowCount + j + 1)
+        runningPuzzle[i][j].digitColor = rainFF
+      :
+        runningPuzzle[i][j].digitColor = white
+
+  ?emptyRowIndex = puzzleRowCount - 1 & emptyColIndex = puzzleColCount - 1
+    for i = 0 .. runningPuzzle.Count() - 1
+      for j = 0 .. runningPuzzle[i].Count() - 1
+        ?runningPuzzle[i][j].digit ! 0 & runningPuzzle[i][j].digit ! (i * puzzleRowCount + j + 1)
+          return false
+
+    return true
+  :
+    return false
+
+//Show the game, but hide empty cell. 
+func ShowGame()
+  draw.Box(panelPosX, panelPosY, panelWidth, panelHeight, white, 2)
+  for i = 0 .. runningPuzzle.Count() - 1
+    for j = 0 .. runningPuzzle[i].Count() - 1
+      ?runningPuzzle[i][j].digit ! 0
+        runningPuzzle[i][j].Show()
+
+//Exchange digits to move the cell, instead of moving the cell itself. 
+func MoveUp()
+  ?emptyRowIndex < runningPuzzle[0].Count() - 1
+    runningPuzzle[emptyRowIndex][emptyColIndex].digit = runningPuzzle[emptyRowIndex + 1][emptyColIndex].digit
+    runningPuzzle[emptyRowIndex + 1][emptyColIndex].digit = 0
+    emptyRowIndex++
+
+func MoveRight()
+  ?emptyColIndex > 0
+    runningPuzzle[emptyRowIndex][emptyColIndex].digit = runningPuzzle[emptyRowIndex][emptyColIndex - 1].digit
+    runningPuzzle[emptyRowIndex][emptyColIndex - 1].digit = 0
+    emptyColIndex--
+
+func MoveDown()
+  ?emptyRowIndex > 0
+    runningPuzzle[emptyRowIndex][emptyColIndex].digit = runningPuzzle[emptyRowIndex - 1][emptyColIndex].digit
+    runningPuzzle[emptyRowIndex - 1][emptyColIndex].digit = 0
+    emptyRowIndex--
+
+func MoveLeft()
+  ?emptyColIndex < runningPuzzle.Count() - 1
+    runningPuzzle[emptyRowIndex][emptyColIndex].digit = runningPuzzle[emptyRowIndex][emptyColIndex + 1].digit
+    runningPuzzle[emptyRowIndex][emptyColIndex + 1].digit = 0
+    emptyColIndex++

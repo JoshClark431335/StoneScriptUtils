@@ -1,0 +1,9 @@
+//DigitsPuzzle/CustomPuzzle
+//Version: v1.0
+//Author: Okamiroy
+
+//Use 01~09 instead of 1~9. Empty cell is 00.
+//Length of CUSTOM_PUZZLE_CODE should be 32, and all the digits should be in the range of 00~15.
+//Every digit can only appear once.
+
+var CUSTOM_PUZZLE_CODE = "01020304050607080910111213140015"

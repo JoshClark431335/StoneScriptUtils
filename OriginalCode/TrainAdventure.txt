@@ -1,0 +1,10 @@
+//TrainAdventure
+//by: link2_thepast
+//
+//v1.1
+//Add "import TrainAdventure" to the Mind Stone, then visit Deadwood Waterfall.
+
+//An animated train ride through the Dark World. Press X to bring up controls.
+
+?loc = waterfall & !loc.isQuest
+  import Cosmetics/TrainAdventure/Main

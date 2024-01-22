@@ -1,0 +1,60 @@
+var stringCurrent
+var stringMax
+var currentLength = 0
+var maxLength = 100
+var bar
+
+func MinLengthA(string, length, append)
+	string = string + ""
+	?string.Size(string) < length
+		for i = string.Size(string)+1..length
+			string = string + append
+			
+	return string
+		
+func GetBarArt(percent)
+	bar = ""
+
+	?percent >= 100
+		bar = "████████████████████"
+	:
+		?percent >= 5
+			for i = 0..percent / 5
+				bar += "█"
+		
+		?percent % 5 = 4
+			bar += "█"
+		:?percent % 5 = 3
+			bar += "▓"
+		:?percent % 5 = 2
+			bar += "▒"
+		:?percent % 5 = 1
+			bar += "░"
+	
+		bar = MinLengthA(bar, 20, "─")
+
+func needUpdate()
+	return currentLength ! maxLength
+
+func update()
+	currentLength += math.Clamp(maxLength - currentLength, -2, 2)
+	GetBarArt(currentLength)
+
+func setMaxLength(current, max)
+	maxLength = 100 * current / max
+
+func setCurrent(current)
+	stringCurrent = MinLengthA(current, 3, " ")
+
+func setMax(max)
+	stringMax = MinLengthA(max, 3, " ")
+
+func set(current, max)
+	setCurrent(current)
+	setMax(max)
+	setMaxLength(current, max)
+
+func restart(current, max)
+	currentLength = 0
+	maxLength = 100
+	set(current, max)

@@ -1,0 +1,604 @@
+/*
+	FancyUI v1.7
+	
+	Written By: Cancerorus Potatoes (Discord: 10100111001)
+	
+	To Use:
+	var FancyUI = import UI/FancyUI/fancyui
+	FancyUI.Main()
+	
+	Depends on:
+	print - my library of print functions
+	colour - my colour blending struct
+	
+	What it does:
+	Fancy and customisable UI elements
+	Player/enemy health bars
+	Cooldowns pane
+	Level times pane
+	Animated menu button with toggles for each pane
+	
+	It doesnt do as much as some of the other UI scripts others have made
+	(like showing status effects [maybe in future], ...), but has a few proof of concept things
+	like the 'overshield' armour bar, colour blending, partial bar segment 
+	colouring and collapsable/animated menu button
+*/
+
+/*
+	Changelog
+	v1.0	Added simple HP and Armour bars along with a surrounding border
+	v1.1	Armour bar visual update, now supports 'overshielding' (multiple bar layers) and 'undershielding' (ARMOUR < 0)
+	v1.2	Added easy customisation of colours, frames, and locations for EVERYTHING - Make your own HP/ARMOUR UI
+	v1.3	Added expandable options/menu button (bottom right corner). Contains pause, leave, disable UI buttons
+	v1.4	Added cooldown pane with enable/disable button in menu
+	v1.5	Added 'slow rainbow' colouring for all frame elements. Can be individually disabled if you want solid colouring
+	v1.6	Added time panel with current, best, average, and system times. Added menu button to toggle
+	v1.7	Panes remember their toggled state between levels
+	v1.7.1	Fixed menu button opening during boss sub scenes if opened beforehand. Fixed menu button disappearing when enetering another location (like boss sub location)
+*/
+
+
+var Print = import FancyUI/print
+//note - this could probably be redone now that floats are a thing, but not going to do that. All the bars use integer math workarounds.
+
+
+/* ============================
+	Player Frame Customisation
+   ============================ */
+//player frame design
+var PlayerBarsFrame = ascii
+╔══════════════════════════════╗##########
+╠══════════════════════════════╣##########
+║                              ║##########
+╠══════════════════════════════╩═════════╗
+║                                        ║
+╚════════════════════════════════════════╝
+asciiend
+//player frame colour
+var colFramePlayer = "rainFF" //currently overwritten by slow rainbow
+//hp bar properties (relative to top-left of frame)
+var Phpx = 1 //x offset
+var Phpy = 4 //y offset
+var Phpw = 40 //width
+var Phph = 1 //height
+var Phpd = false //direction to print the bar in (false = left->right, true = right->left)
+//armour bar properties (relative to top-left of frame)
+var Parmx = 1
+var Parmy = 2
+var Parmw = 30
+var Parmh = 1
+var Parmd = false
+//bar label colour (the hp and armour labels and numerical values printed on the bar)
+var colLabelP = "FFFFFF"
+//player name colour
+var colNameP = "888888"
+//player name location (the midpoint, relative to the top-left of frame)
+var Pnamex = 15
+var Pnamey = 0
+
+/* ===========================
+	Enemy Frame Customisation
+   =========================== */
+//the enemy frame design
+var EnemyBarsFrame = ascii
+╔════════════════════════════════════════╗
+║                                        ║
+╚═════════╦══════════════════════════════╣
+##########║                              ║
+##########╠══════════════════════════════╣
+##########╚══════════════════════════════╝
+asciiend
+//enemy frame colour
+var colFrameEnemy = "rainFF" //currently overwritten by slow rainbow
+//hp bar properties (relative to top-left of frame)
+var Ehpx = 1
+var Ehpy = 1
+var Ehpw = 40
+var Ehph = 1
+var Ehpd = true
+//armour bar properties (relative to top-left of frame)
+var Earmx = 11
+var Earmy = 3
+var Earmw = 30
+var Earmh = 1
+var Earmd = true
+//bar label colour (the hp and armour labels and numerical values printed on the bar)
+var colLabelE = "FFFFFF"
+//enamy name colour
+var colNameE = "888888"
+//enamy name location (the midpoint, relative to the top-left of frame)
+var Enamex = 25
+var Enamey = 5
+
+/* ==========================
+	Bar Colour Customisation
+   ========================== */
+//colour of the hp bars
+var colHP = new FancyUI/colour
+colHP.Init(255, 0, 0) //RGB
+//base colour of the armour bars
+var colShield = new FancyUI/colour
+colShield.Init(63, 63, 63)
+//the blending colour used for 'overshields'. This colour is added to the base colour each time the armour bar is exceeded.
+var colOverShield = new FancyUI/colour
+colOverShield.Init(0, 40, 40)
+//the colour used for negative armour
+var colUnderShield = new FancyUI/colour
+colUnderShield.Init(255, 127, 0)
+
+/* ==============================
+	Cooldown Frame Customisation
+   ============================== */
+//cooldown frrame design
+var CooldownFrame = ascii
+╔═══════════╦═══════════╗
+║###########║###########║
+║###########║###########║
+║###########║###########║
+╚═══════════╩═══════════╝
+######[###########]######
+asciiend
+//frame colour
+var colCoolFrame = "rainFF" //currently overwritten by slow rainbow
+//cooldown background design
+var CooldownBackground = ascii
+#########################
+# BARD:0000 # DASH:0000 #
+# BLDE:0000 # BASH:0000 #
+# DODG:0000 # STFF:0000 #
+#########################
+#########################
+asciiend
+//background colour
+var colCoolBack = "202020"
+//cooldown title design
+var CooldownTitle = ascii
+#########################
+#########################
+#########################
+#########################
+#########################
+####### COOLDOWNS #######
+asciiend
+//title colour
+var colCoolTitle = "808080"
+//text colour for equipment on cooldown
+var colCoolText = "FFFFFF"
+//text colour for equipment ready
+var colCoolReady = "rainFF"
+
+//how far to move per column
+var coolxOff = 12
+//how far to move per row
+var coolyOff = 1
+//number of rows to use when printing out cooldowns. Anything after the final row will be printed on a new column
+var coolRows = 3
+//dont change the next 3
+var equipmentNames = ["bardiche","blade","mind","dash","bash","quarterstaff"]
+var equipmentNamesShort = ["BARD", "BLDE", "DODG", "DASH", "BASH", "STFF"]
+var equipmentNum = 6
+
+/* ==========================
+	Time Frame Customisation
+   ========================== */
+//cooldown frrame design
+var TimeFrame = ascii
+╔════════════╗
+║############║
+║############║
+║############║
+║############║
+║############║
+║############║
+╚╦══════════╦╝
+#║##########║#
+#╚══════════╝#
+###[######]###
+asciiend
+//frame colour
+var colTimeFrame = "rainFF" //currently overwritten by slow rainbow
+//cooldown background design
+var TimeBackground = ascii
+##############
+# Tcur:00000 #
+#    00m 00s #
+# Tbst:00000 #
+#    00m 00s #
+# Tavg:00000 #
+#    00m 00s #
+##############
+## 00:00:00 ##
+##############
+##############
+asciiend
+//background colour
+var colTimeBack = "202020"
+//cooldown title design
+var TimeTitle = ascii
+##############
+##############
+##############
+##############
+##############
+##############
+##############
+##############
+##############
+##############
+#####TIME#####
+asciiend
+//title colour
+var colTimeTitle = "808080"
+//text colour for times
+var colTimeText = "FFFFFF"
+
+
+/* =================
+	Extra Variables
+   ================= */
+//player armour per overshield
+var shieldMaxPlayer = 3 //for best results set this to about 1/4 of the max armour you expect to have
+
+var shieldMaxEnemy = 1000 //leave this one
+
+//slow rainbow
+var slowRainbow = new FancyUI/colour
+slowRainbow.Init(255, 0, 0) //RGB
+var colSlowRainbow = slowRainbow.ToString()
+var slowRainbowState = 0 //0=+r, 1=+g, 2=+b
+
+/* ====================
+	Button Setup Stuff
+   ==================== */
+var btnHeight = 3
+var btnWidth = 7
+var prevLoc = loc.id
+
+//add new buton bariables here
+var bUI
+var bLeave
+var bPause
+var bMenu
+var bCooldown
+var bTime
+
+//button state tracking here
+var enableTime = storage.Get("enableTime", true)
+var enableCooldown = storage.Get("enableCooldown", true)
+var enableUI = storage.Get("enableUI", true)
+var showMenu = false
+var menuTick = 0
+
+//setting up of button properties is below in "Button Property Setup"
+
+/* ===================================
+	UI Element Position Customisation
+   =================================== */
+func Main()
+	//enemy armour per overshield (the default formula helps to scale based on enemy hp)
+	shieldMaxEnemy = math.RoundToInt(math.Sqrt(foe.maxhp*3/4))*8
+
+	? enableUI
+		disable hud
+		//xpos, ypos
+		PlayerBars(0, screen.h-6) //change player ui position here
+		EnemyBars(screen.w-42,1) //change enemy ui position here
+		? enableCooldown
+			Cooldowns(15,1) //change cooldown ui position here
+		? enableTime
+			Times(0,1) //change time ui position here
+	:
+		enable hud
+	
+/* =======================
+	Slow Rainbow Override
+   ======================= */
+	//set all the frame colours to the slow rainbow (comment this out if you want to set solid colours using the options for each frame above)
+	colFramePlayer = colSlowRainbow
+	colFrameEnemy = colSlowRainbow
+	colCoolFrame = colSlowRainbow
+	colTimeFrame = colSlowRainbow
+	
+/* =======================
+	Button Property Setup
+   ======================= */
+	//regenerate buttons each loop since they disappear
+	//they are also removed when moving to a boss sub location
+	? loc.loop | loc.begin | prevLoc ! loc.id
+		prevLoc = loc.id
+		//time enable button
+		bTime = ui.AddButton()
+		bTime.text = "TIMES"
+		bTime.w = btnWidth
+		bTime.h = btnHeight
+		bTime.SetPressed(ButtonTime)
+		//cooldown enable button
+		bCooldown = ui.AddButton()
+		bCooldown.text = "COOLS"
+		bCooldown.w = btnWidth
+		bCooldown.h = btnHeight
+		bCooldown.SetPressed(ButtonCooldown)
+		//UI enable button
+		bUI = ui.AddButton()
+		bUI.text = "U.I"
+		bUI.w = btnWidth
+		bUI.h = btnHeight
+		bUI.SetPressed(ButtonUI)
+		//Leave button
+		bLeave = ui.AddButton()
+		bLeave.text = "LEAVE"
+		bLeave.w = btnWidth
+		bLeave.h = btnHeight
+		bLeave.SetPressed(ButtonLeave)
+		//pause button
+		bPause = ui.AddButton()
+		bPause.text = "PAUSE"
+		bPause.w = btnWidth
+		bPause.h = btnHeight
+		bPause.SetPressed(ButtonPause)
+		//menu button
+		bMenu = ui.AddButton()
+		bMenu.text = "≡≡≡"
+		bMenu.w = btnWidth
+		bMenu.h = btnHeight
+		bMenu.SetPressed(ButtonMenu)
+		showMenu = false
+		menuTick = 0
+
+/* =============================
+	Menu Button Animation Stuff
+   ============================= */
+	//mount buttons to right edge of screen
+	bMenu.x = screen.w-bMenu.w
+	bMenu.y = screen.h-bMenu.h
+	bPause.x = screen.w-bMenu.w
+	bLeave.x = screen.w-bMenu.w
+	bUI.x = screen.w-bMenu.w
+	bCooldown.x = screen.w-bMenu.w
+	bTime.x = screen.w-bMenu.w
+	//animation here
+	? showMenu
+		//when menu is opened, animate to location
+		var bpos = (totaltime - menuTick)/-1
+		bPause.y = screen.h+math.Max(bpos,btnHeight*-2)
+		bLeave.y = screen.h+math.Max(bpos,btnHeight*-3)
+		bUI.y = screen.h+math.Max(bpos,btnHeight*-4)
+		bCooldown.y = screen.h+math.Max(bpos,btnHeight*-5)
+		bTime.y = screen.h+math.Max(bpos,btnHeight*-6)
+	:
+		//menu closed, move to offscreen
+		bPause.y = screen.h
+		bLeave.y = screen.h
+		bUI.y = screen.h
+		bCooldown.y = screen.h
+		bTime.y = screen.h
+	
+/* ===================
+	End Customisation
+   =================== */
+	
+	disable pause
+	var minutes = totalTime/30/60
+	var seconds = (totalTime/30)%60
+	//Print.Print(0, 1, "FF8800", "Time: "+totalTime+" ("+minutes+"m "+seconds+"s)")
+	
+	//slow rainbow stuff
+	? slowRainbow.r >= 255 | slowRainbow.g >= 255 | slowRainbow.b >= 255
+		slowRainbowState = (slowRainbowState + 1) % 3
+		
+	? slowRainbowState = 0 //+r
+		slowRainbow.r = math.min(255, slowRainbow.r+1)
+		slowRainbow.g = math.max(0, slowRainbow.g-1)
+		slowRainbow.b = math.max(0, slowRainbow.b-1)
+	:? slowRainbowState = 1 //+g
+		slowRainbow.r = math.max(0, slowRainbow.r-1)
+		slowRainbow.g = math.min(255, slowRainbow.g+1)
+		slowRainbow.b = math.max(0, slowRainbow.b-1)
+	:? slowRainbowState = 2 //+b
+		slowRainbow.r = math.max(0, slowRainbow.r-1)
+		slowRainbow.g = math.max(0, slowRainbow.g-1)
+		slowRainbow.b = math.min(255, slowRainbow.b+1)
+	colSlowRainbow = slowRainbow.ToString()
+	
+
+/* =================
+	Button Handlers
+   ================= */
+func ButtonMenu()
+	? showMenu
+		showMenu = false
+	:
+		showMenu = true
+		menuTick = totaltime
+	
+func ButtonPause()
+	ButtonMenu()
+	loc.Pause()
+	
+func ButtonLeave()
+	ButtonMenu()
+	loc.Leave()
+	
+func ButtonUI()
+	ButtonMenu()
+	? enableUI
+		enableUI = false
+	:
+		enableUI = true
+	storage.Set("enableUI", enableUI)
+		
+func ButtonCooldown()
+	ButtonMenu()
+	? enableCooldown
+		enableCooldown = false
+	:
+		enableCooldown = true
+	storage.Set("enableCooldown", enableCooldown)
+		
+func ButtonTime()
+	ButtonMenu()
+	? enableTime
+		enableTime = false
+	:
+		enableTime = true
+	storage.Set("enableTime", enableTime)
+	
+//draw the cooldown pane
+func Cooldowns(xx,yy)
+	Print.Print(xx,yy,colCoolFrame,CooldownFrame)
+	Print.Print(xx,yy,colCoolBack,CooldownBackground)
+	Print.Print(xx,yy,colCoolTitle,CooldownTitle)
+	var c = -1
+	for i = 0..5
+		c = item.GetCooldown(equipmentNames[i])
+		? c = 0
+			//ready
+			Print.Print(xx+coolxOff*(i/coolRows+1)-1-9,yy+i%coolRows+coolyOff,colCoolReady,equipmentNamesShort[i])
+			Print.PrintL(xx+coolxOff*(i/coolRows+1)-1,yy+i%coolRows+coolyOff,colCoolReady,"0000")
+		:
+			Print.Print(xx+coolxOff*(i/coolRows+1)-1-9,yy+i%coolRows+coolyOff,colCoolText,equipmentNamesShort[i])
+			Print.PrintL(xx+coolxOff*(i/coolRows+1)-1,yy+i%coolRows+coolyOff,colCoolText,c+"")
+	
+//draw the time pane
+func Times(xx,yy)
+	//deco
+	Print.Print(xx,yy,colTimeFrame,TimeFrame)
+	Print.Print(xx,yy,colTimeBack,TimeBackground)
+	Print.Print(xx,yy,colTimeTitle,TimeTitle)
+	
+	//curr time
+	Print.Print(xx+2,yy+1,colTimeText,"Tcur")
+	Print.PrintL(xx+12,yy+1,colTimeText, totaltime+"")
+	Print.PrintL(xx+8,yy+2,colTimeTitle,(totaltime/30/30)+"m")
+	Print.PrintL(xx+12,yy+2,colTimeTitle,(totaltime/30%30)+"s")
+	//best time
+	Print.Print(xx+2,yy+3,colTimeText,"Tbst")
+	Print.PrintL(xx+12,yy+3,colTimeText, loc.bestTime+"")
+	Print.PrintL(xx+8,yy+4,colTimeTitle,(loc.bestTime/30/30)+"m")
+	Print.PrintL(xx+12,yy+4,colTimeTitle,(loc.bestTime/30%30)+"s")
+	//average time
+	Print.Print(xx+2,yy+5,colTimeText,"Tavg")
+	Print.PrintL(xx+12,yy+5,colTimeText, loc.averageTime+"")
+	Print.PrintL(xx+8,yy+6,colTimeTitle,(loc.averageTime/30/30)+"m")
+	Print.PrintL(xx+12,yy+6,colTimeTitle,(loc.averageTime/30%30)+"s")
+	//system time
+	Print.PrintL(xx+5,yy+8,colTimeText,time.hour+"")
+	Print.PrintL(xx+8,yy+8,colTimeText,time.minute+"")
+	Print.PrintL(xx+11,yy+8,colTimeText,time.second+"")
+	
+//Draw the player ui element
+func PlayerBars(xx,yy)
+	//deco
+	Print.Print(xx, yy, colFramePlayer, PlayerBarsFrame)
+	Print.PrintM(xx+Pnamex, yy+Pnamey, colFramePlayer, "["+StrRep(" ", string.Size(player.name)+2)+"]")
+	Print.PrintM(xx+Pnamex, yy+Pnamey, colNameP, player.name)
+
+	//the hp bar
+	HPBar(xx+Phpx, yy+Phpy, Phpw, Phph, hp, maxhp, Phpd, colLabelP)
+	? Phpd
+		Print.PrintL(xx+Phpx+Phpw, yy+Phpy+Phph/2, colLabelP, "HP")
+	:
+		Print.Print(xx+Phpx, yy+Phpy+Phph/2, colLabelP, "HP")
+	
+	//the shield bar
+	ShieldBar(xx+Parmx, yy+Parmy, Parmw, Parmh, armor, armor.f, shieldMaxPlayer, Parmd, colLabelP)
+	? Parmd
+		Print.PrintL(xx+Parmx+Parmw, yy+Parmy+Parmh/2, colLabelP, "ARMOUR")
+	:
+		Print.Print(xx+Parmx, yy+Parmy+Parmh/2, colLabelP, "ARMOUR")
+	
+//draw the enemy ui element
+func EnemyBars(xx,yy)
+	//deco
+	Print.Print(xx, yy, colFrameEnemy, EnemyBarsFrame)
+	var n = "No Foe"
+	? string.Size(foe.name) ! 0
+		n = foe.name
+	Print.PrintM(xx+Enamex, yy+Enamey, colFrameEnemy, "["+StrRep(" ", string.Size(n)+2)+"]")
+	Print.PrintM(xx+Enamex, yy+Enamey, colNameE, n)
+	
+	//the hp bar
+	HPBar(xx+Ehpx, yy+Ehpy, Ehpw, Ehph, foe.hp, foe.maxhp, Ehpd, colLabelE)
+	? Ehpd
+		Print.PrintL(xx+Ehpx+Ehpw, yy+Ehpy+Ehph/2, colLabelE, "HP")
+	:
+		Print.Print(xx+Ehpx, yy+Ehpy+Ehph/2, colLabelE, "HP")
+	
+	//the shield bar
+	ShieldBar(xx+Earmx, yy+Earmy, Earmw, Earmh, foe.armor, 0, shieldMaxEnemy, Earmd, colLabelE)
+	? Earmd
+		Print.PrintL(xx+Earmx+Earmw, yy+Earmy+Earmh/2, colLabelE, "ARMOUR")
+	:
+		Print.Print(xx+Earmx, yy+Earmy+Earmh/2, colLabelE, "ARMOUR")
+	
+//simple hp bar
+func HPBar(xx, yy, w, h, curr, max, fromRight, colLab)
+	//draw the bar
+	DrawBar(xx, yy, w, h, curr, max, colHP, true, fromRight)
+	
+	//print the amount to the screen
+	Print.Print(xx+w/2, yy+h/2, colLab, "/")
+	Print.Print(xx+w/2+2, yy+h/2, colLab, max)
+	Print.PrintL(xx+w/2-1, yy+h/2, colLab, curr+"")
+	
+//Shield bar which draws another layer each time max is exceeded
+func ShieldBar(xx, yy, w, h, curr, frac, max, fromRight, colLab)
+	? max = 0
+		max = 1
+	//draw the bar
+	? frac >= 0 & curr >= 0
+		//the amount of overshields
+		var over = (curr*10+frac)/(max*10)
+		var base = math.Max((curr*10+frac-(max*10))/(max*10),0)
+		var cOver = colShield.Add(colOverShield, over)
+		var cBase = colShield.Add(colOverShield, base)
+		//draw base shield bar
+		DrawBar(xx, yy, w, h, curr*10+frac, max*10, cBase, true, fromRight)
+		//draw over shield bar
+		DrawBar(xx, yy, w, h, (curr*10+frac)%(max*10), max*10, cOver, false, fromRight)
+	:
+		DrawBar(xx, yy, w, h, -frac-(curr*10), 10, colUnderShield, true, fromRight)
+	
+	//print the amount to the screen
+	? frac >= 0 & curr >= 0
+		Print.PrintM(xx+w/2, yy+h/2, colLab, curr + "." + frac)
+	:	
+		frac = -frac
+		curr = -curr
+		Print.PrintM(xx+w/2, yy+h/2, colLab, "-"+curr+"."+frac)
+
+//xx, yy = top left
+//width, height = size of bar
+//curr = current value of bar to scale
+//max = maximum value of the bar (used to determine how full the bar is)
+//colour = a colour object with the draw colour
+//doPartial = whether the last box should be partially coloured based on the approximate bar length
+//fromRight = the bar draws left to right by default, this reverses that
+func DrawBar(xx, yy, width, height, curr, max, colour, doPartial, fromRight)
+	? max = 0
+		max = 1
+	var factor = 100
+	? width <= 0 | height <= 0
+		return
+		
+	var bars = math.Clamp(factor*width*curr/max, 0, factor*width)
+	? fromRight
+		Print.BG(xx+(width-bars/factor), yy, bars/factor, height, colour.ToString())
+	:
+		Print.BG(xx, yy, bars/factor, height, colour.ToString())
+	//draw.Bg(xx, yy, colour.ToString2(), bars/factor, 1)
+	//calc the last bar
+	? bars/factor < width & doPartial
+		var frac = bars % factor
+		var col = colour.Scale(frac*255/factor)
+		? fromRight
+			Print.BG(xx+(width-bars/factor)-1, yy, 1, height, col.ToString())
+		:
+			Print.BG(xx+bars/factor, yy, 1, height, col.ToString())
+			
+//repeats str n times and returns it - useful for drawing bars
+func StrRep(str, n)
+	var s = ""
+	for i = 1..n
+		s = s+str
+	return s

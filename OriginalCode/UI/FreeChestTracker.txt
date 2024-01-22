@@ -1,0 +1,178 @@
+/*
+	FreeChestTracker v1.1.1
+	
+	Written By: Cancerorus Potatoes (Discord: 10100111001)
+	
+	To Use:
+	var freeChest = import freeChestTracker
+	freeChest.Main()
+	
+	Depends On:
+	Nothing!
+	
+	What it does:
+	Tracks where the free chest is at haunted gate.
+	Puts a mark on the skelly with the chest.
+	For when you are too lazy to watch the skulls spin around.
+	Should work even with wildly resizing the window
+*/
+
+/*
+	Changelog
+	v1.0	Tracks the skelly with the chest and marks it
+	v1.0.1	Moved detection locations to be more reliable
+	v1.1	Added easily customisable options such as symbol style and colour
+	v1.1.1	Added seamless mode - for more immersive xray vision
+*/
+
+/* ===============
+    Customisation
+   =============== */
+
+//hides the detection points on screen which give a visual indication of how it works
+var seamlessMode = false
+//the colour of the chest location indicator
+var chestLocCol = "#FF0000"
+//the indicator. Top left is centered on the skull, use the offsets below to adjust to correct position
+var chestLocSymbol = ascii
+▼
+#
+#
+asciiend
+//offsets
+var offSymbolX = 0 //x
+var offSymbolY = -2 //y
+
+/* ===================
+    End Customisation
+   =================== */
+
+
+
+//0 = left, 1 = middle, 2 = right
+var RIGHT = 2
+var LEFT = 0
+var MIDDLE = 1
+var chestLoc = MIDDLE 
+
+var eps = "ε"
+var xx
+var yy
+
+var baseCol = "#101010"
+var detectCol = "#00FF00"
+
+var detectLock = MIDDLE
+
+//switch detection points
+var midX
+var midY
+var x1
+var y1
+var x2
+var y2
+var char1
+var char2
+
+//chest points
+var cx1
+var cx2
+var cx3
+var cy1
+var cy2
+var cy3
+
+func Main()
+    ? loc = "undead_crypt_intro" & pos.x >= 52
+            
+        //time to track the free chest
+		//compute all the screen space points to check regardless of window size
+        //loc1 is mounted
+        midX = screen.w/2
+        midY = screen.h/2
+        //calc swapping detection points
+        x1 = midX-3
+        y1 = midY-7
+        x2 = midX+3
+        y2 = midY-4
+        //calc check detection points
+        cx1 = midX-7
+        cy1 = midY-10
+        cx2 = midX-1
+        cy2 = midY-7
+        cx3 = midX+5
+        cy3 = midY-4
+		
+		//Do chest tracking
+        //get the symbols at each location
+        char1 = draw.GetSymbol(x1, y1)
+        char2 = draw.GetSymbol(x2, y2)
+
+        ? char1 = "\"" | char1 = "^"
+            ? detectLock = MIDDLE
+                drawbg(x1, y1, detectCol)
+                //swaping left and mid
+                ? chestLoc = MIDDLE
+                    chestLoc = LEFT
+                :? chestLoc = LEFT
+                    chestLoc = MIDDLE
+                //loc.pause()
+                detectLock = LEFT
+        :
+            drawbg(x1, y1, baseCol)
+            ? detectLock = LEFT
+                detectLock = MIDDLE
+            
+        ? char2 = "\"" | char2 = "^"
+            ? detectLock = MIDDLE
+                drawbg(x2, y2, detectCol)
+                //swapping right and mid
+                ? chestLoc = RIGHT
+                    chestLoc = MIDDLE
+                :? chestLoc = MIDDLE
+                    chestLoc = RIGHT
+                detectLock = RIGHT
+        :
+            drawbg(x2, y2, baseCol)
+            ? detectLock = RIGHT
+                detectLock = MIDDLE
+        
+        ? draw.GetSymbol(cx1, cy1) = eps
+            drawbg(cx1, cy1, detectCol)
+            chestLoc = LEFT
+            //loc.pause()
+        :
+            drawbg(cx1, cy1, baseCol)
+            
+        ? draw.GetSymbol(cx2, cy2) = eps
+            drawbg(cx2, cy2, detectCol)
+            chestLoc = MIDDLE
+            //loc.pause()
+        :
+            drawbg(cx2, cy2, baseCol)
+            
+        ? draw.GetSymbol(cx3, cy3) = eps
+            drawbg(cx3, cy3, detectCol)
+            chestLoc = RIGHT
+            //loc.pause()
+        :
+            drawbg(cx3, cy3, baseCol)
+        
+        ? chestLoc = LEFT
+            xx = cx1+3+offSymbolX
+            yy = cy1+offSymbolY
+            >`@xx@,@yy@,@chestLocCol@,@chestLocSymbol@
+        :? chestLoc = MIDDLE
+            xx = cx2+3+offSymbolX
+            yy = cy2+offSymbolY
+            >`@xx@,@yy@,@chestLocCol@,@chestLocSymbol@
+        :? chestLoc = RIGHT
+            xx = cx3+3+offSymbolX
+            yy = cy3+offSymbolY
+            >`@xx@,@yy@,@chestLocCol@,@chestLocSymbol@
+			
+//for seamless mode
+func drawbg(xx, yy, col)
+	? seamlessMode
+		return
+	draw.Bg(xx, yy, col)

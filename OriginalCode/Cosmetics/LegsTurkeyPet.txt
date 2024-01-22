@@ -1,0 +1,604 @@
+//"Legs Turkey" Pet by link2_thepast
+//
+//v1.2
+//Adds an unholy legged turkey abomination that follows you around
+//Import 'LegsTurkeyPet' into the Mind Stone
+//
+//One turkey:
+// import Cosmetics/LegsTurkeyPet
+//
+//Many turkeys:
+// var turkey1 = new Cosmetics/LegsTurkeyPet
+// turkey1.Update()
+// turkey1.Draw(dx, dy)
+
+
+
+//          --SETTINGS--
+var cool = false
+
+
+
+//          --VARIABLES--
+//state machine
+//states:
+//  SITTING
+//  STAND_UP
+//  STANDING
+//  WALK_L
+//  WALK_R
+//  SIT_DOWN
+var state = SITTING
+
+var initialized = false
+
+//color variables
+var color_body =    #774014
+var color_hlights = #996236
+var color_beak =    #CF933E
+var color_legs =    #BE822D
+var color_eye =     #AAAAAA
+var color_eyelid =  #996236
+var color_hat =     #552009
+var color_cool =    #rainDD
+
+//player tracking variables
+var prevPosX
+var prevPosY
+
+var plr_min_dist = 20       //stands still if within this distance from you
+var plr_min_dist_boss = 28  //stands still if within this distance from you, while fighting a boss
+
+//animation variables
+var frm_std_count = 4       // num frames for stand up animation
+var frm_sit_count = 4       // num frames for sit animation
+var frm_L_count = 15        // num frames for left leg walk animation
+var frm_R_count = 15        // num frames for right leg walk animation
+
+var frm                     // frame counter
+var frm_interval = 1        // ticks/frame (leave at 1 for best results)
+var stand_time = 60         // num ticks turkey will stand still before sitting
+
+var prevStepL               // alternate the leading step from standstill for variety
+
+var open_time = 115         // num ticks eye is open
+var blink_time = 5          // num ticks eye is closed
+var blinking = false
+var catching = false
+
+//position variables
+var tx                      // turkey x,y
+var ty
+
+var lx                      // legs x,y
+var ly
+
+//          --MAIN LOOP--
+Update()
+Draw(0, 0)
+
+//          --RESET LOGIC--
+func TryReset()
+  ?loc.begin | loc.loop
+    initialized = false
+  
+  :?time <= 2 & (loc ! rocky_plateau)
+    initialized = false
+    
+  ?!initialized
+    initialized = true
+    
+    prevPosX = pos.x
+    prevPosY = pos.z - pos.y
+    prevStepL = false
+    tx = -15
+    ty = 0
+    lx = tx+3
+    ly = ty+3
+    state = SITTING
+    frm = 0
+
+//          --MAIN UPDATE LOGIC--
+func Update()
+  TryReset()
+
+  ?time % frm_interval = 0
+    frm++
+
+    ?state = SITTING
+      state = NextState()
+      frm = 0
+    
+    :?state = STAND_UP
+      ?frm >= frm_std_count
+        state = NextState()
+        frm = 0
+        
+    :?state = STANDING
+      state = NextState()
+      ?frm >= stand_time
+        frm = 0
+      ?state ! STANDING
+        frm = 0
+    
+    :?state = WALK_L
+      ?frm >= frm_L_count
+        prevStepL = true
+        state = NextState()
+        frm = 0
+        lx = lx+6   //adjust leg position after walk cycle but before next draw
+
+    :?state = WALK_R
+      ?frm >= frm_R_count
+        prevStepL = false
+        state = NextState()
+        frm = 0
+        lx = lx+6   //adjust leg position after walk cycle but before next draw
+
+    :?state = SIT_DOWN
+      ?frm >= frm_sit_count
+        state = NextState()
+        frm = 0
+    
+    :
+      state = NextState()
+      frm = 0
+    
+    Move()
+  
+  //update twice per tick if turkey gets too far behind
+  ?!catching & -tx > (screen.w/2 - 10)
+    catching = true
+    Update()
+  :
+    catching = false
+
+//          --NEXT STATE LOGIC--
+func NextState()
+  ?state = SITTING
+    ?NearPlayer()
+      return SITTING
+    :
+      return STAND_UP
+    
+  :?state = STAND_UP
+    return STANDING
+      
+  :?state = STANDING
+    ?NearPlayer()
+      ?frm >= stand_time
+        return SIT_DOWN
+      :
+        return STANDING
+    :?prevStepL
+      return WALK_R
+    :
+      return WALK_L
+    
+  :?state = WALK_L
+    ?NearPlayer()
+      return STANDING
+    :
+      return WALK_R
+    
+  :?state = WALK_R
+    ?NearPlayer()
+      return STANDING
+    :
+      return WALK_L
+    
+  :?state = SIT_DOWN
+    return SITTING
+  
+  :
+    return SITTING
+
+//          --MOVEMENT LOGIC--
+func Move()
+  //animation movements
+  ?state = STAND_UP
+    //move up
+    ?frm = 0 | frm = 1
+      ty = ty-1
+      ly = ty+3
+    :?frm = 2 | frm = 3
+      ty = ty-2
+      ly = ty+3
+    
+  :?state = STANDING
+    //register legs to body
+    lx = tx+3
+    ly = ty+3
+    
+  :?state = WALK_L
+    //move forward with legs
+    ?frm = 6 | frm = 12
+      tx = tx+1
+    :?frm = 7 | frm = 8
+      tx = tx+2
+    
+    //track character on large vertical movements
+    ?frm = 14
+      ?ty < -4
+        ty++
+        ly++
+      :?ty > 4
+        ty--
+        ly--
+  
+  :?state = WALK_R
+    //move forward with legs
+    ?frm = 3 | frm = 6 | frm = 8 | frm = 11
+      tx = tx+1
+    :?frm = 7
+      tx = tx+2
+    
+    //track character on large vertical movements
+    ?frm = 14
+      ?ty < -4
+        ty++
+        ly++
+      :?ty > 4
+        ty--
+        ly--
+      
+  :?state = SIT_DOWN
+    //move down
+    ?frm = 0 | frm = 1
+      ty = ty+2
+      ly = ty+3
+    :?frm = 2 | frm = 3
+      ty = ty+1
+      ly = ty+3
+  
+  //extra rubberbanding if turkey gets really far behind
+  ?-tx > screen.w/2
+    var rb = (rng%2) + 1
+    tx = tx + rb
+    lx = lx + rb
+  
+  //adjust for player movement
+  tx = tx - (pos.x - prevPosX)
+  lx = lx - (pos.x - prevPosX)
+  
+  ty = ty - (pos.z - pos.y - prevPosY)
+  ly = ly - (pos.z - pos.y - prevPosY)
+  
+  prevPosX = pos.x
+  prevPosY = pos.z - pos.y
+
+//          --DRAW LOGIC--
+func Draw(dx, dy)
+  //determine draw position
+  var dtx = tx+dx
+  var dlx = lx+dx
+  var dty = ty+dy
+  var dly = ly+dy
+  
+  //cull if out of range
+  ?dtx < -screen.w
+    return
+  
+  //legs
+  ?state = STAND_UP
+    ?frm = 0
+      >o@dlx@,@dly@,@color_legs@,ascii
+<<
+asciiend
+    :?frm = 1
+      >o@dlx@,@dly@,@color_legs@,ascii
+||
+<<
+asciiend
+    :?frm = 2
+      >o@dlx@,@dly@,@color_legs@,ascii
+||
+||
+||
+<<
+asciiend
+    :?frm = 3
+      >o@dlx@,@dly@,@color_legs@,ascii
+||
+||
+||
+||
+||
+<<
+asciiend
+
+  :?state = STANDING
+    >o@dlx@,@dly@,@color_legs@,ascii
+||
+||
+||
+||
+||
+<<
+asciiend
+
+  :?state = WALK_L
+    ?frm = 0
+      >o@dlx@,@dly@,@color_legs@,ascii
+||
+||
+||
+||
+||
+<<
+asciiend
+    :?frm = 1
+      >o@dlx@,@dly@,@color_legs@,ascii
+||
+||
+:|
+#\
+#|\
+#<<
+asciiend
+    :?frm = 2
+      >o@dlx@,@dly@,@color_legs@,ascii
+:|
+#\
+#|\
+#|#\
+#|##<
+#<###
+asciiend
+    :?(3 <= frm) & (frm <= 5)
+      >o@dlx@,@dly@,@color_legs@,ascii
+#\
+#|\
+#|#\
+#|##\
+#|###\
+#<####<
+asciiend
+    :?frm = 6
+      >o@dlx@,@dly@,@color_legs@,ascii
+#\´
+#|\
+#|#\
+#|##\
+#|###\
+#<####<
+asciiend
+    :?frm = 7
+      >o@dlx@,@dly@,@color_legs@,ascii
+###\´
+##/#\
+#;###\
+#|####:
+#|####|
+#<####<
+asciiend
+    :?(8 <= frm) & (frm <= 10)
+      >o@dlx@,@dly@,@color_legs@,ascii
+#####\´
+####/#:
+###/##|
+##/###|
+#/####|
+#<####<
+asciiend
+    :?frm = 11
+      >o@dlx@,@dly@,@color_legs@,ascii
+#####\;
+#####/:
+####/#|
+###/##|
+##<###|
+######<
+asciiend
+    :?frm = 12
+      >o@dlx@,@dly@,@color_legs@,ascii
+######||
+######|;
+######|
+#####/|
+####<#|
+######<
+asciiend
+    :?frm = 13
+      >o@dlx@,@dly@,@color_legs@,ascii
+######||
+######||
+######||
+######|;
+######|
+######<
+asciiend
+    :?frm = 14
+      >o@dlx@,@dly@,@color_legs@,ascii
+######||
+######||
+######||
+######||
+######||
+######<<
+asciiend
+
+  :?state = WALK_R
+    ?frm = 0
+      >o@dlx@,@dly@,@color_legs@,ascii
+||
+||
+||
+|:
+|#\
+<#<
+asciiend
+    :?frm = 1
+      >o@dlx@,@dly@,@color_legs@,ascii
+||
+|:
+|\
+|#\
+|##<
+<####
+asciiend
+    :?frm = 2
+      >o@dlx@,@dly@,@color_legs@,ascii
+|\
+|#\
+|##\
+|###\
+|####<
+<######
+asciiend
+    :?(3 <= frm) & (frm <= 5)
+      >o@dlx@,@dly@,@color_legs@,ascii
+|#\
+|##\
+|###\
+|####\
+|#####\
+<######<
+asciiend
+    :?frm = 6
+      >o@dlx@,@dly@,@color_legs@,ascii
+#;#\
+/###\
+|####\
+|#####\
+|######:
+<######<
+asciiend
+    :?frm = 7
+      >o@dlx@,@dly@,@color_legs@,ascii
+###;#\
+##/###\
+#/#####:
+/######|
+|######|
+<######<
+asciiend
+    :?(8 <= frm) & (frm <= 10)
+      ?frm = 14
+      >o@dlx@,@dly@,@color_legs@,ascii
+####/##\
+###/###|
+##/####|
+#/#####|
+/######|
+<######<
+asciiend
+    :?frm = 11
+      >o@dlx@,@dly@,@color_legs@,ascii
+#####/#|
+####/##|
+###/###|
+##/####|
+#<#####|
+#######<
+asciiend
+    :?frm = 12
+      >o@dlx@,@dly@,@color_legs@,ascii
+######||
+######;|
+#####/#|
+####/##|
+###<###|
+#######<
+asciiend
+    :?frm = 13
+      >o@dlx@,@dly@,@color_legs@,ascii
+######||
+######||
+######||
+######;|
+#####/#|
+#####<#<
+asciiend
+    :?frm = 14
+      >o@dlx@,@dly@,@color_legs@,ascii
+######||
+######||
+######||
+######||
+######||
+######<<
+asciiend
+
+  :?state = SIT_DOWN
+    ?frm = 0
+      >o@dlx@,@dly@,@color_legs@,ascii
+||
+||
+||
+<<
+asciiend
+    :?frm = 1
+      >o@dlx@,@dly@,@color_legs@,ascii
+||
+<<
+asciiend
+    :?frm = 2
+      >o@dlx@,@dly@,@color_legs@,ascii
+<<
+asciiend
+
+  //body
+  >o@dtx@,@dty@,@color_body@,ascii
+#_###_
+( `.;
+#•  _)
+asciiend
+
+  //highlights
+  >o@dtx@,@dty@,@color_hlights@,ascii
+#
+#≈
+##,;#)
+##´
+asciiend
+
+  //hat
+  >o@dtx@,@dty@,@color_hat@,ascii
+####_◘_
+asciiend
+
+  //beak
+  >o@dtx@,@dty@,@color_beak@,ascii
+#
+######≥
+asciiend
+
+  //eye
+  ?blinking
+    ?time % blink_time = 0
+      blinking = false
+
+    >o@dtx@,@dty@,@color_eyelid@,ascii
+#
+#####¯
+asciiend
+  :
+    ?time % open_time = 0
+      blinking = true
+
+    >o@dtx@,@dty@,@color_eye@,ascii
+#
+#####°
+asciiend
+
+  //cool sunglasses
+  ?cool
+    >o@dtx@,@dty@,@color_cool@,ascii
+#
+####⌐▼
+asciiend
+
+//          --NEAR PLAYER LOGIC--
+func NearPlayer()
+  ?foe = boss
+    ?foe = bronze_guardian
+      return (-tx < plr_min_dist_boss) | (foe.distance < 15)
+    :
+      return -tx < plr_min_dist_boss
+  :
+    return -tx < plr_min_dist
+
+//          --UPDATE 'COOL' STATUS--
+func SetCool(c)
+  cool = c

@@ -1,0 +1,17 @@
+//Change Log
+//V1.3.0
+//
+//V1.2.0
+//
+//V1.1.1
+//
+//V1.1.0
+//
+//DarkLucifer69
+//Stonemon
+//Version V1.0
+
+var phase = "Boot"
+
+var creatures = new Games\Stonemon\Creatures
+var PC = new Games\Stonemon\Creatures

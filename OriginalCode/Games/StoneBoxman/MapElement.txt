@@ -1,0 +1,16 @@
+//StoneBoxMan - Games/MapElement
+//Version: v1.0
+//Author: Okamiroy
+
+var Image = "  "
+var ImageWidth = 2
+var ImageHeight = 1
+
+// Type of map cell, 0: Empty cell, 1: Road cell, 2: Wall cell, B: Box cell, S: Start cell, T: Target cell
+var CellType = ""
+
+var Name = ""
+var Color = CCCCCC
+
+// If box of player can move onto it
+var CanStack = false

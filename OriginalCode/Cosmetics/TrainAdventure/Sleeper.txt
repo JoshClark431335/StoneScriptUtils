@@ -1,0 +1,456 @@
+//TrainAdventure
+//by: link2_thepast
+//
+//v1.0
+//Use "import Cosmetics/TrainAdventure/Sleeper" to view this bit of bonus art
+
+//global timer
+var gt_1t = 0
+gt_1t++
+
+//fire variables
+var fTick = 0
+var sTick = 0
+var LTick = 0
+var fFireT = 0
+var fFireB = 0
+var colorRock = #666666
+var colorRockLit = #888888
+var illuminated = false
+
+//cloud scrolling variables
+var cloud_sx = screen.w/2 - 10
+var cloud_x = cloud_sx
+var cloud_w = 8
+
+var colorDream = #AAAAAA
+
+//animation state variables
+var clouddone = false
+var cloudstate = 0
+
+var zdone = false
+var zstate = 0
+
+var cloud = true
+var cloudFading = false
+var zwait = false
+var zzz = false
+
+var cloudWaitCount = 0
+var cloudWaitUntil = 120
+
+var zWaitCount = 0
+var zWaitUntil = 30
+
+//leave button variables
+var btnLeaveX = 0
+var btnLeaveY = screen.h-3
+var btnLeaveH = 3
+var btnLeaveW = 5
+var txtLeaveX = btnLeaveX+2
+var txtLeaveY = btnLeaveY+1
+var colorBtn = #DDDDDD
+
+
+?loc.begin
+  // set music
+  ambient.Stop()
+  music.Play(shop)
+  
+  // register leave button
+  var pnlMain = ui.AddPanel()
+  pnlMain.visible = false
+  pnlMain.anchor = top_left
+  pnlMain.dock = top_left
+  pnlMain.x = -2
+  
+  var btnLeave = ui.AddButton()
+  btnLeave.h = 3
+  btnLeave.w = 5
+  btnLeave.x = 0
+  btnLeave.y = screen.h-4
+  btnLeave.text = "X"
+  btnLeave.visible = true
+  btnLeave.SetPressed(loc.Leave)
+  pnlMain.Add(btnLeave)
+
+
+?cloud
+  ?cloudWaitCount < cloudWaitUntil
+    cloudWaitCount++
+  :
+    cloud = false
+    cloudFading = true
+
+?cloud | cloudFading
+  ?(gt_1t % 15) = 0
+    cloud_x--
+    ?cloud_x < cloud_sx - cloud_w
+      cloud_x = cloud_x + cloud_w
+
+?cloudFading
+  ?cloudstate < 10
+    ?(gt_1t % 3) = 0
+      ?!clouddone
+        clouddone = true
+        cloudstate++
+    :
+      clouddone = false
+  :
+    ?cloudstate < 16
+        cloudstate++
+    :
+      cloudFading = false
+      zwait = true
+
+?zwait
+  ?zWaitCount < zWaitUntil
+    zWaitCount++
+  :
+    zwait = false
+    zzz = true
+    gt_1t = 1
+
+?zzz & (gt_1t % 10) = 0
+  ?!zdone
+    zdone = true
+    zstate++
+    ?zstate > 3
+      zstate = 0
+:
+  zdone = false
+
+
+draw.Clear()
+Draw(screen.w/2 - 3,screen.h/2)
+
+func Draw(x, y)
+  DrawFire(x-15,y-1)
+  DrawSleeper(x, y, #white)
+  DrawDream(x-7,y-5,#white)
+  DrawZs(x+6, y-5, #white)
+  
+  // draw leave button
+  >`@btnLeaveX@,@btnLeaveY@,@colorBtn@,ascii
+┌───┐
+│ # │
+└───┘
+asciiend
+  >`@txtLeaveX@,@txtLeaveY@,X
+
+
+
+func DrawDream(x, y, color)
+  ?!cloud & !cloudFading
+    return
+  
+  ?cloudstate < 9
+    DrawClouds(cloud_x, y+2, cloud_w, #666666)
+    >`@x-8@,@y+2@,        
+  
+  ?cloudstate = 0
+    >`@x@,@y@,@color@,ascii
+##_____
+#(  c' )_
+(###^#,##)        
+#‾‾‾‾‾‾‾‾O
+##########°.
+asciiend
+    >`@x@,@y@,@colorDream@,ascii
+##_____
+#(#####)_
+(########)
+#‾‾‾‾‾‾‾‾O
+##########°.
+asciiend
+  :?cloudstate = 1
+    >`@x@,@y@,@color@,ascii
+##_____
+#(  c' )_
+(###^#,##)        
+#‾‾‾‾‾‾‾‾o
+##########' 
+asciiend
+    >`@x@,@y@,@colorDream@,ascii
+##_____
+#(#####)_
+(########)
+#‾‾‾‾‾‾‾‾o
+##########'
+asciiend
+  :?cloudstate = 2
+    >`@x@,@y@,@color@,ascii
+##_____
+#(  c' )_
+(###^#,##)        
+#‾‾‾‾‾‾‾‾.
+# 
+asciiend
+    >`@x@,@y@,@colorDream@,ascii
+##_____
+#(#####)_
+(########)
+#‾‾‾‾‾‾‾‾.
+#
+asciiend
+  :?cloudstate = 3
+    >`@x@,@y@,@color@,ascii
+##_____
+#(  c' )_
+(###^#,##)        
+#‾‾‾‾‾‾‾‾
+# 
+asciiend
+    >`@x@,@y@,@colorDream@,ascii
+##_____
+#(#####)_
+(########)
+#‾‾‾‾‾‾‾‾
+#
+asciiend
+  :?cloudstate = 4
+    >`@x@,@y@,@color@,ascii
+###____
+##( c' )_
+ (##^#,##)        
+##‾‾‾‾‾‾‾
+# 
+asciiend
+    >`@x@,@y@,@colorDream@,ascii
+###____
+##(####)_
+#(#######)
+##‾‾‾‾‾‾‾
+#
+asciiend
+  :?cloudstate = 5
+    >`@x@,@y@,@color@,ascii
+####__
+###(c')_
+  (#^#,#)        
+###‾‾‾‾‾
+# 
+asciiend
+    >`@x@,@y@,@colorDream@,ascii
+####__
+###(##)_
+##(#####)
+###‾‾‾‾‾
+#
+asciiend
+  :?cloudstate = 6
+    >`@x@,@y@,@color@,ascii
+####_
+###(c)_
+  (#^#,)        
+###‾‾‾‾
+# 
+asciiend
+    >`@x@,@y@,@colorDream@,ascii
+####_
+###(#)_
+##(####)
+###‾‾‾‾
+#
+asciiend
+  :?cloudstate = 7
+    >`@x@,@y@,@color@,ascii
+#
+####()_
+   (#^#)        
+####‾‾‾
+# 
+asciiend
+    >`@x@,@y@,@colorDream@,ascii
+#
+####()_
+###(###)
+####‾‾‾
+#
+asciiend
+  :?cloudstate = 8
+    >`@x@,@y@,@colorDream@,ascii
+#
+####o_
+   (##)        
+####‾‾
+#
+asciiend
+  :?cloudstate = 9
+    >`@x@,@y@,@colorDream@,ascii
+#
+#
+####8o
+#
+#
+asciiend
+  :?cloudstate = 10 | cloudstate = 21
+    >`@x@,@y@,@color@,ascii
+#
+#
+####.
+#
+# 
+asciiend
+  :?cloudstate = 11 | cloudstate = 20
+    >`@x@,@y@,@color@,ascii
+#
+#
+####+
+#
+# 
+asciiend
+  :?cloudstate = 12 | cloudstate = 19
+    >`@x@,@y@,@color@,ascii
+#
+####,
+###-+-
+####'
+# 
+asciiend
+  :?cloudstate = 13 | cloudstate = 18
+    >`@x@,@y@,@color@,ascii
+#
+####|
+###─+─
+####|
+#
+asciiend
+  :?cloudstate = 14 | cloudstate = 17
+    >`@x@,@y@,@color@,ascii
+####,
+####│
+##-─ ─-
+####│
+####'
+asciiend
+  :?cloudstate = 15
+    >`@x@,@y@,@color@,ascii
+####|
+####'
+##─   ─
+####,
+####|
+asciiend
+
+func DrawClouds(x, y, w, color)
+  >`@x@,@y@,@color@,─  - ── 
+  >`@x+w@,@y@,@color@,─  - ── 
+
+func DrawSleeper(x, y, color)
+  >`@x@,@y@,@color@,ascii
+_.,-,O
+#‾##´
+asciiend
+
+func DrawZs(zx, zy, color)
+  ?!zzz
+    return
+  
+  ?zstate = 0
+    >`@zx@,@zy@,@color@,ascii
+#
+#
+#
+#
+.
+asciiend
+  :?zstate = 1
+    >`@zx@,@zy@,@color@,ascii
+#
+#
+#
+#z
+asciiend
+  :?zstate = 2
+    >`@zx@,@zy@,@color@,ascii
+#
+#
+##z
+asciiend
+  :
+    >`@zx@,@zy@,@color@,ascii
+###Z
+asciiend
+
+func DrawFire(x,y)
+  var xt = x+2
+  var xb = x+1
+  var yb = y+1
+  
+  // update timers
+  fTick++
+  fTick = fTick % 5
+  sTick++
+  sTick = sTick % (10 * (rng%2 + 1))
+  LTick++
+  LTick = LTick % (5 * (rng%2 + 1))
+  
+  // on fire tick, advance fire animations and smoke
+  ?fTick = 0
+    fFireT++
+    fFireT = fFireT % 4
+    fFireB++
+    fFireB = fFireB % 6
+  
+  // on light tick, flicker lit surfaces
+  //?LTick = 0
+  //  illuminated = !illuminated
+  
+  // draw rocks
+  ?illuminated
+    >`@x@,@y@,@colorRockLit@,ascii
+#.##•
+O####o
+#o##O
+asciiend
+  :
+    >`@x@,@y@,@colorRock@,ascii
+#####
+.####.
+#O##o
+asciiend
+  
+  // draw flame
+  ?fFireT = 0
+    >`@xt@,@y@,#white,ascii
+(`
+asciiend
+  :?fFireT = 1
+    >`@xt@,@y@,#white,ascii
+(,
+asciiend
+  :?fFireT = 2
+    >`@xt@,@y@,#white,ascii
+,)
+asciiend
+  :?fFireT = 3
+    >`@xt@,@y@,#white,ascii
+´)
+asciiend
+
+  ?fFireB = 0
+    >`@xb@,@yb@,#white,ascii
+#',)
+asciiend
+  :?fFireB = 1
+    >`@xb@,@yb@,#white,ascii
+#`.)
+asciiend
+  :?fFireB = 2
+    >`@xb@,@yb@,#white,ascii
+(` #
+asciiend
+  :?fFireB = 3
+    >`@xb@,@yb@,#white,ascii
+#,')
+asciiend
+  :?fFireB = 4
+    >`@xb@,@yb@,#white,ascii
+(.´#
+asciiend
+  :?fFireB = 5
+    >`@xb@,@yb@,#white,ascii
+( ´#
+asciiend

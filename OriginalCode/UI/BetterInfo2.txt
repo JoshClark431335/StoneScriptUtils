@@ -1,0 +1,218 @@
+/*
+BetterInfo2
+v3.2.2
+by:
+- Bl
+- Agerak
+- MaxMinMedian(ZCGV)
+with testing assistance from MindStoneThief
+
+A setup to give you more info about the enemies
+with out having to resort to the Sight Stone or research.
+
+Usage:
+import UI/BetterInfo2
+
+- v1.0 Initial release
+- v1.1 Added debuff data display
+- v2.0 Added support for additional localizations
+- v2.1 Fixed issue with non-roman languages sharing border layer
+- v2.2 Fixed issue with code latency on certain platforms due to previous fix
+- v2.3 Added localization of Hitpoints, Armor, Weakness and Range
+- v3.0 Rewritten for mobile optimization.
+       Debuffs are now indicated in green.
+       You can change it back easily by setting color to #ff0000.
+       BI2 panel now doubles as a pause button.
+- v3.1 Re-added support for localization.
+- v3.1.1 Bugfixes
+- v3.1.2 Removed use of array literal
+- v3.2 More optimizations
+- v3.2.1 Fixed duplicate display bug
+- v3.2.2 Fixed bug when encountering Haunted Halls miniboss (Thanks Ket!)
+*/
+
+var foe_
+var foe_name
+var lastfoe
+var fbs
+var fds
+var fd
+var foehp
+var foemaxhp
+var foearmor
+var infoPnl
+var pauseBtn
+var desc1 = ""
+var desc2 = ""
+var buffsAndStats
+var txtDesc1
+var txtBuffsStats
+var txtDesc2
+var width
+var height
+var teWK = te.xt("Weakness")
+var teARM = te.xt("Armor") + ": "
+var teHP = te.xt("Hitpoints") + ": "
+var teRNG = te.xt("Range") + ": "
+var teBUFF = te.xt("Buffs") + ": "
+var teDBFF = te.xt("Debuffs") + ": "
+var isEN = (te.language = "EN")
+var elemArray = [["Vigor", " ∞"],
+                 ["AEther", " ❤"],
+                 ["Fire", " *"],
+                 ["Ice", " φ"],
+                 ["Poison", " ❄"]]
+
+////////////////////////////////////////////////
+
+?totaltime = 1
+  setupInfoPnl()
+  disable pause
+?update()
+  display()
+
+////////////////////////////////////////////////
+
+func update()
+  foe_ = foe
+  ?foe_ ! lastfoe | lastfoe ! foe_
+    lastfoe = foe_
+    foe_name = te.ToEnglish(foe.name)
+    infoPnl.visible = !!foe_
+    ?!foe_
+      enable pause
+      return false
+    :
+      disable pause
+      updateFoeDescription()
+  lastfoe = foe_
+  fbs = foe.buffs.string
+  fds = foe.debuffs.string
+  fd = foe.distance
+  foehp = foe.hp
+  foemaxhp = foe.maxhp
+  foearmor = foe.armor
+  updateFoeStats()
+  return true
+
+func updateFoeDescription()
+  desc1 = te.xt(foe_name) + "\n" + teWK
+  for elem : elemArray
+    ?foe_ ! elem[0]
+      desc1 += "[color=#505050]"
+             ^+ elem[1] + "[/color]"
+    :
+      desc1 += elem[1]
+
+  ?foe_ = foe_name
+    var arr = string.Split(foe_, foe_name)
+  :
+    var arr = string.Split(foe_, te.GetTID(foe.name))
+  desc2 = ""
+  ?arr.Count()
+    ?isEN
+      desc2 = string.Join(" ",
+         ^string.Split(arr[1],
+         ^"Poison", "Vigor", "AEther", 
+         ^"Fire", "Ice", " ", true))
+    :
+      var propsArr = string.Split(
+         ^arr[1],
+         ^"Poison", "Vigor", "AEther", 
+         ^"Fire", "Ice", " ", true)
+      ?propsArr.Count()
+        for i = 0 .. propsArr.Count()-1
+          propsArr[i] = te.xt(propsArr[i])
+        desc2 = string.Join(" ", propsArr)
+
+func updateFoeStats()
+  var stats = ""
+  buffsAndStats = ""
+  height = 4
+  width = 0
+  ?fbs
+    var buffs = formatBuffs(fbs)
+    width = string.Size(buffs)+7
+    buffsAndStats = teBUFF + cTxt(buffs, 
+                    ^"#ff0000") + "\n"
+    height++
+  ?fds
+    var debuffs = formatBuffs(fds)
+    width = max(width, string.Size(debuffs)+9)
+    buffsAndStats += teDBFF +
+                    ^cTxt(debuffs, "#00ff00") + "\n"
+    height++
+  stats = teARM + foearmor + " " + teHP + foehp + "/" +
+          ^foemaxhp + " " + teRNG + fd
+  width = max(width, string.Size(stats))
+  buffsAndStats += stats
+  var sizeDesc2 = string.Size(desc2)
+  ?!sizeDesc2
+    height--
+  :?sizeDesc2 > width
+    txtDesc2.h = 2
+    height++
+  :
+    txtDesc2.h = 1
+
+func formatBuffs(str)
+  var ret = ""
+  for dbf : string.Split(str, ",")
+    var dbr = string.Split(dbf, ":")
+      ?ret
+        ret += " "
+      ret += dbr[2] + dbr[0] + " " + dbr[3]
+  return ret
+
+func cTxt(txt, color)
+  return "[color=" + color + "]" + txt + "[/color]"
+
+func max(a, b)
+  ?a >= b
+    return a
+  :
+    return b
+
+func display()
+  txtDesc1.w = width
+  txtDesc1.text = desc1
+  txtDesc2.w = width
+  txtDesc2.text = desc2
+  txtBuffsStats.w = width
+  txtBuffsStats.text = buffsAndStats
+  infoPnl.w = width + 4
+  infoPnl.h = height + 2
+  pauseBtn.w = width + 4
+  pauseBtn.h = height + 2
+
+func setupInfoPnl()
+  infoPnl = ui.AddPanel()
+  infoPnl.dock = "bottom_right"
+  infoPnl.anchor = "bottom_right"
+  infoPnl.style = -3
+  txtDesc1 = ui.AddText()
+  infoPnl.Add(txtDesc1)
+  txtDesc1.h = 2
+  txtDesc1.x = 2
+  txtDesc1.y = 1
+  txtDesc1.dock = "top_left"
+  txtDesc1.anchor = "top_left"
+  txtBuffsStats = ui.AddText()
+  infoPnl.Add(txtBuffsStats)
+  txtBuffsStats.x = 2
+  txtBuffsStats.y = 3
+  txtBuffsStats.dock = "top_left"
+  txtBuffsStats.anchor = "top_left"
+  txtDesc2 = ui.AddText()
+  infoPnl.Add(txtDesc2)
+  txtDesc2.x = 2
+  txtDesc2.y = -1
+  txtDesc2.dock = "bottom_left"
+  txtDesc2.anchor = "bottom_left"
+  pauseBtn = ui.AddButton()
+  infoPnl.Add(pauseBtn)
+  pauseBtn.style = -3
+  pauseBtn.text = ""
+  pauseBtn.SetPressed(loc.Pause)
+
+

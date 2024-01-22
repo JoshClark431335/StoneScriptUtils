@@ -1,0 +1,230 @@
+﻿// A Crown for Pallas, version 0.7
+// by Fyda
+// with thanks to raeborga and Ofek for many helpful suggestions
+
+var inStageTwo = 0
+
+var leftBooo
+var rightBooo
+var leftBoooSweat
+var rightBoooSweat
+var currentModulo
+var leftSways = 0
+var rightSways = 0
+var crownFalling = 0
+var crownNoisePlayed = 0
+
+var leftBoooX = -3
+var leftBoooY = -4
+var rightBoooX = 16
+var rightBoooY = -4
+
+var leftBoooSweatX = -3
+var leftBoooSweatY = -4
+var rightBoooSweatX = 23
+var rightBoooSweatY = -4
+
+var crownBaseX = 6
+var crownBaseY = -6
+var crownJewelsX = 6
+var crownJewelsY = -4
+var crownLiningX = 6
+var crownLiningY = -3
+
+func ResetBooos()
+ leftBoooY = -22
+ rightBoooY = -22
+ leftBoooSweatY = -22
+ rightBoooSweatY = -22
+ ?leftSways = rightSways
+  leftSways = 0
+  rightSways = 0
+
+func ResetCrown()
+ crownBaseY = -24
+ crownJewelsY = -22
+ crownLiningY = -21
+ crownFalling = 0
+ crownNoisePlayed = 0
+
+var leftBooo1 = ascii
+####.-.
+###(- -) 
+###\ ‾ `-´
+####) /
+####|/
+####'
+asciiend
+
+var leftBooo2 = ascii
+####.-.
+###(> <) 
+###\ ‾ `-´
+####\ /
+####'/
+####!
+asciiend
+
+var rightBooo1 = ascii
+###.-.
+##(- -) 
+`-´ ‾ /
+###\ (
+####\|
+#####'
+asciiend
+
+var rightBooo2 = ascii
+###.-.
+##(> <) 
+`-´ ‾ /
+###\ /
+####\'
+#####!
+asciiend
+
+var leftBoooSweat1 = "°·"
+var leftBoooSweat2 = "`#"
+var leftBoooSweat3 = "#."
+var leftBoooSweat4 = "·´"
+
+var rightBoooSweat1 = "·°"
+var rightBoooSweat2 = "#´"
+var rightBoooSweat3 = ".#"
+var rightBoooSweat4 = ".`"
+
+var crownBase = ascii
+,####†####,
+\\_,/ \,_//
+#\_∞_☼_∞_/
+(…÷…÷…÷…÷…)
+#‾‾‾‾‾‾‾‾‾
+asciiend
+
+var crownJewels = ascii
+###∞#☼#∞
+asciiend
+
+var crownLining = ascii
+(…÷…÷…÷…÷…)
+asciiend
+
+func Descend()
+ ?crownFalling = 0
+  ?currentModulo = 0
+   ?leftBoooY < -5
+    leftBoooY++
+   ?rightBoooY < -5
+    rightBoooY++
+   ?leftBoooSweatY < -5
+    leftBoooSweatY++
+   ?rightBoooSweatY < -5
+    rightBoooSweatY++
+   ?crownBaseY < -7
+    crownBaseY++
+   ?crownJewelsY < -5
+    crownJewelsY++
+   ?crownLiningY < -4
+    crownLiningY++
+ ?crownFalling = 1
+  ?time % 2 = 0
+   ?crownBaseY < 5
+    crownBaseY++
+   ?crownJewelsY < 7
+    crownJewelsY++
+   ?crownLiningY < 8
+    crownLiningY++
+
+func PlayCrownNoise()
+ play perfected_defense
+ crownNoisePlayed = 1
+
+func SwayLeft()
+ leftBoooX--
+ rightBoooX--
+ leftBoooSweatX--
+ rightBoooSweatX--
+ crownBaseX--
+ crownJewelsX--
+ crownLiningX--
+ leftSways++
+
+func SwayRight()
+ leftBoooX++
+ rightBoooX++
+ leftBoooSweatX++
+ rightBoooSweatX++
+ crownBaseX++
+ crownJewelsX++
+ crownLiningX++
+ rightSways++
+ 
+func Sway()
+ ?currentModulo = 0
+  ?crownFalling = 0
+   ?leftSways < rightSways
+    SwayLeft()
+   :
+    SwayRight()
+  
+func DrawBooos()
+ ?time % 8 = 0
+  leftBooo = leftBooo1
+  rightBooo = rightBooo1
+ ?time % 5 = 0
+  leftBooo = leftBooo2
+  rightBooo = rightBooo2
+ >c@leftBoooX@,@leftBoooY@,#5a5a5a,@leftBooo@
+ >c@rightBoooX@,@rightBoooY@,#5a5a5a,@rightBooo@
+
+func DrawSweat()
+ ?currentModulo < 2
+  leftBoooSweat = leftBoooSweat1
+  rightBoooSweat = rightBoooSweat1
+ ?currentModulo > 1 & currentModulo < 5
+  leftBoooSweat = leftBoooSweat2
+  rightBoooSweat = rightBoooSweat2
+ ?currentModulo > 4 & currentModulo < 8
+  leftBoooSweat = leftBoooSweat3
+  rightBoooSweat = rightBoooSweat3
+ ?currentModulo > 7
+  leftBoooSweat = leftBoooSweat4
+  rightBoooSweat = rightBoooSweat4
+ >c@leftBoooSweatX@,@leftBoooSweatY@,#ffffff,@leftBoooSweat@
+ >c@rightBoooSweatX@,@rightBoooSweatY@,#ffffff,@rightBoooSweat@
+ 
+func DrawCrown()
+ >c@crownBaseX@,@crownBaseY@,#ffca00,@crownBase@
+ >c@crownJewelsX@,@crownJewelsY@,#ff0a00,@crownJewels@
+ >c@crownLiningX@,@crownLiningY@,#ffffff,@crownLining@
+
+// start the objects at the top edge of the screen
+// and track whether we've reached Pallas stage 2
+?loc = undead_crypt
+ ?loc.begin
+  ResetBooos()
+  ResetCrown()
+ ?loc.loop
+  ResetBooos()
+  ResetCrown()
+  inStageTwo = 0
+ ?foe = pallas & foe = stage_2
+  inStageTwo = 1
+
+// once we've reached stage 2, activate
+?inStageTwo = 1
+ currentModulo = time % 5
+ ?crownFalling = 0
+  Sway()
+  Descend()
+  DrawBooos()
+  DrawSweat()
+  DrawCrown()
+ ?crownFalling = 1
+  Descend()
+  DrawCrown()
+  ?crownNoisePlayed = 0
+   PlayCrownNoise()
+ ?foe.count = 0
+  ResetBooos()
+  crownFalling = 1

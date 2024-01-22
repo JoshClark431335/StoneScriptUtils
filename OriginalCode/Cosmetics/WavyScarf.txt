@@ -1,0 +1,61 @@
+// Bighead Wavy Scarf animated by electronic
+// Script by Deaymon
+// Edited by Bitty45 for small head compatability
+// v2.2.0
+
+// Instructions:
+// To make it work add "import Cosmetics/WavyScarf" to the Mind Stone
+// Make sure you have Mind stone enabled
+
+// Works with bighead or smallhead. (only updates when entering a level)
+
+// How to change the Color:
+// To change the color, put this into the mind stone
+// and replace #red with the hex code of the color you want: 
+//   var Scarf = import Cosmetics/WavyScarf
+//   Scarf.scarfColor = #red
+//   Scarf.ScarfMain()
+// Examples: #red, #green, #blue, #white, #yellow, #rainbow
+
+var scarfColor = #red
+
+var interval = 3
+var total_sprites = 4
+var total_time = total_sprites * interval
+
+var bigScarfFrame1 = ",-._.-="
+var bigScarfFrame2 = "-._.-.="
+var bigScarfFrame3 = "._.-._="
+var bigScarfFrame4 = "_.-._.="
+var smallScarfFrame1 = "_.."
+var smallScarfFrame2 = ".-."
+var smallScarfFrame3 = "-._"
+var smallScarfFrame4 = "._."
+var _time
+var _bighead = bighead
+
+ScarfMain()
+
+func ScarfMain()
+  _time = time
+  ?_bighead
+    //bighead
+    ?_time % total_time < interval
+      >h-6,1,@scarfColor@,@bigScarfFrame1@
+    :?_time % total_time < interval * 2
+      >h-6,1,@scarfColor@,@bigScarfFrame2@
+    :?_time % total_time < interval * 3
+      >h-6,1,@scarfColor@,@bigScarfFrame3@
+    :?_time % total_time < interval * 4
+      >h-6,1,@scarfColor@,@bigScarfFrame4@
+  :
+    //non-bighead
+    ?_time % total_time < interval
+      >h-4,1,@scarfColor@,@smallScarfFrame1@
+    :?_time % total_time < interval * 2
+      >h-4,1,@scarfColor@,@smallScarfFrame2@
+    :?_time % total_time < interval * 3
+      >h-4,1,@scarfColor@,@smallScarfFrame3@
+    :?_time % total_time < interval * 4
+      >h-4,1,@scarfColor@,@smallScarfFrame4@
+  

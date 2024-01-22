@@ -1,0 +1,195 @@
+//*******************************
+// File Info
+//*******************************
+// Mobile Mindstone Button
+// Version: 1.2
+//
+// 1.1: Updated to use new 
+//      ui.OpenMind() function.
+//      Updated Location check to
+//      account for quests. 
+//
+// 1.2: Removed quotes around 
+//      battle level names. 
+//      Don't seem to work 
+//      with imported files.
+//
+// Description:
+// Adds a button, similar to
+// other item buttons in-game,
+// that allows a mobile user to
+// open the mindstone mid-run by
+// tapping the button.
+//
+// Designed and verified on
+// SSRPG v3.48.1
+//
+// Authors:
+// Created by Sven#0599
+//
+// Instructions:
+// Copy entire file to Mindstone.
+// Edit User Configurable
+// Variables (below) as desired.
+//
+// Enjoy!
+//
+//*******************************
+
+//*******************************
+// User configurable variables 
+//*******************************
+
+// Button location parameters
+var buttonanchor = top_left
+var buttondock = top_left
+var buttonx = 1
+var buttony = 6
+
+// Type of level to display 
+// mindstone button on. See
+// LocationType() function for
+// more information.
+var leveltype = 1
+
+//*******************************
+// Global Variables
+//*******************************
+
+var mindartsml = ascii
+,TT,
+|░░|
+`——´
+asciiend
+
+//*******************************
+// Repeating Calls
+//*******************************
+
+// Draws Mindstone button if
+// location is desired level type
+?LocationType() = leveltype
+  DrawMindstoneButton(1)
+
+//*******************************
+// Functions
+//*******************************
+
+//*******************************
+// DrawMindstoneButton(valid)
+//
+// Draws Mindstone button as a
+// parent panel holding the ascii
+// art and interactive button
+//
+// valid > 0: Draws button
+//
+// valid <= 0: Won't draw button
+//
+//*******************************
+func DrawMindstoneButton(valid)
+  ?valid = 1 &
+  ^loc.begin | loc.loop
+  
+    var p = ui.AddPanel()
+    p.anchor = buttonanchor
+    p.dock = buttondock
+    p.color = #888888
+    p.style = 1
+    p.w = 8
+    p.h = 5
+    p.x = buttonx
+    p.y = buttony
+
+    var b = ui.AddButton()
+    b.anchor = center_center
+    b.dock = center_center
+    b.style = 1
+    b.text = “”
+    b.w = 8
+    b.h = 5
+    b.SetPressed(BtnPressed)
+    p.Add(b)
+    
+    var a = ui.AddAnim(mindartsml)
+    a.anchor = center_center
+    a.dock = center_center
+    a.color = #white
+    p.Add(a)
+
+//*******************************
+// BtnPressed()
+//
+// Intermediary function to
+// properly call Mindstone
+// function
+//*******************************
+func BtnPressed()
+  ui.OpenMind()
+
+
+//*******************************
+// LocationType()
+//
+// Checks what location is and
+// returns a value accordingly
+//
+// Return = 1: Battle level
+// e.g. Caves
+//
+// Return = 2: Battle level 
+//             & Quest
+//
+// Return = -1: Story level
+// e.g. Shops
+//
+// Return = -2: Story level
+//              & Quest
+//
+// Return = 0: Nonexistent level
+// at time of writing function
+//
+//*******************************
+func LocationType()
+  var lvl = loc
+
+  // Checks story levels first to
+  // avoid confusing undead_crypt
+  // and undead_crypt_intro.
+  // Commented out lines are
+  // levels that don't run
+  // scripts so their names are
+  // unknown and don't matter
+  // anyways but included for
+  //reference.
+
+  ?lvl = waterfall            | 
+  //^lvl = mushroom_shop      |
+  ^lvl = uulaa_shop           | 
+  ^lvl = undead_crypt_intro   | 
+  ^lvl = cross_deadwood_river | 
+  //^lvl = bronze_gate        | 
+  ^lvl = cross_bridge
+    ?loc.isquest
+      return -2
+    :
+      return -1
+
+  ?lvl = rocky_plateau  | 
+  ^lvl = eadwood_valley |
+  ^lvl = austic_caves   | 
+  ^lvl = ungus_forest   | 
+  ^lvl = undead_crypt   | 
+  ^lvl = bronze_mine    | 
+  ^lvl = icy_ridge      | 
+  ^lvl = temple
+    ?loc.isquest
+      return 2
+    :
+      return 1
+
+  return 0
+
+//*******************************
+// End of File
+//*******************************

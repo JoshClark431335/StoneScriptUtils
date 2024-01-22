@@ -1,0 +1,223 @@
+//DigitsPuzzle/DigitsPuzzleMain
+//Version: v1.0
+//Author: Okamiroy
+
+var shouldHideBG = true
+?shouldHideBG
+  draw.Clear()
+
+?key = ability1Begin
+  ?shouldHideBG
+    shouldHideBG = false
+  :
+    shouldHideBG = true
+
+var gameCore = new Games/DigitsPuzzle/DigitsPuzzleCore
+
+var selectedIndex = 0
+var maxIndex = 1
+var initSuccess = true
+
+//0: Title, 1: GameInit, 2: Gameplay, 3: Win, 4: AfterWin
+var GameStep = 0
+
+?GameStep = 0
+  ShowTitleScreen()
+  ShowTipsForTitleScreen()
+  MonitorKeysForTitleScreen()
+
+  ?!initSuccess
+    >`0,0,#white,Wrong Custome Puzzle Code!!!
+
+?GameStep = 1
+  GameInitialize()
+
+?GameStep = 2
+  DrawTheGame()
+  ShowTipsForGamePlay()
+  MonitorKeysForGamePlay()
+
+  ?gameCore.JudgeToWin()
+    GameStep = 3
+
+?GameStep = 3
+  DrawTheGame()
+  ShowWin()
+  MonitorKeysForWin()
+
+?GameStep = 4
+  DrawTheGame()
+  ShowTipsForAfterWin()
+  MonitorKeysForAfterWin()
+
+func ShowTitleScreen()
+  var titleWidth = 59
+  var titleHeight = 13
+  var titleString = ascii
+DDDDDD#####IIIIII#####GGGGGG###IIIIII###TTTTTTTT####SSSSSS
+DD####DD#####II#####GG###########II########TT#####SS######
+DD####DD#####II#####GG##GGGG#####II########TT#######SSSS##
+DD####DD#####II#####GG####GG#####II########TT###########SS
+DDDDDD#####IIIIII#####GGGGGG###IIIIII######TT#####SSSSSS##
+
+PPPPPP####UU####UU##ZZZZZZZZ##ZZZZZZZZ##LL########EEEEEEEE
+PP####PP##UU####UU#######ZZ########ZZ###LL########EE######
+PPPPPP	##UU####UU#####ZZ########ZZ#####LL########EEEEEEEE
+PP########UU####UU###ZZ########ZZ#######LL########EE######
+PP##########UUUU####ZZZZZZZZ##ZZZZZZZZ##LLLLLLLL##EEEEEEEE
+
+#########################################Coded By Okamiroy
+asciiend
+
+  var titlePosX = 0
+  titlePosX = (screen.w - titleWidth) / 2
+  ?titlePosX < 0
+    titlePosX = 0
+  var titlePosY = 0
+  titlePosY = (screen.h - titleHeight - 7) / 2
+  ?titlePosY < 0
+    titlePosY = 0
+
+  >`@titlePosX@,@titlePosY@,#white,@titleString@
+
+  var optionA = "Play Random 4*4"
+  var optionAX = titlePosX + 22
+  var optionAY = titlePosY + titleHeight + 3
+  
+  var optionB = "Play Custom 4*4"
+  var optionBX = optionAX
+  var optionBY = optionAY + 1
+
+  ?selectedIndex = 0
+    PrintOption(optionAX, optionAY, optionA, true)
+    PrintOption(optionBX, optionBY, optionB, false)
+  :
+    PrintOption(optionAX, optionAY, optionA, false)
+    PrintOption(optionBX, optionBY, optionB, true)
+
+func PrintOption(posX, posY, optionString, isSelected)
+  ?isSelected
+    var arrowMarkPosX = posX - 2
+    var arrowMarkPosY = posY
+    >`@posX@,@posY@,#rainFF,@optionString@
+    >`@arrowMarkPosX@,@arrowMarkPosY@,#white,▶
+  :
+    >`@posX@,@posY@,#white,@optionString@
+
+func ShowTipsForTitleScreen()
+  var tips = ascii
+   ↑↓: Select
+    Z: Confirm
+SHIFT: Show/Hide BG
+asciiend
+  var tipsHeight = 3
+  var tipsPosY = screen.h - tipsHeight
+  >`0,@tipsPosY@,#white,@tips@
+
+func MonitorKeysForTitleScreen()
+  ?key = upBegin
+    ?selectedIndex > 0
+      selectedIndex--
+  :?key = downBegin
+    ?selectedIndex < maxIndex
+      selectedIndex++
+  :?key = bumpLBegin
+    ?maxIndex >= 0
+      GameStep = 1
+
+func GameInitialize()
+  ?selectedIndex = 0
+    initSuccess = gameCore.InitGame(false)
+  :
+    initSuccess = gameCore.InitGame(true)
+
+  ?initSuccess
+    GameStep = 2
+  :
+    GameStep = 0
+
+func DrawTheGame()
+  gameCore.ShowGame()
+
+func ShowTipsForGamePlay()
+  var tips = ascii
+ ↑↓←→: Move
+    X: Retry
+    C: Back To Title
+SHIFT: Show/Hide BG
+asciiend
+  var tipsHeight = 4
+  var tipsPosY = screen.h - tipsHeight
+  >`0,@tipsPosY@,#white,@tips@
+
+  >`1,1,#white,Move all the digits in ascending order, left to right, top to bottom. 
+  >`1,2,#white,Digits at correct position should be in ####### color.
+  >`41,2,#rainFF,RAINBOW
+
+func MonitorKeysForGamePlay()
+  ?key = begin
+    ?key = upBegin
+      gameCore.MoveUp()
+    :?key = rightBegin
+      gameCore.MoveRight()
+    :?key = downBegin
+      gameCore.MoveDown()
+    :?key = leftBegin
+      gameCore.MoveLeft()
+    :?key = backBegin
+      gameCore.ResetGame()
+    :?key = bumpRBegin
+      GameStep = 0
+
+func ShowWin()
+  var message = ascii
+                                                         
+                    Conguatulations!                     
+                                                         
+If you want to create your own puzzle, please check the  
+file "CustomPuzzle.txt" in "\Games\DigitsPuzzle\" folder.
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                Press Z to go back to game.              
+                                                         
+asciiend
+  var messageWidth = 58
+  var messageHeight = 12
+  var messagePosX = 0
+  var messagePosY = 0
+  var windowWidth = messageWidth + 2
+  var windowHeight = messageHeight + 2
+  var windowPosX = 0
+  var windowPosY = 0
+
+  messagePosX = (screen.w - messageWidth) / 2
+  messagePosY = (screen.h - messageHeight) / 2
+  windowPosX = messagePosX - 1
+  windowPosY = messagePosY - 1
+
+  >`@messagePosX@,@messagePosY@,#white,@message@
+  draw.Box(windowPosX, windowPosY, windowWidth, windowHeight, white, 2)
+
+func MonitorKeysForWin()
+  ?key = bumpLBegin
+    GameStep = 4
+
+func ShowTipsForAfterWin()
+  var tips = ascii
+    X: Retry
+    C: Back To Title
+SHIFT: Show/Hide BG
+asciiend
+  var tipsHeight = 3
+  var tipsPosY = screen.h - tipsHeight
+  >`0,@tipsPosY@,#white,@tips@
+
+func MonitorKeysForAfterWin()
+  ?key = backBegin
+    gameCore.ResetGame()
+    GameStep = 2
+  :?key = bumpRBegin
+    GameStep = 0

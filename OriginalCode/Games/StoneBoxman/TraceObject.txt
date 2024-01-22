@@ -1,0 +1,20 @@
+//StoneBoxMan - Games/TraceObject
+//Version: v1.0
+//Author: Okamiroy
+
+// Object to trace player's steps.
+
+var PlayerOldPosX = 0
+var PlayerOldPosY = 0
+var PlayerOldDirection = 0
+var PlayerNewPosX = 0
+var PlayerNewPosY = 0
+var PlayerNewDirection = 0
+
+var Box = null
+var BoxOldPosX = 0
+var BoxOldPosY = 0
+var BoxOldStatus = 0
+var BoxNewPosX = 0
+var BoxNewPosY = 0
+var BoxNewStatus = 0

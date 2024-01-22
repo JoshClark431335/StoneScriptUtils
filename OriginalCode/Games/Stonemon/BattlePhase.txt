@@ -1,0 +1,327 @@
+//Change Log
+//V1.3.0
+//changed to TAB Spacings
+//
+//V1.2.0
+//
+//V1.1.1
+//
+//V1.1.0
+//
+//DarkLucifer69
+//Stonemon
+//Version V1.0
+
+var art = import Games\Stonemon\Art
+
+var playerStatsOpen = false
+var foeStatsOpen = false
+
+var currentWindow = "Battle"
+var cursor = 0
+var cursorLast = 0
+var cursorGray = false
+var delay = 0
+var turn = "Player"
+var lastDamage = 0
+var round = 1
+var envy = 0
+
+var itemCount = 1
+var killCount = 0
+
+var skipTurn = false
+
+//test stuff
+var a = -1
+var b = -1
+var c = -1
+
+func Restart(character, enemy)
+	character.GenerateCreature("Starter")
+	enemy.GenerateCreature("scarab")
+	itemCount = 1
+	cursor = 0
+	delay = 0
+	round = 1
+	killCount = 0
+
+	turn = "Player"
+
+func EmpowerCreature(index, creature)
+	var startVal = 0
+	var newVal = 0
+	
+	?index = 0
+		startVal = creature.Max_HP
+		newVal = RamdomEmpower(creature.Max_HP, 1, creature.MaxHPGrowth, creature.Quality)
+		creature.Max_HP = newVal
+		creature.CurrentHP = creature.CurrentHP + (newVal - startVal)
+		
+	:?index = 1
+		startVal = creature.Max_MP
+		newVal = RamdomEmpower(creature.Max_MP, 1, creature.MaxMPGrowth, creature.Quality)
+		creature.Max_MP = newVal
+		creature.CurrentMP = creature.CurrentMP + (newVal - startVal)
+		
+	:?index = 2
+		creature.SkillCost = RamdomEmpower(creature.SkillCost, -4, creature.SkillCostMinimum, creature.Quality)
+		
+	:?index = 3
+		creature.Damage = RamdomEmpower(creature.Damage, 5, creature.DamageGrowth, creature.Quality)
+	envy--
+			
+	?envy
+		?creature.Max_HP = creature.MaxHPGrowth &
+		^creature.Max_MP = creature.MaxMPGrowth & 
+		^creature.SkillCost = creature.SkillCostMinimum &
+		^creature.Damage = creature.DamageGrowth
+			creature.MaxHPGrowth = creature.MaxHPGrowth * 2
+			creature.MaxMPGrowth = creature.MaxMPGrowth * 2
+			creature.SkillCostMinimum = creature.SkillCostMinimum / 2
+			creature.DamageGrowth = creature.DamageGrowth * 2
+
+func RamdomEmpower(value, statValue, limit, Quality)
+	var rngVal = rng
+	var startVal = value
+	?value < limit
+		value = value + (rngVal % (limit/10))
+		?value-startVal = 0
+			value++
+		value = math.Clamp(value, 0, limit)  
+	:?value > limit
+		value = value - (rngVal % ((limit*2)/10))
+		?value-startVal = 0
+			value--
+		value = math.Clamp(value, limit, 999)
+		
+	Quality = Quality + ((value-startVal)*statValue)
+	
+	return value
+			
+func SkillHandeler(source, target)
+	var skillDam = source.Damage + source.DamageMod
+	var skill = source.SkillName
+
+	var ignoreDefense = false
+	
+	?skill = "Vent Jealously"
+		skillDam = skillDam * 2
+	:?skill = "Reckless Charge"
+		skillDam = skillDam + (skillDam / 2)
+		?rng % 3 = 0
+			source.CurrentHP = source.CurrentHP - (source.Max_HP / 10)
+	:?skill = "Mean Branches"
+		skillDam = skillDam * 3
+	:?skill = "Sate Craving"
+		skillDam = skillDam * 2
+	:?skill = "Annoyance Rising"
+		skillDam = 0
+		source.DamageMod = source.DamageMod + (source.Damage / 4)
+	:?skill = "Slimy Touch"
+		skillDam = skillDam + (skillDam / 2)
+	:?skill = "Alpha Punch"
+		skillDam = skillDam * 5 / 2
+	:?skill = "Entropy Slam"
+		skillDam = skillDam + (skillDam / 2)
+		target.CurrentMP = target.CurrentMP - RandomRangeFrom(skillDam)
+	:?skill = "BF Sword"
+		source.CurrentMP = source.CurrentMP - RandomRangeFrom(skillDam)
+		skillDam = skillDam * 2
+		target.CurrentMP = target.CurrentMP - RandomRangeFrom(skillDam)
+	:?skill = "Sadistic Glee"
+		skillDam = skillDam - (skillDam / 5)
+	:?skill = "Expensive Hammer"
+		source.Pay2Win++
+		?source.Pay2Win = 1
+			skillDam = 100
+		:?source.Pay2Win = 2
+			skillDam = 175
+		:
+			skillDam = 999
+		ignoreDefense = true
+	:?skill = "Kamehame-Sneeze"
+		?rng % 10 = 0
+			skipTurn = true
+	:?skill = "SnowBall o'Matic"
+		?rng % 4 = 0
+			skipTurn = true
+	:?skill = "Spooky Lantern"
+		source.DamageMod = source.DamageMod + (source.Damage / 10)
+	:?skill = "Swallow"
+		?source.Pay2Win = source.CurrentHP
+			skillDam = 999
+		:
+			source.Pay2Win = source.CurrentHP
+		ignoreDefense = true
+	:?skill = "Javelin Prod"
+		skillDam = skillDam * 5 / 2
+	:?skill = "Raw Power"
+		skillDam = skillDam * 7 / 2
+	:?skill = "Elemental Lotto"
+		skillDam = skillDam * 2
+		?rng % 5 = 0
+			target.DamageMod = target.DamageMod - 5
+			/*
+		:?
+			source.DamageMod = source.DamageMod + (source.Damage / 10)
+		:?
+			?turn = "Foe"
+				turn = "Player"
+			:?turn = "Player"
+				turn = "Foe"
+		:?
+			target.CurrentMP = target.CurrentMP - RandomRangeFrom(skillDam)
+			*/
+		:
+			source.Pay2Win++
+	:?skill = "Perfection"
+		skillDam = 0
+		target.CurrentHP = target.CurrentHP - (target.Max_HP / 3)
+	:
+		skillDam = skillDam + (skillDam / 2)
+	
+	DealDamage(skillDam, target, ignoreDefense)
+	
+	source.CurrentMP = source.CurrentMP - source.SkillCost
+	return
+
+func RandomRangeFrom(dam)
+	dam = dam + ((rng % ((dam / 5) + 1)) - (dam / 10))
+	return dam
+	
+func DealDamage(dam, target, ignoreDefense)
+	?target.Defending & !ignoreDefense
+		dam = dam / 4
+	dam = RandomRangeFrom(dam)
+	
+	target.CurrentHP = target.CurrentHP - dam
+	
+	lastDamage = dam
+	return
+	
+func ItemHandler(source)
+	var heal = source.RandomVeriance(source.Max_HP - (source.Max_HP / 4), 0)
+	heal = math.Clamp(heal, 0, source.Max_HP - source.CurrentHP)
+	
+	source.CurrentHP = source.CurrentHP + heal
+	itemCount--
+
+	lastDamage = heal
+	return
+
+func foeTrue(source, target)
+	TurnHandler(randomFoeAction(source), source, target)
+
+func randomFoeAction(source)
+	var index
+	?source.Name = "Bronze Guardian"
+		index = 1
+	:
+		index = rng % 6
+		?index > 0
+			?index < 3
+				index = 1
+			:
+				index = 2
+	?canUseFromBattle(index, source)
+		index = 0
+	return index
+
+func TurnHandler(index, source, target)
+	?index = 0
+		//attack
+		DealDamage(source.Damage + source.DamageMod, target, false)
+		
+	:?index = 1
+		//skills
+		SkillHandeler(source, target)
+	
+	:?index = 2 
+		//defend
+		source.Defending = true
+		source.DefendingCD = 2
+	
+	:?index = 3
+		//item
+		ItemHandler(source)
+
+func turnStart(source)
+	source.Defending = false
+	source.DefendingCD--
+	source.Regenerate()
+
+func turnEnd()
+	?!skipTurn
+		?turn = "Player"
+			turn = "Foe"
+		:
+			turn = "Player"
+	skipTurn = false
+
+func RoundControl(character, enemy)
+	character.DamageMod = 0
+	killCount++
+	round++
+	turn = "Player"
+
+	?round ! 25 | round ! 26
+		envy++
+	?round % 3 = 1 & round ! 1 & round ! 25
+		itemCount++
+		envy++
+	?round = 10
+		character.RegenHP = true
+		
+	?round = 1 | round = 2
+		enemy.GenerateCreature("Scarab")
+	:?round = 3
+		enemy.GenerateCreature("Xyloalgia")
+	:?round = 4 | round = 5
+		enemy.GenerateCreature("Knee Chopper")
+	:?round = 6
+		enemy.GenerateCreature("Bolesh")
+	:?round = 7 | round = 8
+		enemy.GenerateCreature("Big A** Snail")
+	:?round = 9
+		enemy.GenerateCreature("Angry Shroom")
+	:?round = 10 | round = 11
+		enemy.GenerateCreature("Skeletony")
+	:?round = 12
+		enemy.GenerateCreature("Pallas")
+	:?round = 13 | round = 14
+		enemy.GenerateCreature("Dominotaur")
+	:?round = 15
+		enemy.GenerateCreature("Bronze Guardian")
+	:?round = 16 | round = 17
+		enemy.GenerateCreature("Giant Ice Elemental")
+	:?round = 18
+		enemy.GenerateCreature("Hrimnir")
+	:?round = 19 | round = 20
+		enemy.GenerateCreature("Acronian Cultist")
+	:?round = 21
+		enemy.GenerateCreature("Nagaraja")
+	:?round = 22 | round = 23
+		enemy.GenerateCreature("Acronian Scout")
+	:?round = 24
+		enemy.GenerateCreature("Dysangelos Has Stones")
+	:?round = 25
+		enemy.GenerateCreature("Dysangelos Elemental")
+	:?round = 26
+		enemy.GenerateCreature("Dysangelos Perfected")
+	:
+		enemy.GenerateCreature("")
+		enemy.DamageMod = round
+
+
+func canUseFromEmpower(index, source)
+	return index = 0 & source.Max_HP ! source.MaxHPGrowth |
+	^index = 1 & source.Max_MP ! source.MaxMPGrowth |
+	^index = 2 & source.SkillCost ! source.SkillCostMinimum |
+	^index = 3 & source.Damage ! source.DamageGrowth
+
+func canUseFromBattle(index, source)
+	return index = 0 |
+	^index = 1 & source.CurrentMP >= source.SkillCost |
+	^index = 2 & source.DefendingCD <= 0 |
+	^index = 3 & itemCount > 0

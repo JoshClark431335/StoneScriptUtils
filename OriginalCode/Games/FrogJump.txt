@@ -1,0 +1,1437 @@
+/*
+FrogJump by Mind Stone Thief
+v0.99.1
+put into the game folder then: import Games/FrogJump
+eagle art by Mind Stone Thief and standardcombo
+*/
+ui.root.visible = true
+ui.root.style = 0
+
+var LotuAry = [0,1,1,1,1,1,1,1]
+var CoinAry = [0,0,1,1,1,1,1,1]
+var LOGO
+var River
+var edge
+var LilyPod0
+var LilyPod1
+var LilyPod2
+var LilyPod3
+var LilyPod4
+var LilyPod5
+var LilyPod6
+var LilyPod7
+var Coin0
+var Coin1
+var Coin2
+var Coin3
+var Coin4
+var Coin5
+var Coin6
+var Coin7
+var CurrentCoin
+var TotalCoin
+var CurrentScore
+var HighScore
+var Startbutton
+var Modebutton
+var Easybutton
+var Hardbutton
+var Mainmenubutton
+var GAMEOVER
+var eagle
+var transtyle
+var Frog
+var FrogJump
+var FrogEye
+var JumpArrow
+var croakonce = 0
+var startpos = 1
+var flytime = 0
+var staytime = 0
+var frogtime = -1
+var starttime = 0
+var presstime = -1
+var tranphase = 12.0
+var rngLD = 0
+var EmAry = [0,0,0,0,0,0]
+var CoinSubAry = [0,0,0,0,0,0]
+var CoinNO = 0
+var totalCoinNO = storage.Get("totalcoins", 0)
+var modename = "Easy"
+var score = 0
+var hscore = storage.Get("eahighscore", 0)
+var EAhighscore = storage.Get("eahighscore", 0)
+var HDhighscore = storage.Get("hdhighscore", 0)
+
+?loc.begin
+	ambient.Stop()
+	rngLD = rng % 64
+	for i = 0..5
+		?(rngLD + i) % 3 = 0
+			CoinAry[i+2] = 1
+		:
+			CoinAry[i+2] = 0
+
+	LOGO = ui.AddAnim(ascii
+    __
+   / _)              _          _
+ _/ /_ _ __  ___   _( )       _( )_   _  _ _  _ __
+|_   _| '__|/ _ \ / _ \      |_  | | | |'_'_'| '_ \
+  | | | |  | (_) | |_) |    _  | | |_| || | || |_) |
+  | | |_|   \___/ \__. |   | | | |\___/|| | || .__/
+  |_|              __/ /   | \_/ |     ‾‾ ‾ ‾| |
+                  |___/     \___/            |_|
+asciiend)
+	LOGO.x = 7
+	LOGO.y = -8
+	LOGO.w = 54
+	LOGO.h = 8
+	LOGO.anchor = center_center
+	LOGO.dock = center_center
+	LOGO.pivotX = 0
+	LOGO.pivotY = 0
+	LOGO.color = #32da5a
+	LOGO.duration = 0
+	LOGO.frame = 0
+	LOGO.loop = false
+	LOGO.playOnStart = false
+	LOGO.Stop()
+
+	River = ui.AddAnim(ascii
+-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~
+~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -
+ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~
+  ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~- 
+-   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  -
+  -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~  
+ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~
+~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   
+  ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~  
+    ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   - 
+~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~
+   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -
+  ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     - 
+ -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~   
+%%
+~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-
+- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~
+~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ 
+ ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-  
+   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --
+ -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~   
+~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ 
+ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~
+ ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~   
+   ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -  
+  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~
+  ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     - 
+ ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -  
+-    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    
+%%
+ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~
+ -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~-
+-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~
+~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   
+  - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  -- 
+-~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    
+ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~
+-   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ 
+~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    
+  ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -   
+ -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~ 
+ ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -  
+~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   
+    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -
+%%
+~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ 
+-~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- 
+  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-
+ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~
+ - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --  
+~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -
+-     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ 
+   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -
+  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~
+ ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -    
+-     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  
+~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   
+     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~
+   ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    - 
+%%
+- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~
+~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -
+ ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~- 
+~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ 
+- ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   
+-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~
+     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -
+  ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ - 
+ - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~ 
+~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     
+     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -
+     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~
+    -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~ 
+  ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -  
+%%
+ -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~-
+-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~
+~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  
+  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~
+ ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   -
+  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-
+    ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ - 
+ ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -  
+- ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  
+   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~
+    ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  - 
+    -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~ 
+   -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~  
+ ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -   
+%%
+-~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- 
+~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-
+  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~
+ ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~ 
+~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - 
+ ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~- 
+   ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -  
+~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   
+ ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  -
+  -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~ 
+   ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -  
+   -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~  
+  -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~   
+~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    
+%%
+~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -
+- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~
+ -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~ 
+~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  
+  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~
+~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  
+  ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -   
+   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~
+~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - 
+ -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~  
+  ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -   
+  -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~   
+ -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~    
+    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~
+%%
+^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~
+ -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~-
+-~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  
+-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~
+ --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~ 
+    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~
+ ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -    
+  ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~ 
+    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~
+-     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   
+ ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -    
+ -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~    
+-   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     
+   -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~ 
+%%
+~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^~-~ ~- -~^
+-~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- -~- -~-~- 
+~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -~ ~-  ~  -
+   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-   ~ ~  ~-
+--   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  --   - ~  
+   -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~    -~-  ~ 
+~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     ~ ~ -     
+ ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~   ~ -   ~  
+   ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~    ~  - ~ 
+     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -     ~   -
+~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     ~~  -     
+-   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     
+   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -   ~     -
+  -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~    -    ~  
+asciiend)
+	River.x = 0
+	River.y = screen.h/2 - 5
+	River.anchor = center_left
+	River.dock = center_left
+	River.color = #323232
+	River.duration = 50
+	River.frame = 0
+	River.loop = true
+	River.playOnStart = true
+	River.pivotX = 0
+	River.pivotY = 0
+	River.Play()
+
+	edge = ui.AddAnim(ascii
+-,-^-,_,- -._-,__,^-_,-,^-_,-,^--,-^-,_,- -._-,__,^-_,-,^-_,-,^--,-^-,_,-^-._-,__,^-_,-,^--,-^-,^
+ | '||  | '|'|  '|  | '|  |'|  | | '||  | '|'|  '|  | '|  |'|  | | '||  | '|'|  '|  | '| ' | | '|
+asciiend)
+	edge.x = 0
+	edge.y = 0
+	edge.anchor = center_left
+	edge.dock = center_left
+	edge.color = #323232
+	edge.duration = 0
+	edge.frame = 0
+	edge.loop = false
+	edge.playOnStart = false
+	edge.pivotX = 0
+	edge.pivotY = 0
+	edge.Stop()
+
+	LilyPod0 = ui.AddAnim(ascii
+####_
+#,´   `.
+/       \
+\       /
+#\/|..-´
+%%
+#
+asciiend)
+	LilyPod0.anchor = center_left
+	LilyPod0.dock = center_left
+	LilyPod0.x = 0
+	LilyPod0.y = 6
+	LilyPod0.w = 10
+	LilyPod0.h = 5
+	LilyPod0.pivotX = 0
+	LilyPod0.pivotY = 0
+	LilyPod0.color = #618a3d
+	LilyPod0.duration = 0
+	LilyPod0.frame = 1
+	LilyPod0.loop = false
+	LilyPod0.playOnStart = false
+	LilyPod0.Stop()
+
+	LilyPod1 = ui.AddAnim(ascii
+####_
+#,´   `.
+/       \
+\       /
+#\/|..-´
+%%
+#
+asciiend)
+	LilyPod1.anchor = center_left
+	LilyPod1.dock = center_left
+	LilyPod1.x = 10
+	LilyPod1.y = 6
+	LilyPod1.w = 10
+	LilyPod1.h = 5
+	LilyPod1.pivotX = 0
+	LilyPod1.pivotY = 0
+	LilyPod1.color = #618a3d
+	LilyPod1.duration = 0
+	LilyPod1.frame = 0
+	LilyPod1.loop = false
+	LilyPod1.playOnStart = false
+	LilyPod1.Stop()
+
+	LilyPod2 = ui.AddAnim(ascii
+####_
+#,´   `.
+/       \
+\       /
+#\/|..-´
+%%
+#
+asciiend)
+	LilyPod2.anchor = center_left
+	LilyPod2.dock = center_left
+	LilyPod2.x = 20
+	LilyPod2.y = 6
+	LilyPod2.w = 10
+	LilyPod2.h = 5
+	LilyPod2.pivotX = 0
+	LilyPod2.pivotY = 0
+	LilyPod2.color = #618a3d
+	LilyPod2.duration = 0
+	LilyPod2.frame = 0
+	LilyPod2.loop = false
+	LilyPod2.playOnStart = false
+	LilyPod2.Stop()
+
+	LilyPod3 = ui.AddAnim(ascii
+####_
+#,´   `.
+/       \
+\       /
+#\/|..-´
+%%
+#
+asciiend)
+	LilyPod3.anchor = center_left
+	LilyPod3.dock = center_left
+	LilyPod3.x = 30
+	LilyPod3.y = 6
+	LilyPod3.w = 10
+	LilyPod3.h = 5
+	LilyPod3.pivotX = 0
+	LilyPod3.pivotY = 0
+	LilyPod3.color = #618a3d
+	LilyPod3.duration = 0
+	LilyPod3.frame = 0
+	LilyPod3.loop = false
+	LilyPod3.playOnStart = false
+	LilyPod3.Stop()
+
+	LilyPod4 = ui.AddAnim(ascii
+####_
+#,´   `.
+/       \
+\       /
+#\/|..-´
+%%
+#
+asciiend)
+	LilyPod4.anchor = center_left
+	LilyPod4.dock = center_left
+	LilyPod4.x = 40
+	LilyPod4.y = 6
+	LilyPod4.w = 10
+	LilyPod4.h = 5
+	LilyPod4.pivotX = 0
+	LilyPod4.pivotY = 0
+	LilyPod4.color = #618a3d
+	LilyPod4.duration = 0
+	LilyPod4.frame = 0
+	LilyPod4.loop = false
+	LilyPod4.playOnStart = false
+	LilyPod4.Stop()
+
+	LilyPod5 = ui.AddAnim(ascii
+####_
+#,´   `.
+/       \
+\       /
+#\/|..-´
+%%
+#
+asciiend)
+	LilyPod5.anchor = center_left
+	LilyPod5.dock = center_left
+	LilyPod5.x = 50
+	LilyPod5.y = 6
+	LilyPod5.w = 10
+	LilyPod5.h = 5
+	LilyPod5.pivotX = 0
+	LilyPod5.pivotY = 0
+	LilyPod5.color = #618a3d
+	LilyPod5.duration = 0
+	LilyPod5.frame = 0
+	LilyPod5.loop = false
+	LilyPod5.playOnStart = false
+	LilyPod5.Stop()
+
+	LilyPod6 = ui.AddAnim(ascii
+####_
+#,´   `.
+/       \
+\       /
+#\/|..-´
+%%
+#
+asciiend)
+	LilyPod6.anchor = center_left
+	LilyPod6.dock = center_left
+	LilyPod6.x = 60
+	LilyPod6.y = 6
+	LilyPod6.w = 10
+	LilyPod6.h = 5
+	LilyPod6.pivotX = 0
+	LilyPod6.pivotY = 0
+	LilyPod6.color = #618a3d
+	LilyPod6.duration = 0
+	LilyPod6.frame = 0
+	LilyPod6.loop = false
+	LilyPod6.playOnStart = false
+	LilyPod6.Stop()
+
+	LilyPod7 = ui.AddAnim(ascii
+####_
+#,´   `.
+/       \
+\       /
+#\/|..-´
+%%
+#
+asciiend)
+	LilyPod7.anchor = center_left
+	LilyPod7.dock = center_left
+	LilyPod7.x = 70
+	LilyPod7.y = 6
+	LilyPod7.w = 10
+	LilyPod7.h = 5
+	LilyPod7.pivotX = 0
+	LilyPod7.pivotY = 0
+	LilyPod7.color = #618a3d
+	LilyPod7.duration = 0
+	LilyPod7.frame = 0
+	LilyPod7.loop = false
+	LilyPod7.playOnStart = false
+	LilyPod7.Stop()
+
+	Coin0 = ui.AddAnim(ascii
+#_
+($)
+#‾
+%%
+#
+asciiend)
+	Coin0.anchor = center_left
+	Coin0.dock = center_left
+	Coin0.x = 3
+	Coin0.y = 6
+	Coin0.w = 3
+	Coin0.h = 3
+	Coin0.pivotX = 0
+	Coin0.pivotY = 0
+	Coin0.color = #ffd700
+	Coin0.duration = 0
+	Coin0.frame = 0
+	Coin0.loop = false
+	Coin0.playOnStart = false
+	Coin0.Stop()
+
+	Coin1 = ui.AddAnim(ascii
+#_
+($)
+#‾
+%%
+#
+asciiend)
+	Coin1.anchor = center_left
+	Coin1.dock = center_left
+	Coin1.x = 13
+	Coin1.y = 6
+	Coin1.w = 3
+	Coin1.h = 3
+	Coin1.pivotX = 0
+	Coin1.pivotY = 0
+	Coin1.color = #ffd700
+	Coin1.duration = 0
+	Coin1.frame = 0
+	Coin1.loop = false
+	Coin1.playOnStart = false
+	Coin1.Stop()
+
+	Coin2 = ui.AddAnim(ascii
+#_
+($)
+#‾
+%%
+#
+asciiend)
+	Coin2.anchor = center_left
+	Coin2.dock = center_left
+	Coin2.x = 23
+	Coin2.y = 6
+	Coin2.w = 3
+	Coin2.h = 3
+	Coin2.pivotX = 0
+	Coin2.pivotY = 0
+	Coin2.color = #ffd700
+	Coin2.duration = 0
+	Coin2.frame = 0
+	Coin2.loop = false
+	Coin2.playOnStart = false
+	Coin2.Stop()
+
+	Coin3 = ui.AddAnim(ascii
+#_
+($)
+#‾
+%%
+#
+asciiend)
+	Coin3.anchor = center_left
+	Coin3.dock = center_left
+	Coin3.x = 33
+	Coin3.y = 6
+	Coin3.w = 3
+	Coin3.h = 3
+	Coin3.pivotX = 0
+	Coin3.pivotY = 0
+	Coin3.color = #ffd700
+	Coin3.duration = 0
+	Coin3.frame = 0
+	Coin3.loop = false
+	Coin3.playOnStart = false
+	Coin3.Stop()
+
+	Coin4 = ui.AddAnim(ascii
+#_
+($)
+#‾
+%%
+#
+asciiend)
+	Coin4.anchor = center_left
+	Coin4.dock = center_left
+	Coin4.x = 43
+	Coin4.y = 6
+	Coin4.w = 3
+	Coin4.h = 3
+	Coin4.pivotX = 0
+	Coin4.pivotY = 0
+	Coin4.color = #ffd700
+	Coin4.duration = 0
+	Coin4.frame = 0
+	Coin4.loop = false
+	Coin4.playOnStart = false
+	Coin4.Stop()
+
+	Coin5 = ui.AddAnim(ascii
+#_
+($)
+#‾
+%%
+#
+asciiend)
+	Coin5.anchor = center_left
+	Coin5.dock = center_left
+	Coin5.x = 53
+	Coin5.y = 6
+	Coin5.w = 3
+	Coin5.h = 3
+	Coin5.pivotX = 0
+	Coin5.pivotY = 0
+	Coin5.color = #ffd700
+	Coin5.duration = 0
+	Coin5.frame = 0
+	Coin5.loop = false
+	Coin5.playOnStart = false
+	Coin5.Stop()
+
+	Coin6 = ui.AddAnim(ascii
+#_
+($)
+#‾
+%%
+#
+asciiend)
+	Coin6.anchor = center_left
+	Coin6.dock = center_left
+	Coin6.x = 63
+	Coin6.y = 6
+	Coin6.w = 3
+	Coin6.h = 3
+	Coin6.pivotX = 0
+	Coin6.pivotY = 0
+	Coin6.color = #ffd700
+	Coin6.duration = 0
+	Coin6.frame = 0
+	Coin6.loop = false
+	Coin6.playOnStart = false
+	Coin6.Stop()
+
+	Coin7 = ui.AddAnim(ascii
+#_
+($)
+#‾
+%%
+#
+asciiend)
+	Coin7.anchor = center_left
+	Coin7.dock = center_left
+	Coin7.x = 73
+	Coin7.y = 6
+	Coin7.w = 3
+	Coin7.h = 3
+	Coin7.pivotX = 0
+	Coin7.pivotY = 0
+	Coin7.color = #ffd700
+	Coin7.duration = 0
+	Coin7.frame = 0
+	Coin7.loop = false
+	Coin7.playOnStart = false
+	Coin7.Stop()
+
+	CurrentCoin = ui.AddText()
+	CurrentCoin.text = CoinNO + " [color=#ffd700]$[/color]"
+	CurrentCoin.x = 0
+	CurrentCoin.y = -3
+	CurrentCoin.w = string.Size("" + CoinNO) + 2
+	CurrentCoin.h = 1
+	CurrentCoin.anchor = center_right
+	CurrentCoin.dock = center_right
+	CurrentCoin.visible = false
+	CurrentCoin.align = left
+	CurrentCoin.color = #EEEEEE
+
+	TotalCoin = ui.AddText()
+	TotalCoin.text = te.xt(tid_treasures_found) + " " + totalCoinNO + " [color=#ffd700]$[/color]"
+	TotalCoin.x = 0
+	TotalCoin.y = -4
+	TotalCoin.w = string.Size(te.xt(tid_treasures_found) + totalCoinNO) + 3
+	TotalCoin.h = 1
+	TotalCoin.anchor = center_right
+	TotalCoin.dock = center_right
+	TotalCoin.visible = true
+	TotalCoin.align = left
+	TotalCoin.color = #EEEEEE
+
+	CurrentScore = ui.AddText()
+	CurrentScore.text = "current score" + " " + score
+	CurrentScore.x = 0
+	CurrentScore.y = -screen.h/2 + 1
+	CurrentScore.w = string.Size("current score" + score) + 1
+	CurrentScore.h = 1
+	CurrentScore.anchor = center_left
+	CurrentScore.dock = center_left
+	CurrentScore.visible = false
+	CurrentScore.align = left
+	CurrentScore.color = #EEEEEE
+
+	HighScore = ui.AddText()
+	HighScore.text = modename + " History " + hscore
+	HighScore.x = 0
+	HighScore.y = -screen.h/2
+	HighScore.w = string.Size(modename + "History" + hscore) + 2
+	HighScore.h = 1
+	HighScore.anchor = center_left
+	HighScore.dock = center_left
+	HighScore.visible = true
+	HighScore.align = left
+	HighScore.color = #EEEEEE
+
+	Modebutton = ui.AddButton()
+	Modebutton.x = 0
+	Modebutton.y = -3
+	Modebutton.text = te.xt(Mode)
+	Modebutton.w = string.Size(Modebutton.text) + 2
+	Modebutton.h = 3
+	Modebutton.anchor = center_center
+	Modebutton.dock = center_center
+	Modebutton.tcolor = #EEEEEE
+	Modebutton.bcolor = #666666
+	Modebutton.hcolor = #999999
+	Modebutton.sound = confirm
+	Modebutton.style = 1
+	Modebutton.SetPressed(ModeSelect)
+
+	Easybutton = ui.AddButton()
+	Easybutton.x = string.Size(Modebutton.text) + 2
+	Easybutton.y = -3
+	Easybutton.text = te.xt(Easy)
+	Easybutton.w = string.Size(Easybutton.text) + 2
+	Easybutton.h = 3
+	Easybutton.anchor = center_center
+	Easybutton.dock = center_center
+	Easybutton.tcolor = #232323
+	Easybutton.bcolor = #666666
+	Easybutton.hcolor = #999999
+	Easybutton.sound = bronze_guardian_attack1
+	Easybutton.style = 1
+	Easybutton.visible = false
+	Easybutton.SetPressed(SelectEasy)
+
+	Hardbutton = ui.AddButton()
+	Hardbutton.x = string.Size(Modebutton.text) + string.Size(Easybutton.text) + 4
+	Hardbutton.y = -3
+	Hardbutton.text = te.xt(Hard)
+	Hardbutton.w = string.Size(Hardbutton.text) + 2
+	Hardbutton.h = 3
+	Hardbutton.anchor = center_center
+	Hardbutton.dock = center_center
+	Hardbutton.tcolor = #232323
+	Hardbutton.bcolor = #666666
+	Hardbutton.hcolor = #999999
+	Hardbutton.sound = bronze_guardian_helmet
+	Hardbutton.style = 1
+	Hardbutton.visible = false
+	Hardbutton.SetPressed(SelectHard)
+
+	Startbutton = ui.AddButton()
+	Startbutton.x = 0
+	Startbutton.y = 0
+	Startbutton.text = te.xt(Play)
+	Startbutton.w = string.Size(Startbutton.text) + 6
+	Startbutton.h = 3
+	Startbutton.anchor = center_center
+	Startbutton.dock = center_center
+	Startbutton.tcolor = #EEEEEE
+	Startbutton.bcolor = #666666
+	Startbutton.hcolor = #999999
+	Startbutton.sound = confirm
+	Startbutton.style = 1
+	Startbutton.SetPressed(StartAnim)
+
+	Mainmenubutton = ui.AddButton()
+	Mainmenubutton.x = -string.Size(te.xt(Continue)) - 6
+	Mainmenubutton.y = 0
+	Mainmenubutton.text = te.xt("Back")
+	Mainmenubutton.w = string.Size(te.xt("Back")) + 4
+	Mainmenubutton.h = 3
+	Mainmenubutton.anchor = center_center
+	Mainmenubutton.dock = center_center
+	Mainmenubutton.visible = false
+	Mainmenubutton.tcolor = #EEEEEE
+	Mainmenubutton.bcolor = #666666
+	Mainmenubutton.hcolor = #999999
+	Mainmenubutton.sound = confirm
+	Mainmenubutton.style = 1
+	Mainmenubutton.SetPressed(Back)
+
+	GAMEOVER = ui.AddText()
+	GAMEOVER.x = 0
+	GAMEOVER.y = -3
+	GAMEOVER.w = 9
+	GAMEOVER.h = 1
+	GAMEOVER.anchor = center_center
+	GAMEOVER.dock = center_center
+	GAMEOVER.visible = false
+	GAMEOVER.align = "center"
+	GAMEOVER.text = "GAME OVER"
+	GAMEOVER.color = #ff2222
+
+	eagle = ui.AddAnim(ascii
+#
+#
+#
+#
+#
+###(`'~-.,_#########'.`'-.
+##(`'-~-.,_`.#########':--.;
+##(`'-~-.____\#########;--: \
+###(-.'_______`.,######;--:`|
+####(._______.   '.###/--:``/
+#####'._____.  /   '.|--:``;
+########'.____ (     ;._ `/
+##########'..__ '.    \ ,`'~.-._
+#############`._.\     -:      ò'.
+###############`-.\ .'   \_.-~-.=.)
+################/  `     ;´
+############_.-´  .;  ;  ;
+###########(_.´ ;  .; ;; :
+############(_.´ ;_-‾\\_\\_
+##############'-´####/`("/`)-..
+asciiend)
+	eagle.anchor = center_left
+	eagle.dock = center_left
+	eagle.x = -10
+	eagle.y = -4
+	eagle.w = 36
+	eagle.h = 20
+	eagle.pivotX = 60
+	eagle.pivotY = 20
+	eagle.color = #9f9f9f
+	eagle.duration = 0
+	eagle.frame = 0
+	eagle.loop = false
+	eagle.playOnStart = false
+	eagle.visible = true
+	eagle.Stop()
+
+	transtyle = ui.AddStyle("#########")
+
+	Frog = ui.AddPanel()
+	Frog.x = 9
+	Frog.y = 5
+	Frog.w = 9
+	Frog.h = 5
+	Frog.anchor = center_left
+	Frog.dock = center_left
+	Frog.clip = false
+	Frog.color = #white
+	Frog.style = transtyle
+
+	FrogJump = ui.AddAnim(ascii
+#
+#
+#####,--
+###(! .-)
+###'·-((
+%%
+#
+#####,--
+####/ .-)
+##_(;-//
+###`
+%%
+#####.=-
+### / .-)
+##_(/-)´`
+#-´‾
+#
+%%
+#####.O-
+###,´ .-)
+#_(/--‾´‾
+-´‾
+#
+%%
+#####.Oo
+###,´ .-)
+-´-`--‾´‾
+#
+#
+%%
+#
+#####.Oo
+-´-`´ .-)
+####`-‾´‾
+#
+%%
+#
+#
+##_##.Oo
+#/-`´ .-)
+###`--\´\
+%%
+#
+#
+#####,Oo
+##(\/ .-)
+##´ ·-\´\
+asciiend)
+	FrogJump.anchor = center_left
+	FrogJump.dock = center_left
+	FrogJump.x = 0
+	FrogJump.y = 0
+	FrogJump.w = 9
+	FrogJump.h = 5
+	FrogJump.pivotX = 0
+	FrogJump.pivotY = 0
+	FrogJump.color = #32da5a
+	FrogJump.duration = 30
+	FrogJump.frame = 0
+	FrogJump.gamePause = true
+	FrogJump.loop = true
+	FrogJump.Play()
+	Frog.Add(FrogJump)
+
+	FrogEye = ui.AddAnim(ascii
+#
+#
+######--
+#
+#
+%%
+#
+######--
+#
+#
+#
+%%
+######=-
+#
+#
+#
+#
+%%
+######O-
+#
+#
+#
+#
+%%
+######Oo
+#
+#
+#
+#
+%%
+#
+######Oo
+#
+#
+#
+%%
+#
+#
+######Oo
+#
+#
+%%
+#
+#
+######Oo
+#
+#
+asciiend)
+	FrogEye.anchor = center_left
+	FrogEye.dock = center_left
+	FrogEye.x = 0
+	FrogEye.y = 0
+	FrogEye.w = 9
+	FrogEye.h = 5
+	FrogEye.pivotX = 0
+	FrogEye.pivotY = 0
+	FrogEye.color = #EEEEEE
+	FrogEye.duration = 30
+	FrogEye.frame = 0
+	FrogEye.gamePause = true
+	FrogEye.loop = true
+	FrogEye.Play()
+	Frog.Add(FrogEye)
+
+	JumpArrow = ui.AddAnim(ascii
+#
+#
+#
+#
+#
+.......
+##;;;:;
+.;;;::;
+######'
+%%
+#
+#
+#
+#
+##.......
+####;;;:;
+##.;;;::;
+.;;;:###'
+%%
+#
+#
+#
+####.......
+######;;;:;
+####.;;;::;
+##.;;;:###'
+.;;;:
+%%
+#
+#
+######.......
+########;;;:;
+######.;;;::;
+####.;;;:###'
+##.;;;:
+.;;;:
+%%
+#
+########.......
+##########;;;:;
+########.;;;::;
+######.;;;:###'
+####.;;;:
+##.;;;:
+.;;;:
+%%
+##########.......
+############;;;:;
+##########.;;;::;
+########.;;;:###'
+######.;;;:
+####.;;;:
+##.;;;:
+.;;;:
+asciiend)
+	JumpArrow.x = 15
+	JumpArrow.y = 1
+	JumpArrow.w = 17
+	JumpArrow.h = 8
+	JumpArrow.anchor = center_left
+	JumpArrow.dock = center_left
+	JumpArrow.visible = false
+	JumpArrow.pivotX = 0
+	JumpArrow.pivotY = 0
+	JumpArrow.color = #02e5ff
+	JumpArrow.duration = 72
+	JumpArrow.frame = 0
+	JumpArrow.gamePause = true
+	JumpArrow.loop = false
+	JumpArrow.Stop()
+
+func DisplayAryControl(array)
+	?array.Count() > 0
+		?array[0] = 1
+			LilyPod0.frame = 0
+		:
+			LilyPod0.frame = 1
+		?array.Count() > 1
+			?array[1] = 1
+				LilyPod1.frame = 0
+			:
+				LilyPod1.frame = 1
+			?array.Count() > 2
+				?array[2] = 1
+					LilyPod2.frame = 0
+				:
+					LilyPod2.frame = 1
+				?array.Count() > 3
+					?array[3] = 1
+						LilyPod3.frame = 0
+					:
+						LilyPod3.frame = 1
+					?array.Count() > 4
+						?array[4] = 1
+							LilyPod4.frame = 0
+						:
+							LilyPod4.frame = 1
+						?array.Count() > 5
+							?array[5] = 1
+								LilyPod5.frame = 0
+							:
+								LilyPod5.frame = 1
+							?array.Count() > 6
+								?array[6] = 1
+									LilyPod6.frame = 0
+								:
+									LilyPod6.frame = 1
+								?array.Count() > 7
+									?array[7] = 1
+										LilyPod7.frame = 0
+									:
+										LilyPod7.frame = 1
+DisplayAryControl(LotuAry)
+
+func CoinAryControl(array)
+	?array.Count() > 0
+		?array[0] = 1
+			Coin0.frame = 0
+		:
+			Coin0.frame = 1
+		?array.Count() > 1
+			?array[1] = 1
+				Coin1.frame = 0
+			:
+				Coin1.frame = 1
+			?array.Count() > 2
+				?array[2] = 1
+					Coin2.frame = 0
+				:
+					Coin2.frame = 1
+				?array.Count() > 3
+					?array[3] = 1
+						Coin3.frame = 0
+					:
+						Coin3.frame = 1
+					?array.Count() > 4
+						?array[4] = 1
+							Coin4.frame = 0
+						:
+							Coin4.frame = 1
+						?array.Count() > 5
+							?array[5] = 1
+								Coin5.frame = 0
+							:
+								Coin5.frame = 1
+							?array.Count() > 6
+								?array[6] = 1
+									Coin6.frame = 0
+								:
+									Coin6.frame = 1
+								?array.Count() > 7
+									?array[7] = 1
+										Coin7.frame = 0
+									:
+										Coin7.frame = 1
+CoinAryControl(CoinAry)
+
+func GenerateNewLily(array)
+	?staytime = 1
+		rngLD = rng % 64
+		var carry = rngLD
+		for i = 5..0
+			carry = carry - math.Pow(2, i)
+			?carry >= 0
+				EmAry[5-i] = 1
+			:
+				EmAry[5-i] = 0
+				carry = carry + math.Pow(2, i)
+		?startpos > 1 & presstime = -1
+			score = startpos
+			for i = 0..7
+				?i < 9 - startpos
+					array.Emplace(i, array[i + startpos - 1])
+				:?i < 7
+					array.Emplace(i, EmAry[i-2])
+				:?!(array[2] = 0 & array[3] = 0 & array[4] = 0 & array[5] = 0 & array[6] = 0)
+					array.Emplace(7, EmAry[5])
+				:
+					array.Emplace(7, 1)
+		:
+			score = score + presstime
+			for i = 0..7
+				?i < 8 - presstime
+					array.Emplace(i, array[i + presstime])
+				:?i < 7
+					array.Emplace(i, EmAry[i-2])
+				:?!(array[2] = 0 & array[3] = 0 & array[4] = 0 & array[5] = 0 & array[6] = 0)
+					array.Emplace(7, EmAry[5])
+				:
+					array.Emplace(7, 1)
+GenerateNewLily(LotuAry)
+
+func GenerateNewCoin(array)
+	?staytime = 1
+		for i = 0..5
+			?EmAry[i] = 1 & (rngLD + i) % 3 = 0
+				CoinSubAry[i] = 1
+			:
+				CoinSubAry[i] = 0
+		?startpos > 1 & presstime = -1
+			for i = 0..7
+				?i < 9 - startpos
+					array.Emplace(i, array[i + startpos - 1])
+					?array[1] = 1
+						array.Emplace(1,0)
+						play equip
+						CoinNO = CoinNO + math.RoundToInt(12/tranphase)
+						storage.Set(totalcoins, totalCoinNO)
+						totalCoinNO = storage.Incr(totalcoins,math.RoundToInt(12/tranphase))
+				:
+					array.Emplace(i, CoinSubAry[i-2])
+		:
+			for i = 0..7
+				?i < 8 - presstime
+					array.Emplace(i, array[i + presstime])
+					?array[1] = 1
+						array.Emplace(1,0)
+						play equip
+						CoinNO = CoinNO + math.RoundToInt(12/tranphase)
+						storage.Set(totalcoins, totalCoinNO)
+						totalCoinNO = storage.Incr(totalcoins,math.RoundToInt(12/tranphase))
+				:
+					array.Emplace(i, CoinSubAry[i-2])
+GenerateNewCoin(CoinAry)
+
+?FrogJump.frame = 0 & croakonce = 0
+	play frog
+	croakonce = 1
+?FrogJump.frame ! 0
+	croakonce = 0
+
+?frogtime > 0 & eagle.visible = false
+	frogtime++
+?staytime > 0
+	staytime++
+
+?starttime > 0 & key = primaryEnd & frogtime = 0 & (input.x > Frog.absoluteX + 1 & input.x < Frog.absoluteX + Frog.w) & (input.y > Frog.absoluteY + 1 & input.y < Frog.absoluteY + Frog.h)
+	presstime = math.Clamp(math.CeilToInt(starttime%(6*tranphase)/tranphase),1,6)
+	FrogJump.duration = math.RoundToInt(math.Sqrt(200*presstime))
+	FrogEye.duration = FrogJump.duration
+	starttime = 0
+	staytime = 0
+	frogtime++
+	FrogJump.Play()
+	FrogEye.Play()
+:?key = primaryBegin & frogtime = 0 & (input.x > Frog.absoluteX + 1 & input.x < Frog.absoluteX + Frog.w) & (input.y > Frog.absoluteY + 1 & input.y < Frog.absoluteY + Frog.h)
+	starttime = 1
+:?starttime > 0 & key = primary & frogtime = 0 & (input.x > Frog.absoluteX + 1 & input.x < Frog.absoluteX + Frog.w) & (input.y > Frog.absoluteY + 1 & input.y < Frog.absoluteY + Frog.h)
+	starttime++
+:
+	starttime = 0
+
+?starttime > 0
+	JumpArrow.visible = true
+	?starttime%(6*tranphase) < tranphase + 1
+		JumpArrow.color = color.Lerp(#78EAF7, #02e5ff, starttime%(6*tranphase)/tranphase)
+		JumpArrow.frame = 0
+	:?starttime%(6*tranphase) < 2 * tranphase + 1
+		JumpArrow.color = color.Lerp(#80F2B0, #ffff62, (starttime%(6*tranphase)-tranphase)/tranphase)
+		JumpArrow.frame = 1
+	:?starttime%(6*tranphase) < 3 * tranphase + 1
+		JumpArrow.color = color.Lerp(#98ED5E, #32da5a, (starttime%(6*tranphase)-2*tranphase)/tranphase)
+		JumpArrow.frame = 2
+	:?starttime%(6*tranphase) < 4 * tranphase + 1
+		JumpArrow.color = color.Lerp(#199EAC, #0063ff, (starttime%(6*tranphase)-3*tranphase)/tranphase)
+		JumpArrow.frame = 3
+	:?starttime%(6*tranphase) < 5 * tranphase + 1
+		JumpArrow.color = color.Lerp(#804290, #ff2222, (starttime%(6*tranphase)-4*tranphase)/tranphase)
+		JumpArrow.frame = 4
+	:
+		JumpArrow.color = #rainFF
+		JumpArrow.frame = 5
+:
+	JumpArrow.visible = false
+	JumpArrow.color = #78EAF7
+	JumpArrow.frame = 0
+
+func ModeSelect()
+	?tranphase = 12.0
+		Easybutton.style = 3
+		Easybutton.tcolor = #EEEEEE
+		Hardbutton.style = 9
+		Hardbutton.tcolor = #232323
+	:?tranphase = 6.0
+		Easybutton.style = 9
+		Easybutton.tcolor = #232323
+		Hardbutton.style = 3
+		Hardbutton.tcolor = #EEEEEE
+	Easybutton.visible = !Easybutton.visible
+	Hardbutton.visible = !Hardbutton.visible
+
+func SelectEasy()
+	tranphase = 12.0
+	modename = "Easy"
+	hscore = storage.Get("eahighscore", 0)
+	HighScore.text = modename + " History " + hscore
+	HighScore.w = string.Size(modename + "History" + hscore) + 2
+	Modebutton.w = string.Size(te.xt(Easy)) + 2
+	Modebutton.text = te.xt(Easy)
+	Easybutton.visible = !Easybutton.visible
+	Hardbutton.visible = !Hardbutton.visible
+
+func SelectHard()
+	tranphase = 6.0
+	modename = "Hard"
+	hscore = storage.Get("hdhighscore", 0)
+	HighScore.text = modename + " History " + hscore
+	HighScore.w = string.Size(modename + "History" + hscore) + 2
+	Modebutton.w = string.Size(te.xt(Hard)) + 2
+	Modebutton.text = te.xt(Hard)
+	Easybutton.visible = !Easybutton.visible
+	Hardbutton.visible = !Hardbutton.visible
+
+func StartAnim()
+	CoinNO = 0
+	score = 0
+	CurrentCoin.visible = true
+	CurrentScore.visible = true
+	TotalCoin.visible = false
+	GAMEOVER.visible = false
+	frogtime = 1
+	?eagle.visible = true
+		flytime = 1
+		FrogJump.loop = false
+		FrogEye.loop = false
+	:
+		Frog.visible = true
+		FrogJump.duration = math.RoundToInt(math.Sqrt(200*(startpos+1)))
+		FrogEye.duration = FrogJump.duration
+		FrogJump.Play()
+		FrogEye.Play()
+	Startbutton.visible = false
+	Modebutton.visible = false
+	Easybutton.visible = false
+	Hardbutton.visible = false
+	Mainmenubutton.visible = false
+
+func Back()
+	LotuAry = [0,1,1,1,1,1,1,1]
+	CoinAry[0] = 0
+	CoinAry[1] = 0
+	rngLD = rng % 64
+	for i = 0..5
+		?(rngLD + i) % 3 = 0
+			CoinAry[i+2] = 1
+		:
+			CoinAry[i+2] = 0
+	startpos = 1
+	flytime = 0
+	staytime = 0
+	frogtime = -1
+	starttime = 0
+	presstime = -1
+	Frog.visible = true
+	Frog.x = 9
+	Frog.y = 5
+	FrogJump.loop = true
+	FrogEye.loop = true
+	FrogJump.duration = 30
+	FrogEye.duration = 30
+	FrogJump.Play()
+	FrogEye.Play()
+	eagle.visible = true
+	eagle.pivotX = 60
+	eagle.pivotY = 20
+	LOGO.visible = true
+	LOGO.pivotX = 0
+	GAMEOVER.visible = false
+	CurrentScore.visible = false
+	Modebutton.visible = true
+	Startbutton.text = te.xt(Play)
+	Startbutton.w = string.Size(Startbutton.text) + 6
+	Mainmenubutton.visible = false
+
+CurrentCoin.text = CoinNO + " [color=#ffd700]$[/color]"
+CurrentCoin.w = string.Size("" + CoinNO) + 2
+
+CurrentScore.text = "current score" + " " + score
+CurrentScore.w = string.Size("current score" + score) + 1
+
+?flytime = 1
+	play scout_arrives
+?flytime > 0
+	flytime++
+?flytime > 60
+	LOGO.visible = false
+	eagle.visible = false
+	flytime = 0
+	?frogtime = 1
+		FrogJump.duration = 20
+		FrogEye.duration = 20
+		FrogJump.Play()
+		FrogEye.Play()
+:?flytime > 30
+	eagle.pivotX = 60 - 2*flytime
+	eagle.pivotY = math.RoundToInt(5*math.Pow((flytime-30)*0.066, 2))
+	Frog.x = 9 - eagle.pivotX
+	Frog.y = 5 - eagle.pivotY
+:?flytime > 0
+	eagle.pivotX = 60 - 2*flytime
+	eagle.pivotY = math.RoundToInt(20 - 5*math.Pow(flytime*0.066, 2))
+	LOGO.pivotX = -3*flytime
+
+?presstime = -1
+	?frogtime > 0 & eagle.visible = false
+		Frog.x = math.RoundToInt(math.Sqrt((startpos+1)/2.0)*frogtime-11)
+		Frog.y = math.RoundToInt(math.Sqrt((startpos+1)/2.0)*frogtime*(math.Sqrt((startpos+1)/2.0)*frogtime-10*(startpos+1))/(10*(startpos+1))+5)
+		?Frog.x >= 10*startpos - 1
+			frogtime = 0
+			?startpos > 1
+				staytime = 1
+	?frogtime = 0 & eagle.visible = false
+		Frog.x = 9
+		Frog.y = 5
+:
+	Frog.x = math.Min(math.RoundToInt(math.Sqrt(presstime/2.0)*frogtime+9),10*presstime+9)
+	Frog.y = math.Min(math.RoundToInt((math.Sqrt(presstime/2.0)*frogtime)*(math.Sqrt(presstime/2.0)*frogtime-10*presstime)/(10*presstime)+5),5)
+	?Frog.x >= 10*presstime+9
+		frogtime = 0
+		staytime = 1
+
+?FrogJump.frame = 6 & frogtime > 0
+	FrogJump.Pause()
+	FrogEye.Pause()
+?FrogJump.paused & Frog.y > 3
+	FrogJump.Play()
+	FrogEye.Play()
+
+?presstime ! - 1 & LotuAry[1] = 0 & staytime = 2
+	CurrentCoin.visible = false
+	?hscore < score
+		?string.Equals(modename, "Easy")
+			storage.Set("eahighscore", score)
+		:?string.Equals(modename, "Hard")
+			storage.Set("hdhighscore", score)
+	?string.Equals(modename, "Easy")
+		hscore = storage.Get("eahighscore", 0)
+	:?string.Equals(modename, "Hard")
+		hscore = storage.Get("hdhighscore", 0)
+	HighScore.text = modename + " History " + hscore
+	HighScore.w = string.Size(modename + "History" + hscore) + 2
+	TotalCoin.text = te.xt(tid_treasures_found) + " " + totalCoinNO + " [color=#ffd700]$[/color]"
+	TotalCoin.w = string.Size(te.xt(tid_treasures_found) + totalCoinNO) + 3
+	TotalCoin.visible = true
+	play cross_deadwood_splash
+	eagle.visible = true
+	GAMEOVER.visible = true
+	flytime = 1
+	frogtime = -1
+	starttime = 0
+	presstime = -1
+	staytime = 0
+	for i = 1..7
+		?LotuAry[i] = 1
+			startpos = i
+			i = 8
+?LotuAry[1] = 0 & flytime = 60
+	Startbutton.text = te.xt(Continue)
+	Startbutton.w = string.Size(Startbutton.text) + 6
+	Startbutton.visible = true
+	Mainmenubutton.visible = true
+	Frog.visible = false
+import UI/RecordPlayer
+/*
+>`0,0,frogtime @frogtime@ flytime @flytime@ startpos @startpos@ duration @FrogJump.duration@
+>`0,1,starttime@starttime@ presstime@presstime@ staytime@staytime@ mode @tranphase@
+>`0,2,@rngLD@ @EmAry[0]@ @EmAry[1]@ @EmAry[2]@ @EmAry[3]@ @EmAry[4]@ @EmAry[5]@
+>`0,3,@CoinSubAry[0]@ @CoinSubAry[1]@ @CoinSubAry[2]@ @CoinSubAry[3]@ @CoinSubAry[4]@ @CoinSubAry[5]@ 
+*/

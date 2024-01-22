@@ -1,0 +1,902 @@
+//Cozy Cave
+//by: link2_thepast
+//v2.1
+// Add "import Cosmetics/CozyCave" to the Mind Stone, then visit Deadwood Waterfall.
+
+//Replaces Deadwood Waterfall with the cave where you do your crafting and keep all your items
+//Cave changes slightly depending on resources collected, whether you've beaten certain bosses, etc.
+//There's also some small secrets, can you find them?
+
+//- SETTINGS -
+// disable dynamic item piles, forces max pile size
+var NO_DYN_ITEMS = false
+
+// disable most foreground elements
+// clears space for you to test your ASCII art, draw your own furniture, etc.
+var NO_STATIONS_OR_PILES = false
+
+
+
+//- VARIABLE DEFINITIONS -
+//screen sizes
+var screen_hw = screen.w/2
+var screen_hh = screen.h/2
+
+// colors
+var colorFloor =      #333333
+var colorDoor =       #666666
+var colorRock =       #444444
+var colorRockLit =    #666666
+var colorStation =    #aaaaaa
+var colorStationLit = #cccccc
+var colorHighlight =  #ffffff
+var colorPile =       #aaaaaa
+var colorBtn =        #777777
+
+// item counts for resource pile sizes
+var moon = item.GetCount("moon stone")
+var wands = item.GetCount("stone wand +0 *0")
+var stones = res.stone
+var prune = item.GetCount("poison rune +0 *0")
+var vrune = item.GetCount("vigor rune +0 *0")
+var arune = item.GetCount("aether rune +0 *0")
+var frune = item.GetCount("fire rune +0 *0")
+var irune = item.GetCount("ice rune +0 *0")
+var runes = prune + vrune + arune + frune + irune
+
+// thresholds for resource pile sizes
+var wandThresh1 = 10
+var wandThresh2 = 200
+var wandThresh3 = 5000
+var wandThresh4 = 10000
+
+var stoneThresh1 = 1000
+var stoneThresh2 = 7500
+var stoneThresh3 = 50000
+var stoneThresh4 = 100000
+
+var runeThresh1 = 300
+var runeThresh2 = 1000
+var runeThresh3 = 6000
+
+// fire timers
+var fTick = 0
+var sTick = 0
+var LTick = 0
+
+// global illumination flag, for animations
+var illuminated = false
+
+// global "initialized" flag
+var initialized = false
+
+// randomly generated smoke particles
+var smokeChars = []
+
+
+
+//- UI COMPONENT DECLARATIONS -
+//transparency style
+var stlTransp = ui.AddStyle("#########")
+
+//UI Component container objects
+//  no need to save a reference to child components
+var pnlMain
+var pnlBg
+var pnlStationsPiles
+var pnlFlickerSP
+var pnlFlickerWalls
+
+//declare graphics strings
+var strFloor
+var strFloor2
+var strFireRock
+var strFireRockLit
+var strDoor
+var strDoorBg
+var strDoorFrameBg
+var strAnvil
+var strAnvilLit
+var strCauldron
+var strCauldronLit
+var strTable
+var strTableLit
+var strBook
+var strBookLit
+
+var strURRock
+var strURRockLit
+var strURock
+var strURockLit
+var strULRock
+var strBLRock
+var strBRRock
+
+var strPotion
+var strBottle
+var strEmblem
+var strMoondial
+
+var strFireB
+var strFireT
+
+var arrStrStones
+var arrStrWands
+var arrStrRunes
+
+//define graphics strings so their values can be used as parameters below
+BuildGraphics()
+
+//UI Component parameters (pos, size, style, etc.)
+var pnlMain_params =        [0,0, screen.w,screen.h, 0]
+var pnlContainer_params =   [0,0, screen.w,screen.h, -1]
+
+var txtFloor_params =       [0,screen.h-14, screen.w,13, colorFloor,strFloor]
+var txtFloor2_params =      [5,screen.h-18, screen.w,3, colorFloor,strFloor2]
+var txtURRock_params =      [screen.w-13,0, 14,12, colorRock,strURRock]
+var txtURRockLit_params =   [screen.w-13,0, 14,12, colorRockLit,strURRockLit]
+var txtURock_params =       [screen_hw+3,0, 18,9, colorRock,strURock]
+var txtURockLit_params =    [screen_hw+3,0, 18,9, colorRockLit,strURockLit]
+var txtULRock_params =      [17,0, 12,9, colorRock,strULRock]
+
+var txtFireRock_params =    [screen.w-20,10, 6,3, colorRock,strFireRock]
+var txtFireRockLit_params = [screen.w-20,10, 6,3, colorRockLit,strFireRockLit]
+var txtDoor_params =        [7,4, 8,6, colorDoor,strDoor]
+var txtDoorBg_params =      [0,5, 6,2, colorRock,strDoorBg]
+var txtDoorFrameBg_params = [6,5, 1,5, colorStation,strDoorFrameBg]
+var txtAnvil_params =       [screen_hw+4,12, 11,4, colorStation,strAnvil]
+var txtAnvilLit_params =    [screen_hw+4,12, 11,4, colorStationLit,strAnvilLit]
+var txtCauldron_params =    [screen.w-20,16, 11,6, colorStation,strCauldron]
+var txtCauldronLit_params = [screen.w-20,16, 9,1, colorStationLit,strCauldronLit]
+var txtTable_params =       [screen_hw+4,screen.h-9, 12,6, colorStation,strTable]
+var txtTableLit_params =    [screen_hw+4,screen.h-9, 12,3, colorStationLit,strTableLit]
+var txtBook_params =        [screen_hw+13,screen.h-5, 7,5, colorStation,strBook]
+var txtBookLit_params =     [screen_hw+13,screen.h-5, 7,1, colorStationLit,strBookLit]
+var txtPotion_params =      [screen_hw+11,screen.h-8, 2,1, colorHighlight,strPotion]
+var txtBottle_params =      [screen_hw+10,screen.h-9, 4,3, colorHighlight,strBottle]
+var txtEmblem_params =      [screen_hw+16,screen.h-4, 3,1, colorHighlight,strEmblem]
+var txtMoondial_params =    [screen_hw+6,screen.h-7, 3,2, colorHighlight,strMoondial]
+var txtStonesFg_params =    [5,screen.h-12, 11,5, colorPile,""]
+var txtWandsFg_params =     [screen_hw-16,screen.h-7, 12,5, colorPile,""]
+var txtRunesFg_params =     [17,screen.h-14, 14,7, colorPile,""]
+var txtStonesBg_params =    [5,screen.h-12, 11,5, colorRock,"" ]
+var txtWandsBg_params =     [screen_hw-16,screen.h-7, 12,5, colorRock,"" ]
+var txtRunesBg_params =     [17,screen.h-14, 14,7, colorRock,"" ]
+
+var txtBLRock_params =      [-1,screen.h-11, 32,11, colorRock,strBLRock]
+var txtBRRock_params =      [screen.w-22,screen.h-9, 23,9, colorRock,strBRRock]
+
+var anmFireB_params =       [screen.w-19,11, 4,1, colorHighlight,strFireB,30]
+var anmFireT_params =       [screen.w-18,10, 2,1, colorHighlight,strFireT,20]
+
+var btnLeave_params =       [0,4, 15,8, #000000, ""]
+
+
+
+//- MAIN UPDATE FUNCTION -
+Update()
+func Update()
+  ?loc = waterfall & !loc.isQuest
+    //- FIRST-TICK SETUP -
+    ?!initialized
+      initialized = true
+      
+      //change music
+      ambient.Stop()
+      music.Play(shop)
+      
+      //assemble UI components
+      BuildUI()
+
+      //create banner
+      ui.ShowBanner(te.xt("Hovel Home"))
+
+    //- MAIN LOOP -
+    :
+      //raise player above UI components
+      disable pause
+      draw.Player()
+      
+      //update
+      UpdateFlicker()
+      UpdateFire(screen.w-20, 10)
+      
+      //draw FG elements above player
+      DrawDoor(0,4)
+      DrawSmoke()
+
+
+
+//- HELPER FUNCTIONS -
+//set Component size given array of parameters
+func SizeFromParams(component, params)
+  component.x = params[0]
+  component.y = params[1]
+  component.w = params[2]
+  component.h = params[3]
+  
+  component.anchor = top_left
+  component.dock = top_left
+
+//set Component style given its type and array of parameters
+func StyleFromParams(type, component, params)
+  ?type = 'text'
+    component.visible = true
+    component.color = params[4]
+    component.text = params[5]
+
+  :?type = 'panel'
+    ?params[4] < 0
+      component.visible = false
+    :
+      component.style = params[4]
+
+  :?type = 'button'
+    component.visible = true
+    component.tcolor = params[4]
+    component.text = params[5]
+  
+  :?type = 'anim'
+    component.visible = true
+    component.color = params[4]
+    component.duration = params[6]
+
+//create Panel component
+func RegisterPanel(parent, params)
+  var component = ui.AddPanel()
+  SizeFromParams(component, params)
+  StyleFromParams('panel', component, params)
+  
+  parent.Add(component)
+  return component
+
+//create Text component
+func RegisterText(parent, params)
+  var component = ui.AddText()
+  component.visible = true
+  SizeFromParams(component, params)
+  StyleFromParams('text', component, params)
+  
+  parent.Add(component)
+  return component
+
+//create Text components for displaying a resource pile
+func RegisterPile(type, parent, fg_params, bg_params)
+  fg_params[5] = GetFgPileStr(type)
+  bg_params[5] = GetBgPileStr(type)
+  
+  ?type = 'stone'
+    RegisterText(parent, bg_params)
+    RegisterText(parent, fg_params)
+
+  :?type = 'wand'
+    RegisterText(parent, bg_params)
+    RegisterText(parent, fg_params)
+
+  :?type = 'rune'
+    RegisterText(parent, bg_params)
+    RegisterText(parent, fg_params)
+
+//create Animation component
+func RegisterAnim(parent, params)
+  var component = ui.AddAnim(params[5])
+  SizeFromParams(component, params)
+  StyleFromParams('anim', component, params)
+  component.loop = true
+  
+  parent.Add(component)
+  return component
+
+//create Button component for SFX
+func RegisterSFXButton(parent, params, sound)
+  params.Emplace(5, "")
+  
+  var component = ui.AddButton()
+  SizeFromParams(component, params)
+  StyleFromParams('button', component, params)
+  component.sound = sound
+  component.style = stlTransp
+  
+  parent.Add(component)
+  return component
+
+//create general-use transparent Button component
+func RegisterTranspButton(parent, params, callback)
+  var component = ui.AddButton()
+  SizeFromParams(component, params)
+  StyleFromParams('button', component, params)
+  component.SetPressed(callback)
+  component.style = stlTransp
+  
+  parent.Add(component)
+  return component
+
+//set visibility of a Component's children
+func SetVisibility(component, val)
+  var count
+  count = component.children.Count()
+  
+  for i = 0 .. count-1
+    component.children[i].visible = val
+
+//determine which pile string should be used, given res amounts
+func GetFgPileIndex(amt, t1,t2,t3)
+  ? amt > t3 | NO_DYN_ITEMS
+    return 3
+  :?amt > t2
+    return 2
+  :?amt > t1
+    return 1
+  return 0
+
+// convert pile index -> string from array
+func GetFgPileStr(type)
+  ?type = 'stone'
+    return arrStrStones[ GetFgPileIndex(stones, stoneThresh1,stoneThresh2,stoneThresh3) ]
+
+  :?type = 'wand'
+    return arrStrWands[ GetFgPileIndex(wands, wandThresh1,wandThresh2,wandThresh3) ]
+
+  :?type = 'rune'
+    return arrStrRunes[ GetFgPileIndex(runes, runeThresh1,runeThresh2,runeThresh3) ]
+
+//determine which BG pile string should be used (comparisons are simpler than FG)
+func GetBgPileStr(type)
+  ? type = 'stone' & stones > stoneThresh4
+    return arrStrStones[4]
+  :?type = 'wand' & wands > wandThresh4
+    return arrStrWands[4]
+  :?type = 'rune' & runes > runeThresh1
+    return arrStrRunes[4]
+  return ""
+
+//update fire particles and flicker effect
+func UpdateFire(x,y)
+  // update timers
+  fTick++
+  fTick = fTick % 5
+  sTick++
+  sTick = sTick % (10 * (rng%2 + 1))
+  LTick++
+  LTick = LTick % (5 * (rng%2 + 1))
+  
+  // on fire tick, advance smoke altitude
+  ?fTick = 0
+    for c : smokeChars
+      c[1] = c[1]-1
+  
+  // on smoke tick, create new smoke particle
+  ?sTick = 0
+    var sx = x + 2 + (rng % 3)
+    smokeChars.Add( [sx, y] )
+    
+    // pop old smoke particles
+    ?smokeChars.Count() > 10
+      smokeChars.RemoveAt(0)
+  
+  // on light tick, flicker lit surfaces
+  ?LTick = 0
+    illuminated = !illuminated
+
+//apply flicker to Components under a highlight Panel
+func UpdateFlicker()
+  ?illuminated
+    ?!NO_STATIONS_OR_PILES
+      SetVisibility(pnlFlickerSP, true)
+    SetVisibility(pnlFlickerWalls, true)
+  :
+    SetVisibility(pnlFlickerSP, false)
+    SetVisibility(pnlFlickerWalls, false)
+
+
+
+//- DRAWING FUNCTIONS -
+//top-level UI constructor
+func BuildUI()
+  //allow extra time during UI setup
+  stonescript.SetMaxExecutionTime(250)
+  
+  //create opaque container Panel to blank out screen
+  pnlMain = RegisterPanel(ui.root, pnlMain_params)
+
+  //create and register child Panels to simplify visibility controls
+  //  save reference to allow interaction later
+  pnlBg =             RegisterPanel(pnlMain, pnlContainer_params)
+  pnlFlickerWalls =   RegisterPanel(pnlMain, pnlContainer_params)
+  pnlStationsPiles =  RegisterPanel(pnlMain, pnlContainer_params)
+  pnlFlickerSP =      RegisterPanel(pnlMain, pnlContainer_params)
+  
+  //create and register Text components for the various graphical elements
+  //  register components to different panels depending on their visibility conditions
+  //  no need to save reference
+  RegisterText(pnlBg, txtFloor_params)
+  RegisterText(pnlBg, txtFloor2_params)
+  RegisterText(pnlBg, txtULRock_params)
+  RegisterText(pnlBg, txtDoor_params)
+  RegisterText(pnlBg, txtDoorBg_params)
+  RegisterText(pnlBg, txtDoorFrameBg_params)
+  RegisterText(pnlBg, txtURRock_params)
+  RegisterText(pnlBg, txtURock_params)
+  RegisterText(pnlBg, txtFireRock_params)
+  
+  RegisterText(pnlFlickerWalls, txtURRockLit_params)
+  RegisterText(pnlFlickerWalls, txtURockLit_params)
+  RegisterText(pnlFlickerWalls, txtFireRockLit_params)
+  
+  RegisterText(pnlStationsPiles, txtAnvil_params)
+  RegisterText(pnlStationsPiles, txtCauldron_params)
+  RegisterText(pnlStationsPiles, txtTable_params)
+  RegisterText(pnlStationsPiles, txtBook_params)
+  RegisterText(pnlStationsPiles, txtPotion_params)
+  RegisterText(pnlStationsPiles, txtBottle_params)
+  RegisterText(pnlStationsPiles, txtEmblem_params)
+  
+  RegisterPile('stone', pnlStationsPiles, txtStonesFg_params,txtStonesBg_params)
+  RegisterPile('wand',  pnlStationsPiles, txtWandsFg_params,txtWandsBg_params)
+  RegisterPile('rune',  pnlStationsPiles, txtRunesFg_params,txtRunesBg_params)
+  
+  ?moon > 0 | NO_DYN_ITEMS
+    RegisterText(pnlStationsPiles, txtMoondial_params)
+    RegisterSFXButton(pnlStationsPiles, txtMoondial_params, blade_glow)
+  
+  RegisterText(pnlFlickerSP, txtAnvilLit_params)
+  RegisterText(pnlFlickerSP, txtCauldronLit_params)
+  RegisterText(pnlFlickerSP, txtTableLit_params)
+  RegisterText(pnlFlickerSP, txtBookLit_params)
+  
+  RegisterText(pnlMain, txtBLRock_params)
+  RegisterText(pnlMain, txtBRRock_params)
+  
+  //create, register, and start Anim components for the flame
+  RegisterAnim(pnlMain, anmFireB_params).Play()
+  RegisterAnim(pnlMain, anmFireT_params).Play()
+  
+  //create and register Button components for SFX easter eggs
+  RegisterSFXButton(pnlStationsPiles, txtAnvil_params, smithy_hammer_fail)
+  RegisterSFXButton(pnlStationsPiles, txtCauldron_params, waterfall_splash)
+  RegisterSFXButton(pnlStationsPiles, txtBook_params, booklet_turn_page)
+  RegisterSFXButton(pnlStationsPiles, txtBottle_params, key_drop)
+  RegisterSFXButton(pnlStationsPiles, txtFireRock_params, torch_cast)
+  RegisterSFXButton(pnlStationsPiles, txtStonesFg_params, pickup_stone)
+  RegisterSFXButton(pnlStationsPiles, txtWandsFg_params, wand_air_cast)
+  RegisterSFXButton(pnlStationsPiles, txtRunesFg_params, treasure_item_cyan)
+  
+  //create leave button over door
+  RegisterTranspButton(pnlBg, btnLeave_params, loc.Leave)
+  
+  //hide stations & resource piles if setting is checked
+  ?NO_STATIONS_OR_PILES
+    SetVisibility(pnlStationsPiles, false)
+    SetVisibility(pnlFlickerSP, false)
+  
+  //TODO: revert execution time now that setup is done
+  //  reduce function calls or split across several ticks
+  //stonescript.SetMaxExecutionTime(100)
+
+
+
+//define previously declared graphics strings
+//  runs once on startup
+func BuildGraphics()
+  ?loc = waterfall & !loc.isQuest & !initialized
+    BuildArt()
+    strFloor =  BuildFloor(screen.w, 14)
+    strFloor2 = BuildFloor(screen.w-5, 3)
+    strPotion = BuildPotion()
+    strEmblem = BuildEmblem()
+
+
+
+// randomly generate a 'w' x 'h' horizontal floor
+func BuildFloor(w, h)
+  var prev = ""
+  var f = ""
+
+  for y = 0..h-1
+    for x = 0..w-1
+      ?(rng % 30) = 0 & (prev ! "-")
+        f = f + "-"
+        prev = "-"
+      :
+        f = f + " "
+        prev = " "
+    f = f + "\n"
+  return f
+
+
+
+//randomly select potion contents
+func BuildPotion()
+  var t
+  
+  var r = rng % 8
+  ? r=0
+    t = "o/"
+  :?r=1
+    t = "/`"
+  :?r=2
+    t = "~≈"
+  :?r=3
+    t = ".:"
+  :?r=4
+    t = "~:"
+  :?r=5
+    t = "~o"
+  :?r=6
+    t = "o:"
+  :?r=7
+    t = "~/"
+  :
+    t = "  "
+  
+  return t
+
+
+
+//randomly select book cover
+func BuildEmblem()
+  var t
+  var r = rng % 3
+  ?  r=0 | r=1
+    t = " Σ "
+  :? r=2
+    t = "(∆)"
+  :
+    t = "   "
+  
+  return t
+
+
+
+//define most art strings
+func BuildArt()
+  strFireRock = ascii
+#.##•
+O####o
+#o##O
+asciiend
+
+  strFireRockLit = ascii
+#.##•
+O####o
+#o##O
+asciiend
+
+  strDoorBg = ascii
+######
+######
+#####,
+###/`#
+##´,-.
+#####^
+asciiend
+
+  strDoorFrameBg = ascii
+:
+|
+|
+|
+|
+asciiend
+
+  strDoor = ascii
+ ,´ ‾ '
+;    ` :
+╡ ;    │
+|   : o|
+╡ '    │
+|_ , - '
+asciiend
+
+  strAnvil = ascii
+_.──────.__
+`|      !.´
+##)____(
+#'──────'
+asciiend
+
+  strAnvilLit = ascii
+####────.__
+########!.´
+#######(
+########'
+asciiend
+
+  strCauldron = ascii
+##,─────,
+#_)‾‾‾‾‾(_
+(/       \)
+#\       /
+#/`--;--´\
+#####
+asciiend
+
+  strCauldronLit = ascii
+##,─────,
+asciiend
+
+  strTable = ascii
+###,───────,
+##/       /║
+#/       /#║
+/       ,
+║‾‾‾‾‾‾‾║
+║#######║
+asciiend
+
+  strTableLit = ascii
+####───##──,
+##########/║
+###########║
+asciiend
+
+  strBook = ascii
+###____
+##/   /
+#/___//
+(≡≡≡≡/
+#‾‾‾‾
+asciiend
+
+  strBookLit = ascii
+###____
+asciiend
+  
+  strBottle = ascii
+#)(
+(##)
+#‾‾
+asciiend
+
+  strMoondial = ascii
+,C.
+`-´
+asciiend
+
+  strURRock = ascii
+\  V  \ , /##|
+#`,    v ;###|
+##\    ,´####|
+###|  /######|
+###|  |######|
+##,  ,|######|
+#;  : \######|
+/  _;  ´\####|
+ ,´ \    `###|
+###########;`|
+#######/`;´  |
+######; / ^ ;|
+asciiend
+
+  strURRockLit = ascii
+#
+#
+##\
+###|
+###|
+##,##,
+#;##:
+/##_;
+#,´#\
+#
+#######/#;
+######;#/
+asciiend
+
+  strURock = ascii
+\' ,\ V ' ;#\  v,´
+#`'##\ ,´v###`:/
+######`#######'
+#
+#
+#
+##############_
+###########_.´ `.
+#########,´ \´;  \
+asciiend
+
+  strURockLit = ascii
+#
+#
+#
+#
+#
+#
+#
+###############`.
+############\´;##\
+asciiend
+
+  strULRock = ascii
+#\ ,  V /
+, v    ;
+#`   ,´
+##\  |
+##|  |
+#;'  \   ,
+/  `. `-' \
+   _  `\   `
+#,´ \######^
+asciiend
+
+  strBLRock = ascii
+|\
+| `. _
+|  ;´ :
+|      ‾\-.
+|       ´  `.
+|  ,-.       \ ,-._  ,-.
+|     '     .      `/  ;.-,
+|     _      \     ´  ´   \
+|   ;´ \      `     _     ,`.
+|  ,    `,         ; `.      \
+| '    ,´ '       ´    \   ^  `.
+asciiend
+
+  strBRRock = ascii
+###################_##|
+#################_; `.|
+###############.´     |
+##############;       |
+#######,##_##(    _   |
+#####,´;.´ ',`   ; `. |
+###_;           /    \|
+#,´ \          ;-.    |
+/    `.^     .´   \   |
+asciiend
+
+  strFireB = ascii
+#',)
+%%
+#`.)
+%%
+(` #
+%%
+#,')
+%%
+(.´#
+%%
+( ´#
+asciiend
+
+  strFireT = ascii
+(`
+%%
+(,
+%%
+,)
+%%
+´)
+asciiend
+
+  arrStrStones = ["",
+^ascii
+#
+##.
+#O8
+####o8Oo.
+#
+asciiend,
+^ascii
+##o
+#.O8
+8oOo##o8
+####o8OoO.
+#
+asciiend,
+^ascii
+#
+###8o
+##oO8o.
+#.O8Ooo8
+8oOoo8OoO.
+asciiend,
+^ascii
+#######.
+######.O8
+#######oO.
+########o8o
+#
+asciiend]
+
+  arrStrWands = ["",
+^ascii
+#
+#
+####o
+###─o\###o
+########/
+asciiend,
+^ascii
+#
+#
+######o
+o####o´\,
+#\##/-o`o-
+asciiend,
+^ascii
+####o
+#o#/o-
+##\`/-o
+#/´o|´o
+o─ |o/´─o
+asciiend,
+^ascii
+#
+########o
+#######/,|o
+#######o─`o\
+#
+asciiend]
+
+  arrStrRunes = ["",
+^ascii
+#
+#
+####❤φ *❄∞,
+###│‾‾'‾‾││
+###└─────┘´
+asciiend,
+^ascii
+#
+#####❄∞φ❤
+####❤φ∞*❄∞,
+###│‾‾'‾‾││
+###└─────┘´#❤
+####∞
+######φ
+asciiend,
+^ascii
+#####*❤
+#####❄∞φ❤
+####❤φ∞*❄∞,
+#❤φ│‾‾'‾‾││#
+❄φ*└─────┘´φ❤
+####∞####∞❄∞φ*
+######φ
+asciiend,
+^ascii
+#####__.__
+####│`````│
+asciiend]
+
+
+
+//draw foreground door elements
+func DrawDoor(x,y)
+  //draw fg door frame
+  >`@x@,@y@,@colorStation@,ascii
+  ,--.
+ ´
+;
+|
+|
+|
+|
+|
+asciiend
+
+  //draw fg rock
+  >`@x@,@y@,@colorRock@,ascii
+#
+#
+#
+#
+#
+#
+#
+#
+#,-.
+‾'.#\
+asciiend
+
+
+
+//draw dynamic smoke particles
+func DrawSmoke()
+  for c : smokeChars
+    var cx = c[0]
+    var cy = c[1]
+    >`@cx@,@cy@,#aaaaaa,'
+
+

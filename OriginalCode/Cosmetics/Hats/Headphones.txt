@@ -1,0 +1,298 @@
+//Headphones
+//by: link2_thepast
+//    with some color conversion functions by DarkLucifer69
+//v1.6
+//Add "import Cosmetics/Hats/Headphones" to the Mind Stone
+
+//A pair of headphones that scatter music notes behind the character
+//Notes increase in speed while the wind is blowing
+
+var color = #66CC00     //headphones base color
+                        //color can be changed, but must be in the form #rrggbb or #rainbow (no #red, #cyan, #rainFF, etc.)
+                        //the new color will take effect upon exiting and re-entering a location
+                        //note "fade out" colors will be automatically calculated based on this color
+
+//66CC00  basic green
+//4169E1  royal blue
+//FC6400  pumpkin orange
+
+
+
+//extract integer color channels from hex value
+var c_ints = colorToInt(color)
+var c_ints_r = c_ints[0]
+var c_ints_g = c_ints[1]
+var c_ints_b = c_ints[2]
+
+//modify integer values to get note colors
+var c_ints_age1 = [c_ints_r, c_ints_g, c_ints_b]
+var c_ints_age2 = [math.Clamp(c_ints_r-68,0,512), math.Clamp(c_ints_g-68,0,512), math.Clamp(c_ints_b-68,0,512)]
+var c_ints_age3 = [math.Clamp(c_ints_r-136,0,256), math.Clamp(c_ints_g-136,0,256), math.Clamp(c_ints_b-136,0,256)]
+
+//generate hex color values from modified color channels
+var color_age1 = intToColor(c_ints_age1)
+var color_age2 = intToColor(c_ints_age2)
+var color_age3 = intToColor(c_ints_age3)
+
+
+var max_notes = 5               //max notes alive at a time
+var new_note_interval = 15      //number of ticks before a new note is created
+var note_mov_interval = 9       //number of ticks between note random movements
+
+var windy = false
+var windy_note_interval = 5     //ticks before new note is created, when windy
+var windy_mov_interval = 3      //ticks between note movements, when windy
+var wind_mov_x = 0
+
+var rng_x = 0
+var rng_xmax = -3
+var rng_xmin = -5
+var rng_xmax_sm = -2
+var rng_xmin_sm = -3
+
+var rng_z = 0
+var rng_zmax = 1
+var rng_zmin = -3
+var rng_zmax_sm = 1
+var rng_zmin_sm = -1
+
+var notes = []
+var notes_xpos = []
+var notes_zpos = []
+
+var draw_x
+var draw_z
+var draw_note
+var count
+
+var dys_final
+
+
+//detect "windy" environments
+//occurs at Icy Ridge, during bridge crossing, and during Dysangelos fight
+?loc = rocky_plateau
+  ?windy
+    ?dys_final & (foe ! dysangelos)
+      windy = false
+      dys_final = false
+    :?foe.hp < 1 & foe = dysangelos_perfected
+      dys_final = true
+  :
+    ?foe = dysangelos & foe.state = 117
+        windy = true
+
+:?loc = icy_ridge
+  windy = true
+
+:?loc = cross_bridge
+  ?pos.x > 300
+    windy = false
+
+  :?loc.begin
+    windy = true
+
+
+//create a new note every *new_note_interval* ticks
+//increase rate to *windy_note_interval* ticks if the wind is blowing
+?(!windy & time % new_note_interval = 0) | (windy & time % windy_note_interval = 0)
+  //give notes a randomized position relative to player head
+  ?bighead
+    rng_x = rng_xmin + rng % (rng_xmax - rng_xmin + 1)
+    rng_z = rng_zmin + rng % (rng_zmax - rng_zmin + 1)
+  :
+    rng_x = rng_xmin_sm + rng % (rng_xmax_sm - rng_xmin_sm + 1)
+    rng_z = rng_zmin_sm + rng % (rng_zmax_sm - rng_zmin_sm + 1)
+
+  //give notes a random symbol (♫ is less likely than ♪ because it's visually heavier)
+  ?(rng % 3) = 0
+    notes.Add("♫")
+  :
+    notes.Add("♪")
+
+  //store note x,y pos
+  notes_xpos.Add((pos.x + rng_x))
+  notes_zpos.Add((pos.z - pos.y + rng_z))
+
+  //pop oldest note if too many are onscreen
+  ?notes.Count() > max_notes
+    notes.RemoveAt(0)
+    notes_xpos.RemoveAt(0)
+    notes_zpos.RemoveAt(0)
+
+
+//allow notes to drift every *note_mov_interval* ticks
+//increase rate to *windy_mov_interval* ticks if the wind is blowing
+?(!windy & time % note_mov_interval = 0) | (windy & time % windy_mov_interval = 0)
+  count = notes.Count()
+  ?count > 0
+    ?count > max_notes
+      count = max_notes
+
+    for i = 0 .. count-1
+      //notes drift farther while windy
+      ?windy
+        wind_mov_x = 2 + (rng%3)
+      :
+        wind_mov_x = 0
+
+      notes_xpos.Emplace(i, notes_xpos[i] - (rng%2) - wind_mov_x)
+      notes_zpos.Emplace(i, notes_zpos[i] - (rng%2))
+
+
+//draw notes, if there are notes to be drawn
+count = notes.Count()
+?count > 0
+  ?count > max_notes
+    count = max_notes
+
+  for i = 0 .. count-1
+    //correct for player's changing position
+    draw_x = notes_xpos[i] - pos.x
+    draw_z = notes_zpos[i] - pos.z + pos.y
+    draw_note = notes[i]
+    
+    //note color fades away as its age increases
+    ?i = 0
+      >o@draw_x@,@draw_z@,@color_age3@,@draw_note@
+    :?i < 3
+      >o@draw_x@,@draw_z@,@color_age2@,@draw_note@
+    :? i < max_notes
+      >o@draw_x@,@draw_z@,@color_age1@,@draw_note@
+
+
+//draw headphones
+?bighead
+  >h-3,-2,@color@,ascii
+##___
+#/###\
+(│###│)
+asciiend
+:
+  >h-2,0,@color@,ascii
+#,-.
+(]#[)
+asciiend
+
+
+//color conversion helper functions
+
+//converts 6-digit color code to integers
+//returns a 3-element array containing r,g,b as integers
+func colorToInt(color)
+  ?string.Size(color) < 7
+    return [0,0,0]
+
+  ?color = "#rainbow"
+    return [1024,1024,1024]
+
+  var r = hexInt(string.Sub(color, 1, 2))
+  var g = hexInt(string.Sub(color, 3, 2))
+  var b = hexInt(string.Sub(color, 5, 2))
+
+  return [r,g,b]
+
+
+//converts 3-element integer array to 6-digit color code
+//returns a hex color code in the form #rrggbb
+func intToColor(ints)
+  var t = ints[0]
+  ?t > 512
+    return "#rainFF"
+  :?t > 256
+    return "#rain88"
+  :?t > 255
+    return "#rain44"
+
+  var r = minLength(intHex(ints[0]), 2, 0)
+  var g = minLength(intHex(ints[1]), 2, 0)
+  var b = minLength(intHex(ints[2]), 2, 0)
+
+  return "#"+r+g+b
+
+
+//converts 2-digit hex to integer
+func hexInt(hex)
+  var int = 0
+  var size = string.Size(hex)
+  var digit = string.Sub(hex, 0, 1)
+
+  var msb = 1
+  var lsb = 0
+
+  ?string.Size(hex) > 1
+    int = hexInt(string.Sub(hex, 1, size-1)) + int
+
+  :?string.Size(hex) = 1
+    msb = 0
+    lsb = 1
+
+  ?digit = "0"
+    int = int + 0 * (16*msb)
+  :?digit = "1"
+    int = int + 1 * (16*msb + lsb)
+  :?digit = "2"
+    int = int + 2 * (16*msb + lsb)
+  :?digit = "3"
+    int = int + 3 * (16*msb + lsb)
+  :?digit = "4"
+    int = int + 4 * (16*msb + lsb)
+  :?digit = "5"
+    int = int + 5 * (16*msb + lsb)
+  :?digit = "6"
+    int = int + 6 * (16*msb + lsb)
+  :?digit = "7"
+    int = int + 7 * (16*msb + lsb)
+  :?digit = "8"
+    int = int + 8 * (16*msb + lsb)
+  :?digit = "9"
+    int = int + 9 * (16*msb + lsb)
+  :?digit = "A"
+    int = int + 10 * (16*msb + lsb)
+  :?digit = "B"
+    int = int + 11 * (16*msb + lsb)
+  :?digit = "C"
+    int = int + 12 * (16*msb + lsb)
+  :?digit = "D"
+    int = int + 13 * (16*msb + lsb)
+  :?digit = "E"
+    int = int + 14 * (16*msb + lsb)
+  :?digit = "F"
+    int = int + 15 * (16*msb + lsb)
+  :
+    int = int + 0
+  return int
+
+
+//function by DarkLucifer69
+//backfills a string to a particular length with a specified value
+func minLength(string, length, append)
+ ?string.Size(string) < length
+  string = append + minLength(string, length-1, append)
+
+ return string
+
+
+//function by DarkLucifer69
+//converts integer to hex value
+func intHex(int)
+ var hex = ""
+ 
+ ?int >= 16
+  hex = intHex(int/16) + hex 
+  
+ ?int % 16 <= 9
+  hex = hex + (int % 16)
+ :?int % 16 = 10
+  hex = hex + "A"
+ :?int % 16 = 11
+  hex = hex + "B"
+ :?int % 16 = 12
+  hex = hex + "C"
+ :?int % 16 = 13
+  hex = hex + "D"
+ :?int % 16 = 14
+  hex = hex + "E"
+ :?int % 16 = 15
+  hex = hex + "F"
+ 
+ return hex

@@ -1,0 +1,235 @@
+//OkamiroyUtils
+//Version: v1.2
+//Author: Okamiroy
+
+//This script is based on game version of 2.8.6
+//Game window size over 720p is recommended.
+
+//Function Instructions
+
+//func ShowTimer(posX, posY)
+///Show Timer
+///posX, posY: Window's position relative to the upper-left corner of the screen.
+
+//func ShowTimeStats(posX, posY)
+///Show Statistics
+///posX, posY: Window's position relative to the upper-left corner of the screen.
+
+//func ShowFoesBar(posX, posY, barLen, isBossOnly)
+///Show foe's hp and armor bar
+///posX, posY: Bar's position relative to the upper-left corner of the screen.
+///barLen: Bar's Length. 5 <= barLen <= 50
+///isBossOnly: If it shows boss' bar only
+
+//func ShowPlayersBar(posX, posY, barLen)
+///Show player's hp and armor bar.
+///posX, posY: Bar's position relative to the player's position.
+///barLen: Bar's Length. 5 <= barLen <= 50
+
+//Example
+//var myUtils = new OkamiroyUtils
+//myUtils.ShowTimer(1, 6)
+//myUtils.ShowTimeStats(65, 1)
+//myUtils.ShowFoesBar(19, 1, 40, true)
+//myUtils.ShowPlayersBar(-8, 1, 10)
+
+//----------------------------------------------------------------------------------------------------//
+
+//Timer Window
+var timerWindow = ascii
+╔ Time ╗
+║     f║
+║     s║
+║T    f║
+║T    s║
+╚══════╝
+asciiend
+
+///public
+///Show Timer
+///posX, posY: Window's position relative to the upper-left corner of the screen.
+func ShowTimer(posX, posY)
+  var contentX = posX + 2
+  var contentY = posY + 1
+  var sec = 0
+  sec = time / 30
+  var totalsec = 0
+  totalsec = totaltime / 30
+  >`@posX@,@posY@,#white,@timerWindow@
+  >`@contentX@,@contentY@,#white,@time@\n@sec@\n@totaltime@\n@totalsec@
+
+//----------------------------------------------------------------------------------------------------//
+
+//Statistics Window
+var timeStatsWindow = ascii
+╔ Statistics ╗
+║ Loop       ║
+║ Last      f║
+║ Avrg      f║
+║ Best      f║
+║ Worst     f║
+╚════════════╝
+asciiend
+
+var totalLoop = 0
+var totalTimeSum = 0
+var lastTime = 0
+var averageTime = 0
+var bestTime = 0
+var worstTime = 0
+var totalTimeCounter = 0
+
+///public
+///Show Statistics
+///posX, posY: Window's position relative to the upper-left corner of the screen.
+func ShowTimeStats(posX, posY)
+  ?loc.loop
+    lastTime = totalTimeCounter
+    ?lastTime < bestTime | bestTime = 0
+      bestTime = lastTime
+    ?lastTime > worstTime | worstTime = 0
+      worstTime = lastTime
+    totalTimeSum = totalTimeSum + totalTimeCounter
+    totalLoop++
+    averageTime = totalTimeSum / totalLoop
+    totalTimeCounter = 0
+
+  totalTimeCounter++
+  ?totalTimeCounter > 9999
+    totalTimeCounter = 9999
+
+  var contentX = posX + 8
+  var contentY = posY + 1
+  >`@posX@,@posY@,#white,@timeStatsWindow@
+  >`@contentX@,@contentY@,#white,@totalLoop@\n@lastTime@\n@averageTime@\n@bestTime@\n@worstTime@
+
+//----------------------------------------------------------------------------------------------------//
+
+var MAX_SOLID_BAR = ██████████████████████████████████████████████████
+var MAX_EMPTY_BAR = __________________________________________________
+
+//----------------------------------------------------------------------------------------------------//
+
+///private
+///Calculate the percentage number.
+func CalcPercentage(curVal, maxVal)
+  ?maxVal <= 0
+    return 0
+  var percentage = 0
+  percentage = curVal * 100
+  percentage = percentage / maxVal
+  ?percentage = 0 & curVal > 0
+    percentage = 1
+  ?percentage < 0
+    percentage = 0
+  return percentage
+
+//----------------------------------------------------------------------------------------------------//
+
+///private
+///Build the bar string.
+///barLen: Bar's Length. 0 < barLen <= 50
+///showEmptyChar: If it needs to show the empty char '_'
+func BuildBarStr(curVal, maxVal, barLen, showEmptyChar)
+  ?barLen < 5
+    barLen = 5
+  ?barLen > 50
+    barLen = 50
+
+  var solidLen = 0
+  solidLen = curVal * barLen
+  solidLen = solidLen / maxVal
+  ?solidLen = 0 & curVal > 0
+    solidLen = 1
+  ?solidLen < 0
+    solidLen = 0
+
+  var emptyLen = 0
+  ?showEmptyChar
+    emptyLen = barLen - solidLen
+
+  var barStr = ""
+  ?curVal >= maxVal
+    barStr = string.Sub(MAX_SOLID_BAR, 0, barLen)
+  ?curVal < maxVal
+    var solidPart = ""
+    solidPart = string.Sub(MAX_SOLID_BAR, 0, solidLen)
+    var emptyPart = ""
+    emptyPart = string.Sub(MAX_EMPTY_BAR, 0, emptyLen)
+    barStr = solidPart + emptyPart
+  
+  return barStr
+
+//----------------------------------------------------------------------------------------------------//
+
+///public
+///Show foe's hp and armor bar
+///posX, posY: Bar's position relative to the upper-left corner of the screen.
+///barLen: Bar's Length. 0 < barLen <= 50
+///isBossOnly: If it shows boss' bar only
+func ShowFoesBar(posX, posY, barLen, isBossOnly)
+  ? !isBossOnly | (isBossOnly & foe = boss)
+    //Foe's hp bar
+    ?foe.hp > 0
+      var barX = posX + 5
+      var barY = posY
+
+      var fhpPercentage = 0
+      fhpPercentage = CalcPercentage(foe.hp, foe.maxhp)
+      >`@posX@,@posY@,#FF5050,@fhpPercentage@%  
+      var fhpBarStr = ""
+      fhpBarStr = BuildBarStr(foe.hp, foe.maxhp, barLen, true)
+      >`@barX@,@barY@,#FF5050,@fhpBarStr@
+ 
+    //Foe's armor bar
+    ?foe.armor > 0
+      //If foe has armor but foe.maxarmor=0, then take its maxhp as maxarmor
+      var fmaxarmor = 0
+      fmaxarmor = foe.maxarmor
+      ?fmaxarmor = 0
+        fmaxarmor = foe.maxhp
+      
+      var farmorPercentage = 0
+      farmorPercentage = CalcPercentage(foe.armor, fmaxarmor)
+      >`@posX@,@posY@,#5050FF,@farmorPercentage@%  
+      var farmorBarStr = ""
+      farmorBarStr = BuildBarStr(foe.armor, fmaxarmor, barLen, false)
+      >`@barX@,@barY@,#5050FF,@farmorBarStr@
+
+//----------------------------------------------------------------------------------------------------//
+
+///public
+///Show player's hp and armor bar.
+///posX, posY: Bar's position relative to the player's position.
+///barLen: Bar's Length. 0 < barLen <= 50
+func ShowPlayersBar(posX, posY, barLen)
+  var hpX = posX
+  var hpY = posY + 1
+  var hpBarX = hpX - barLen
+  var hpBarY = hpY
+  
+  //player's hp bar
+  var hpPercantage = 0
+  hpPercantage = CalcPercentage(hp, maxhp)
+  >o@hpX@,@hpY@,#FF5050,@hpPercantage@%
+  var hpBarStr = ""
+  hpBarStr = BuildBarStr(hp, maxhp, barLen, true)
+  >o@hpBarX@,@hpBarY@,#FF5050,@hpBarStr@
+  
+  //player's armor bar
+  var armorX = posX
+  var armorY = posY
+  var armorBarX = armorX - barLen
+  var armorBarY = armorY 
+  
+  var armorPercentage = 0
+  armorPercentage = CalcPercentage(armor, maxhp)
+  var armorBarStr = ""
+  armorBarStr = BuildBarStr(armor, maxhp, barLen, true)
+
+  ?armorPercentage >= 100
+    >o@armorX@,@armorY@,#rainFF,@armorPercentage@%
+    >o@armorBarX@,@armorBarY@,#rainFF,@armorBarStr@
+  ?armorPercentage < 100
+    >o@armorX@,@armorY@,#5050FF,@armorPercentage@%
+    >o@armorBarX@,@armorBarY@,#5050FF,@armorBarStr@

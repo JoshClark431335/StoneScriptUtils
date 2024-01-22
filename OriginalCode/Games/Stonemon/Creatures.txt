@@ -1,0 +1,365 @@
+//Change Log
+//V1.3.0
+//changed to TAB Spacings
+//
+//V1.2.0
+//var faseOut
+//
+//V1.1.1
+//
+//V1.1.0
+//
+//DarkLucifer69
+//Stonemon
+//Version V1.0
+
+var Name
+var CurrentHP
+var Max_HP
+var MaxHPGrowth
+var CurrentMP
+var Max_MP
+var MaxMPGrowth
+var SkillName
+var SkillCost
+var SkillCostMinimum
+var SkillEffect
+var SkillDescription
+var Damage
+var DamageGrowth
+var DamageMod
+var RegenHP
+var RegenMP
+var Quality
+
+var Pay2Win = 0
+var faseOut = false
+
+var Defending
+var DefendingCD
+
+var a = 0
+
+func RandomVeriance(value, statValue)
+	var rngVal = rng
+	var startVal = value
+	value = value + ((rngVal % ((value/5)+1)) - (value/10))
+	value = math.Clamp(value, 0, 999)
+	
+	Quality = Quality + ((value-startVal)*statValue)
+	
+	return value
+
+func GenerateCreature(name)
+	?name
+		GenerateNew(name)
+	:
+		GenerateNew(rng % 18 + 1)
+	
+func GenerateNew(name)
+	Quality = 0
+	?name = "Starter" | name = 0
+		Name = "Envy"
+		CurrentHP = 100
+		Max_HP = CurrentHP + (CurrentHP / 5)
+		CurrentMP = 100
+		Max_MP = CurrentMP + (CurrentMP / 5)
+		SkillName = "Vent Jealously"
+		SkillCost = 50
+		SkillEffect = "Damage 2x"
+		SkillDescription = "Someone has Something, \n##Beat them till it's Yours"
+		Damage = 20
+		DamageMod = 5
+		RegenHP = false
+		RegenMP = true
+		
+	:?name = "Scarab" | name = 1
+		Name = "Scarab"
+		CurrentHP = RandomVeriance(50, 1)
+		Max_HP = CurrentHP + (CurrentHP / 5)
+		Max_MP = RandomVeriance(100, 1)
+		CurrentMP = Max_MP - (Max_MP / 5)
+		SkillName = "Reckless Charge"
+		SkillCost = RandomVeriance(90, -4)
+		SkillEffect = "Damage 1.5x, May Hurt Self"
+		SkillDescription = "Charges with Blind Rage"
+		Damage = RandomVeriance(5, 5)
+		DamageMod = 0
+		RegenHP = false
+		RegenMP = true
+		
+	:?name = "Xyloalgia" | name = 2
+		Name = "Xyloalgia"
+		CurrentHP = RandomVeriance(200, 1)
+		Max_HP = CurrentHP + (CurrentHP / 5)
+		Max_MP = RandomVeriance(200, 1)
+		CurrentMP = Max_MP - (Max_MP / 5)
+		SkillName = "Mean Branches"
+		SkillCost = RandomVeriance(150, -4)
+		SkillEffect = "Damage 3x"
+		SkillDescription = "Xylo Lives in Agony,\n##Now so do you! REJOICE!"
+		Damage = RandomVeriance(15, 5)
+		DamageMod = 0
+		RegenHP = false
+		RegenMP = true
+		
+	:?name = "Knee Chopper" | name = 3
+		Name = "Knee Chopper"
+		CurrentHP = RandomVeriance(120, 1)
+		Max_HP = CurrentHP + (CurrentHP / 5)
+		Max_MP = RandomVeriance(120, 1)
+		CurrentMP = Max_MP - (Max_MP / 5)
+		SkillName = "Sate Craving"
+		SkillCost = RandomVeriance(90, -4)
+		SkillEffect = "Damage 2x"
+		SkillDescription = "He has the Rumblies that,\n##only Knees can satisfy"
+		Damage = RandomVeriance(8, 5)
+		DamageMod = 0
+		RegenHP = false
+		RegenMP = true
+		
+	:?name = "Bolesh" | name = 4
+		Name = "Bolesh"
+		CurrentHP = RandomVeriance(240, 1)
+		Max_HP = CurrentHP + (CurrentHP / 5)
+		Max_MP = RandomVeriance(200, 1)
+		CurrentMP = 0
+		SkillName = "Annoyance Rising"
+		SkillCost = RandomVeriance(80, -4)
+		SkillEffect = "Damage+ 25% Anger+ 50%"
+		SkillDescription = "These Bugs... just \n##wont leave me alone..."
+		Damage = RandomVeriance(8, 5)
+		DamageMod = 0
+		RegenHP = false
+		RegenMP = true
+		
+	:?name = "Big A** Snail" | name = 5
+		Name = "Big A** Snail"
+		CurrentHP = RandomVeriance(125, 1)
+		Max_HP = CurrentHP + (CurrentHP / 5)
+		Max_MP = RandomVeriance(120, 1)
+		CurrentMP = Max_MP - (Max_MP / 5)
+		SkillName = "Slimy Touch"
+		SkillCost = RandomVeriance(90, -4)
+		SkillEffect = "Damage 1.5x, Icky+"
+		SkillDescription = "Some people like that \n##sort of thing..."
+		Damage = RandomVeriance(5, 5)
+		DamageMod = 0
+		RegenHP = true
+		RegenMP = true
+		
+	:?name = "Angry Shroom" | name = 6
+		Name = "Angry Shroom"
+		CurrentHP = RandomVeriance(175, 1)
+		Max_HP = CurrentHP + (CurrentHP / 5)
+		Max_MP = RandomVeriance(200, 1)
+		CurrentMP = Max_MP - (Max_MP / 5)
+		SkillName = "Alpha Punch"
+		SkillCost = RandomVeriance(125, -4)
+		SkillEffect = "Damage 2.5x"
+		SkillDescription = "It feels good to Hit stuff"
+		Damage = RandomVeriance(12, 5)
+		DamageMod = 0
+		RegenHP = true
+		RegenMP = true
+		
+	:?name = "Skeletony" | name = 7
+		Name = "Skeletony"
+		CurrentHP = RandomVeriance(150, 1)
+		Max_HP = CurrentHP + (CurrentHP / 5)
+		Max_MP = RandomVeriance(120, 1)
+		CurrentMP = Max_MP - (Max_MP / 5)
+		SkillName = "Entropy Slam"
+		SkillCost = RandomVeriance(90, -4)
+		SkillEffect = "1.5x > HP & MP"
+		SkillDescription = "The Energies that Animate \n##can also Disintegrate"
+		Damage = RandomVeriance(22, 5)
+		DamageMod = 0
+		RegenHP = false
+		RegenMP = true
+		
+	:?name = "Pallas" | name = 8
+		Name = "Pallas"
+		CurrentHP = RandomVeriance(300, 1)
+		Max_HP = CurrentHP + (CurrentHP / 5)
+		Max_MP = RandomVeriance(300, 1)
+		CurrentMP = Max_MP / 5
+		SkillName = "BF Sword"
+		SkillCost = RandomVeriance(150, -4)
+		SkillEffect = "2x to HP & MP, Drain Effect"
+		SkillDescription = "Pallas is practically\n##Immortal, are you?"
+		Damage = RandomVeriance(25, 5)
+		DamageMod = 0
+		RegenHP = false
+		RegenMP = true
+		
+	:?name = "Dominotaur" | name = 9
+		Name = "Dominotaur"
+		CurrentHP = RandomVeriance(200, 1)
+		Max_HP = CurrentHP + (CurrentHP / 5)
+		Max_MP = RandomVeriance(300, 1)
+		CurrentMP = Max_MP - (Max_MP / 5)
+		SkillName = "Sadistic Glee"
+		SkillCost = RandomVeriance(40, -4)
+		SkillEffect = "0.8x Damage"
+		SkillDescription = "For when you get pleasure \n##from violence"
+		Damage = RandomVeriance(26, 5)
+		DamageMod = 0
+		RegenHP = false
+		RegenMP = true
+		
+	:?name = "Bronze Guardian" | name = 10
+		Name = "Bronze Guardian"
+		CurrentHP = 700
+		Max_HP = 700
+		Max_MP = 100
+		CurrentMP = 0
+		SkillName = "Expensive Hammer"
+		SkillCost = 50
+		SkillEffect = "Increasingly Powerful"
+		SkillDescription = "This is how you Pay2Win\n##3rd Hit KO, True Damage"
+		Damage = RandomVeriance(0, 5)
+		DamageMod = 0
+		RegenHP = false
+		RegenMP = true
+		
+		Pay2Win = 0
+		
+	:?name = "Giant Ice Elemental" | name = 11
+		Name = "Giant Ice Elemental"
+		CurrentHP = RandomVeriance(300, 1)
+		Max_HP = CurrentHP + (CurrentHP / 5)
+		Max_MP = RandomVeriance(400, 1)
+		CurrentMP = Max_MP - (Max_MP / 5)
+		SkillName = "Kamehame-Sneeze"
+		SkillCost = RandomVeriance(80, -4)
+		SkillEffect = "Damage 1x, Freeze 10%"
+		SkillDescription = "Ice Elementals Like to make\n##Ice Sculpture. Are you one?"
+		Damage = RandomVeriance(35, 5)
+		DamageMod = 0
+		RegenHP = false
+		RegenMP = true
+		
+	:?name = "Hrimnir" | name = 12
+		Name = "Hrimnir"
+		CurrentHP = RandomVeriance(400, 1)
+		Max_HP = CurrentHP + (CurrentHP / 5)
+		Max_MP = RandomVeriance(400, 1)
+		CurrentMP = Max_MP - (Max_MP / 5)
+		SkillName = "SnowBall o'Matic"
+		SkillCost = RandomVeriance(40, -4)
+		SkillEffect = "Damage 1x, Freeze 25%"
+		SkillDescription = "He Knows what it's like to\n##be Frozen, Now You Too!"
+		Damage = RandomVeriance(40, 5)
+		DamageMod = 0
+		RegenHP = false
+		RegenMP = true
+		
+	:?name = "Acronian Cultist" | name = 13
+		Name = "Acronian Cultist"
+		CurrentHP = RandomVeriance(350, 1)
+		Max_HP = CurrentHP + (CurrentHP / 5)
+		Max_MP = RandomVeriance(300, 1)
+		CurrentMP = Max_MP - (Max_MP / 5)
+		SkillName = "Spooky Lantern"
+		SkillCost = RandomVeriance(60, -4)
+		SkillEffect = "Damage+ 10%"
+		SkillDescription = "Some think he's using souls\n##for power, don't chance it!"
+		Damage = RandomVeriance(44, 5)
+		DamageMod = 0
+		RegenHP = false
+		RegenMP = true
+		
+	:?name = "Nagaraja" | name = 14
+		Name = "Nagaraja"
+		CurrentHP = RandomVeriance(400, 1)
+		Max_HP = CurrentHP + (CurrentHP / 5)
+		Max_MP = RandomVeriance(999, 1)
+		CurrentMP = Max_MP - (Max_MP / 5)
+		SkillName = "Swallow"
+		SkillCost = RandomVeriance(10, -4)
+		SkillEffect = "Instant Kill"
+		SkillDescription = "Don't Let up or he'll\n##Swallow you Whole"
+		Damage = RandomVeriance(45, 5)
+		DamageMod = 0
+		RegenHP = false
+		RegenMP = true
+		
+		Pay2Win = CurrentHP
+		
+	:?name = "Acronian Scout" | name = 15
+		Name = "Acronian Scout"
+		CurrentHP = RandomVeriance(400, 1)
+		Max_HP = CurrentHP + (CurrentHP / 5)
+		Max_MP = RandomVeriance(400, 1)
+		CurrentMP = Max_MP - (Max_MP / 5)
+		SkillName = "Javelin Prod"
+		SkillCost = RandomVeriance(120, -4)
+		SkillEffect = "Damage 2.5x"
+		SkillDescription = "Surprisingly Effective"
+		Damage = RandomVeriance(32, 5)
+		DamageMod = 0
+		RegenHP = false
+		RegenMP = true
+		
+	:?name = "Dysangelos Has Stones" | name = 16
+		Name = "Dysangelos Has Stones"
+		CurrentHP = RandomVeriance(500, 1)
+		Max_HP = CurrentHP + (CurrentHP / 5)
+		Max_MP = RandomVeriance(999, 1)
+		CurrentMP = 0
+		SkillName = "Raw Power"
+		SkillCost = RandomVeriance(500, -4)
+		SkillEffect = "Damage 3.5x"
+		SkillDescription = "He's Got the Stones"
+		Damage = RandomVeriance(40, 5)
+		DamageMod = 0
+		RegenHP = false
+		RegenMP = true
+		
+	:?name = "Dysangelos Elemental" | name = 17
+		Name = "Dysangelos Elemental"
+		CurrentHP = RandomVeriance(500, 1)
+		Max_HP = CurrentHP + (CurrentHP / 5)
+		Max_MP = RandomVeriance(999, 1)
+		CurrentMP = 0
+		SkillName = "Elemental Lotto"
+		SkillCost = RandomVeriance(500, -4)
+		SkillEffect = "Damage 2x, Random Effect"
+		SkillDescription = "...Poison,Vigor,Æther,Fire\n##and Ice, not Wind Though!"
+		Damage = RandomVeriance(50, 5)
+		DamageMod = 0
+		RegenHP = false
+		RegenMP = true
+		
+	:?name = "Dysangelos Perfected" | name = 18
+		Name = "Dysangelos Perfected"
+		CurrentHP = 999
+		Max_HP = 999
+		Max_MP = 999
+		CurrentMP = 0
+		SkillName = "Perfection"
+		SkillCost = 999
+		SkillCostMinimum = 999
+		SkillEffect = "Perfect"
+		SkillDescription = "you cant improve on\n##Perfection!"
+		Damage = 55
+		DamageMod = 0
+		RegenHP = false
+		RegenMP = true
+		
+	MaxHPGrowth = Max_HP * 2
+	MaxMPGrowth = Max_MP * 2
+	SkillCostMinimum = SkillCost / 2
+	DamageGrowth = Damage * 2
+
+	Defending = false
+	DefendingCD = 0
+
+func Regenerate()
+	?RegenHP
+		CurrentHP = math.Clamp(CurrentHP + Max_HP / 10, 0, Max_HP)
+	?RegenMP
+		CurrentMP = math.Clamp(CurrentMP + Max_MP / 10, 0, Max_MP)
+		
+GenerateNew(0)

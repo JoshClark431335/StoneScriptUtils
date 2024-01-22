@@ -1,0 +1,167 @@
+//Blackjack - Bank by link2_thepast
+//
+//Container to handle player's money and bet value
+
+// Status variables
+var initialized = false
+
+var storage_key
+var money = 0
+var bet = 0
+var bet_mult = 1
+
+var f_money = 0.0
+var f_bet = 0.0
+var disp_money = -1
+var disp_bet = -1
+
+// Constants
+var MONEY_MAX = 9999
+var TICK_RATE_FAST = 0.2
+var TICK_RATE_SLOW = 0.1
+var DIST_AT = 0.2
+var DIST_FAR = 10
+
+// UI/graphics variables
+var pnlMain
+var txtMoney
+var txtBet
+var txtIconMoney
+var txtIconBet
+
+var clrMoney =  #green  //duh
+var clrBet =    #yellow
+
+// Constructor, init Bank object
+func Init(storage_key, seed)
+  this.storage_key = storage_key
+  
+  bet = 0
+  money = storage.Get(storage_key, seed)
+  
+  //catch type errors while fetching score from storage
+  ?Type(money) = float
+    money = math.RoundToInt(money)
+  :?Type(money) ! int
+    money = seed
+  
+  f_money = 0.0 + money
+  f_bet = 0.0
+  
+  pnlMain = ui.AddPanel()
+  pnlMain.style = 0
+  pnlMain.anchor = center_right
+  pnlMain.dock = center_right
+  pnlMain.clip = true
+  pnlMain.x = -1
+  pnlMain.y = 0
+  pnlMain.w = 7
+  pnlMain.h = 4
+  
+  txtMoney = ui.AddText()
+  txtMoney.color = clrMoney
+  txtMoney.align = right
+  txtMoney.anchor = top_right
+  txtMoney.dock = top_right
+  txtMoney.w = pnlMain.w
+  txtMoney.h = 1
+  
+  txtBet = ui.AddText()
+  txtBet.color = clrBet
+  txtBet.align = right
+  txtBet.anchor = top_right
+  txtBet.dock = top_right
+  txtBet.w = pnlMain.w
+  txtBet.h = 1
+  txtBet.y = 1
+  
+  txtIconMoney = ui.AddText()
+  txtIconMoney.text = "  $"
+  txtIconMoney.color = clrMoney
+  txtIconMoney.anchor = top_left
+  txtIconMoney.dock = top_left
+  txtIconMoney.w = 3
+  txtIconMoney.h = 1
+  
+  txtIconBet = ui.AddText()
+  txtIconBet.text = "Bet"
+  txtIconBet.color = clrBet
+  txtIconBet.anchor = top_left
+  txtIconBet.dock = top_left
+  txtIconBet.w = 3
+  txtIconBet.h = 1
+  txtIconBet.y = 1
+  
+  pnlMain.Add(txtIconMoney)
+  pnlMain.Add(txtIconBet)
+  pnlMain.Add(txtMoney)
+  pnlMain.Add(txtBet)
+  
+  UpdateDisplay()
+  
+  return this
+
+// Tick bet and money displays
+func UpdateDisplay()
+  UpdateMoneyDisplay()
+  UpdateBetDisplay()
+
+// Tick displayed money until it matches actual held money
+func UpdateMoneyDisplay()
+  ?math.Abs(money - disp_money) > DIST_FAR
+    f_money = math.Lerp(f_money, money, TICK_RATE_FAST)
+  :?math.Abs(money - disp_money) > DIST_AT
+    f_money = math.Lerp(f_money, money, TICK_RATE_SLOW)
+  
+  ?disp_money ! money
+    disp_money = math.RoundToInt(f_money)
+    txtMoney.text = "" + disp_money
+
+// Tick displayed bet until it matches actual bet
+func UpdateBetDisplay()
+  ?math.Abs(bet - disp_bet) > DIST_FAR
+    f_bet = math.Lerp(f_bet, bet, TICK_RATE_FAST)
+  :?math.Abs(bet - disp_bet) > DIST_AT
+    f_bet = math.Lerp(f_bet, bet, TICK_RATE_SLOW)
+  
+  disp_bet = math.RoundToInt(f_bet)
+  txtBet.text = "" + disp_bet
+
+// Increase/decrease held money
+func AddMoney(d_money)
+    f_money = 0.0 + money
+    money = math.Clamp(money+d_money, 0, MONEY_MAX)
+
+// Move money from bank to bet
+func AddBet(d_bet)
+  ?(bet+d_bet < 0) | (money-d_bet < 0)
+    return
+  
+  f_bet = 0.0 + bet
+  bet = math.Clamp(bet+d_bet, 0, MONEY_MAX)
+  AddMoney(-d_bet)
+
+// Move money from bank to bet, bypassing bet display ticks
+func AddBetImmediate(d_bet)
+  ?(bet+d_bet < 0) | (money-d_bet < 0)
+    return
+  
+  AddBet(d_bet)
+  f_bet = 0.0 + bet
+  disp_bet = bet
+
+// Set current bet multiplier (0x lose, 1x push, 2x win, 2.5x blackjack)
+func SetBetMult(mult)
+  this.bet_mult = mult
+
+// Move money from bet to bank, times the current multiplier
+//   Save money to permanent storage, so it can be used later
+func Settle()
+  AddMoney(bet * bet_mult)
+  storage.Set(storage_key, math.RoundToInt(money) )
+  bet_mult = 1
+  bet = 0
+
+// Has enough money to double down?
+func CanDoubleDown()
+  return (money >= bet)

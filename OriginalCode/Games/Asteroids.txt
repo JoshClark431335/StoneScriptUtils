@@ -1,0 +1,621 @@
+// Asteroids
+// by: standardcombo and skyDelight
+// Mobile version by: MaxMinMedian
+
+var version = "v2.1.0"
+
+// INSTRUCTIONS
+// ============
+// 1. Backup your mindstone code first (if copypasting).
+// 2. Either
+//    (A) Copypaste this entire file into your mindstone, OR
+//    (B) Type 'import Games/Asteroids' (without the quotes)
+//        into your mindstone.          
+// 3. Go to Deadwood Waterfall.
+
+var abs = math.Abs
+var pow = math.Pow
+
+var scrw = screen.w
+var scrh = screen.h
+var x_max = scrw * 100
+var y_max = scrh * 100
+var lang = te.language
+
+var logoW = 56
+var logoX = (scrw - logoW)/2
+var logoY = 6
+var logoSprite
+var versionX = logoX + logoW - string.Size(version) - 1
+var versionY = 12
+var controlsStr = te.xt("tid_button_input")
+var controlsX = 5 - string.Size(controlsStr) / 2
+
+var locIsNotWaterfall = !(loc = waterfall)
+var mapStart = false
+
+var shipPanel
+var shipSprite     // 0 = 3:00, 1 = 4:00, ..., 11 = 2:00
+var engineSprite
+var backgroundSprite
+var bulletSprite
+var healthSprite
+var explosionSprite
+var asteroidSprite = []  // 0 = small, 1 = med, 2 = large
+var asteroidScore = [10, 15, 20]
+var asteroidRadius = [50, 100, 200]
+var asteroidCenterOffset = [[100, 100], [200, 100], [150, 250]]
+
+var bulletOffset = [[200, 0], [ 200, 100], [ 100, 100], [0, 100], [-100,100], [-200, 100],
+                     [-200,0], [-200,-100], [-100,-100], [0,-100], [100,-100], [ 200,-100]]
+
+var shipAcceleration = [[20, 0], [ 16, 4], [  8, 8], [  0,10],
+                        [-8, 8], [-16, 4], [-20, 0], [-16,-4],
+                        [-8,-8], [ 0,-10], [  8,-8], [ 16,-4]]
+
+var playerDead = 0
+var playerDeadDuration = 90
+var banner = 0
+var bannerDuration = 90
+var showSplash = true
+var score = 0
+var level
+var highscore
+
+var bulletList = []  // [x, y, vx, vy, framesRemaining]
+var asteroidList = []  // [x, y, vx, vy, size]
+
+var shipRadius = 150
+var shipLife = 2
+var bonusLifePointsRequired = 1000
+var bonusLifeScoreToReach = 1000
+var asteroidCount = 0
+var bulletCount = 0
+var safeAreaRadius = 1000
+var shipRotationSpeed = 15
+var ship_x
+var ship_y
+var ship_vx
+var ship_vy
+var ship_ax
+var ship_ay
+var shipAccelerating
+var shipHalfturn = 0
+var shipDirection = 0
+var shipInvincibility = 0
+var shipInvincibilityDuration = 30
+var ship_vx_max = 60
+var ship_vy_max = 30
+var bulletLifespan = 60
+var bulletRadius = 100
+var bulletCooldownDuration = 7
+var bulletCooldown = 0
+
+var splashPanel
+var gamePanel
+var buttonX
+
+///////////////////////////////////////////////
+
+?locIsNotWaterfall
+  return
+
+?!mapStart
+  mapStart = true
+  disable banner
+  disable pause
+  ambient.Stop()
+  setupSprites()
+  setupUI()
+
+main()
+
+///////////////////////////////////////////////
+
+func main()
+  ?showSplash
+    splashScreen()
+  :
+    ?banner
+      banner -= 1
+      ?banner = 0
+        disable banner
+        ?!playerDead & !asteroidCount
+          initLevel(level + 1)
+          return
+        :?shipLife = 0
+          newGame()
+          return
+    ?shipInvincibility
+      shipInvincibility -= 1
+    ?bulletCooldown
+      bulletCooldown -= 1
+    ?playerDead
+      playerDead -= 1
+      ?playerDead = 0
+        ?shipLife = 0
+          newGame()
+        :
+          resetShip()
+    :
+      updatePlayer()
+    updateAsteroids()
+    updateBullets()
+    checkCollision()
+    drawGame()
+
+func splashScreen()
+  >`@logoX@,@logoY@,@logoSprite@
+  >`@versionX@,@versionY@,@version@
+  >`@controlsX@,@screen.h - 5@,  @controlsStr@
+  >`1,@screen.h - 4@,╔══════════╗  
+  >`1,@screen.h - 3@,║ ← →    ∆ ║
+  >`1,@screen.h - 2@,╚══════════╝
+
+func newGame()
+  splashPanel.children[1].y = 9
+  splashPanel.children[2].visible = inherit
+  buttonX.visible = true
+  gamePanel.visible = true
+  shipLife = 2
+  updateHealth()
+  score = 0
+  highscore = storage.Get("Asteroids_Highscore", storage.Get("highscore", 0))
+  increaseScore(0)
+  bonusLifeScoreToReach = bonusLifePointsRequired
+  initLevel(1)
+  showSplash = false
+  splashPanel.visible = false
+  
+func continueGame()
+  showSplash = false
+  splashPanel.visible = false
+  buttonX.visible = true
+  gamePanel.visible = true
+  
+func returnMenu()
+  showSplash = true
+  splashPanel.visible = true
+  buttonX.visible = false
+  gamePanel.visible = false
+  
+func initLevel(lvl)
+  level = lvl
+  ?lang = "ZH-CN"
+    gamePanel.children[2].text = "第 " + level + " 关"
+  :
+    gamePanel.children[2].text = " Level: " + level
+  resetShip()
+  bulletCount = 0
+  asteroidCount = 0
+  bulletList.Clear()     // [x, y, vx, vy, framesRemaining]
+  asteroidList.Clear()   // [x, y, vx, vy, size]
+  for i = 0 .. lvl-1
+    var rnd_x = modulo(x_max/2 + safeAreaRadius + (10000 * rng + rng) % (x_max - 2 * safeAreaRadius), x_max)
+    var rnd_y = modulo(y_max/2 + safeAreaRadius + (10000 * rng + rng) % (y_max - 2 * safeAreaRadius), y_max)
+    var size = rng % 3
+    generateAsteroid(rnd_x, rnd_y, size)
+
+func resetShip()
+  shipInvincibility = shipInvincibilityDuration
+  shipDirection = 0
+  ship_x = x_max/2 - 400
+  ship_y = y_max/2 - 200
+  ship_vx = 0
+  ship_vy = 0
+  shipSprite.frame = 0
+  engineSprite.frame = 0
+  ship_ax = shipAcceleration[shipDirection][0]
+  ship_ay = shipAcceleration[shipDirection][1]
+
+func generateAsteroid(x, y, size)
+  var vx = rng % 101 - 50    // -50 to 50
+  var vy = rng % 51 - 25     // -25 to 25
+  asteroidList.Add([x, y, vx, vy, size])
+  asteroidCount += 1
+
+func updatePlayer()
+  ship_x = modulo(ship_x + ship_vx, x_max)
+  ship_y = modulo(ship_y + ship_vy, y_max)
+  var key_ = key
+  shipAccelerating = false
+  ?!key_
+    shipHalfturn = 0
+    return
+  ?key_ = primary
+    var input_x = input.x
+    ?input_x * 6 < scrw
+      turnShip(-1)
+    :?input_x * 3 < scrw
+      turnShip(1)
+    :
+      accelerateShip()
+  :
+    ?key_ = left
+      turnShip(-1)
+    ?key_ = right
+      turnShip(1)
+    ?key_ = up
+      accelerateShip()
+
+func turnShip(dir)
+  ?shipHalfturn = 1
+    shipHalfturn = 0
+    shipDirection = modulo(shipDirection + dir, 12)
+    shipSprite.frame = shipDirection
+    engineSprite.frame = shipDirection
+    ship_ax = shipAcceleration[shipDirection][0]
+    ship_ay = shipAcceleration[shipDirection][1]
+  :
+    shipHalfturn = 1
+
+func accelerateShip()
+  shipAccelerating = true
+  ship_vx += ship_ax
+  ship_vy += ship_ay
+  ?ship_vx > ship_vx_max
+    ship_vx = ship_vx_max
+  :?ship_vx < -ship_vx_max
+    ship_vx = -ship_vx_max
+  ?ship_vy > ship_vy_max
+    ship_vy = ship_vy_max
+  :?ship_vy < -ship_vy_max
+    ship_vy = -ship_vy_max
+  generateBullet()
+
+func generateBullet()
+  ?bulletCooldown | shipInvincibility
+    return
+  play wand_hit
+  bulletCount += 1
+  bulletCooldown = bulletCooldownDuration
+  bulletList.Add([ship_x + bulletOffset[shipDirection][0], ship_y + bulletOffset[shipDirection][1], shipAcceleration[shipDirection][0]*10, shipAcceleration[shipDirection][1]*10, bulletLifespan])
+
+func updateAsteroids()  // [x, y, vx, vy, size]
+  ?!asteroidCount
+    ?!playerDead & !banner
+      enable banner
+      ui.ShowBanner("AREA CLEARED")
+      banner = bannerDuration
+    return
+  for a : asteroidList
+    a[0] = modulo(a[0] + a[2], x_max)
+    a[1] = modulo(a[1] + a[3], y_max)
+
+func updateBullets()  // [x, y, vx, vy, framesRemaining]
+  ?!bulletCount
+    return
+  for i = bulletCount-1 .. 0
+    bulletList[i][4] -= 1
+    ?bulletList[i][4] = 0
+      bulletList.RemoveAt(i)
+      bulletCount -= 1
+    :
+      bulletList[i][0] = modulo(bulletList[i][0] + bulletList[i][2], x_max)
+      bulletList[i][1] = modulo(bulletList[i][1] + bulletList[i][3], y_max)
+
+func checkCollision()
+  ?!asteroidCount
+    return
+  for a = asteroidCount-1 .. 0
+    var ax = asteroidList[a][0]
+    var ay = asteroidList[a][1]
+    var astSize = asteroidList[a][4]
+    ?!shipInvincibility & !playerDead & tooClose(ax, ay, ship_x, ship_y, asteroidRadius[astSize] + shipRadius)
+      play bomb_cart_explosion
+      playerDead = 90
+      shipSprite.frame = 12
+      engineSprite.visible = false
+      shipLife -= 1
+      updateHealth()
+      ?shipLife = 0
+        enable banner
+        ui.ShowBanner("GAME OVER")
+        banner = bannerDuration
+    ?bulletCount
+      for b = bulletCount-1 .. 0    // check bullets hitting asteroid
+        var bx = bulletList[b][0]
+        var by = bulletList[b][1]
+        ?tooClose(ax, ay, bx, by, asteroidRadius[astSize] + bulletRadius)
+          increaseScore(asteroidScore[astSize])
+          ?astSize > 0
+            generateAsteroid(ax, ay, astSize - 1)
+            generateAsteroid(ax, ay, astSize - 1)
+          bulletList.RemoveAt(b)
+          asteroidList.RemoveAt(a)
+          bulletCount -= 1
+          asteroidCount -= 1
+          play bomb_cart_explosion
+          break
+
+func tooClose(x1, y1, x2, y2, dist)
+  var dx = abs(x1 - x2)
+  var dy = abs(y1 - y2)
+  ?dx > dist | dy > dist
+    return false
+  :
+    return pow(dx, 2) + pow(dy, 2) < pow(dist, 2)
+
+func increaseScore(x)
+  score += x
+  ?score > highscore
+    highscore = score
+    storage.Set("Asteroids_Highscore", highscore)
+  ?score >= bonusLifeScoreToReach
+    play level_up
+    shipLife += 1
+    bonusLifeScoreToReach += bonusLifePointsRequired
+    updateHealth()
+  gamePanel.children[1].text = score + "\n" + highscore
+
+func updateHealth()
+  gamePanel.children[3].text = string.Sub("❤❤❤❤❤❤❤❤❤❤", 0, shipLife)
+
+func drawGame()
+  ?!playerDead
+    ?shipInvincibility % 2 = 0
+      shipPanel.visible = inherit
+      shipPanel.x = ship_x/100 - 5
+      shipPanel.y = ship_y/100 - 2
+      ?shipAccelerating
+        engineSprite.visible = inherit
+      :
+        engineSprite.visible = false
+    :
+      shipPanel.visible = false
+  ?asteroidCount
+    for a : asteroidList
+      var astSize = a[4]
+      >`@(a[0] - asteroidCenterOffset[astSize][0]) / 100@,@(a[1] - asteroidCenterOffset[astSize][1]) / 100@,#yellow,@asteroidSprite[astSize]@
+  ?bulletCount
+    for b : bulletList
+      >`@b[0]/100@,@b[1]/100@,#cyan,@bulletSprite@
+
+func modulo(x, m)  // x, m are ints
+  ?x < 0
+    // x += m - x / m * m
+    x += m
+  return x % m
+
+func setupSprites()  // logo, ship, engine, background, bullet, health,
+                     // explosion, asteroid
+
+  logoSprite = ascii
+  A    SSSS TTTTT EEEEE RRRR   OOOO  IIIII DDDDD   SSSS 
+ A A  S       T   E     R   R O    O   I   D    D S     
+AAAAA  SSSS   T   EEEE  RRRR  O    O   I   D    D  SSSS 
+A   A      S  T   E     R   R O    O   I   D    D      S
+A   A SSSSS   T   EEEEE R   R  OOOO  IIIII DDDDD  SSSSS 
+asciiend
+
+  shipSprite = ui.AddAnim(ascii
+###
+##|-._
+##|  O>
+##|-'‾
+%%
+##.
+###/ \
+##/  O\
+##‾ ‾‾ 
+%%
+#####_.
+##.-´ |
+###`.O|
+#####`'
+%%
+###
+###\‾‾‾/
+####\O/
+#####'
+%%
+####._
+####| `-,
+####|O.´
+####'´
+%%
+######.  
+#####/ \ 
+####/O  \
+#### ‾‾ ‾
+%%
+#
+#####_.-|
+####<O  |
+#####‾'-|
+%%
+#
+#### _
+####\O ‾/
+#####\ /
+######`
+%%
+#
+####. 
+####|O`.
+####| _.`
+####'´
+%%
+#
+#####.
+####/O\
+###/___\
+%%
+#
+######.
+###.´O|
+##´-. |
+#####`'
+%%
+#
+#####_ 
+##\‾ O/
+###\ /
+####´
+%%
+#
+###\ | /
+###- o -
+###/ | \
+asciiend)
+
+  engineSprite = ui.AddAnim(ascii
+#
+#
+·:
+%%
+#
+#`:
+%%
+###:.
+%%
+#####¡
+%%
+######.:
+%%
+#
+########:´
+%%
+#
+#
+#########:·
+%%
+#
+#
+#
+########:.
+%%
+#
+#
+#
+#
+######`:
+%%
+#
+#
+#
+#
+#####!
+%%
+#
+#
+#
+#
+###:´
+%%
+#
+#
+#
+#,:
+asciiend)
+  
+  backgroundSprite = ascii
+#.###################.######################.#################################.#######
+######################################################################################
+#########.############################################################################
+############################.#######################################.#################
+######################################################################################
+####.#######################################################.#########################
+##################################.###################################################
+######################################################################################
+###############.#####################################.##############################.#
+######.###############################################################.###############
+######################################################################################
+#######################.####################################.#########################
+.#####################################################################################
+##########################################.################################.##########
+######################################################################################
+#####################.###################################.############################
+######################################################################################
+###########.##########################################################################
+######################################################################################
+##############################.####################################.##################
+######################################################################################
+###.############################################.################################.####
+######################################################################################
+################.#####################################################################
+###########################################################.##########################
+######################################################################################
+asciiend
+
+  bulletSprite = ascii
+o
+asciiend
+
+  asteroidSprite.Add(ascii
+#_#  
+(_)
+###
+asciiend)
+
+  asteroidSprite.Add(ascii
+#.-.#
+(###)
+#`-´#
+asciiend)
+
+  asteroidSprite.Add(ascii
+#.--.#
+[####]
+[####]
+#`--´#
+asciiend)
+
+func setupUI()
+
+  var n = null
+  var b = makeUI(ui.AddText, n, n, scrw, scrh, n, n, n, backgroundSprite, "center", n, n)  
+  var bottomPanel = makeUI(ui.AddPanel, n, n, scrw, scrh, n, n, 0, n, n, n, n)
+  bottomPanel.Add(b)
+
+  buttonX = makeUI(ui.AddButton, n, n, 5, 3, "top_right", "top_right", n, "X", n, returnMenu, false)
+  
+  shipPanel = makeUI(ui.AddPanel, scrw/2 - 4, scrh/2 - 2, 1, 1, top_left, top_left, ui.AddStyle("#########"), null, null, null, vis)
+  shipPanel.Add(shipSprite)
+  shipPanel.Add(engineSprite)
+  shipSprite.dock = top_left
+  shipSprite.anchor = top_left
+  engineSprite.dock = top_left
+  engineSprite.anchor = top_left
+  engineSprite.color = #ffbb22
+
+  gamePanel = makeUI(ui.AddPanel, 1, n, scrw, scrw, "top_left", "top_left", ui.AddStyle("#########"), n, n, n, false)
+  ?lang = "ZH-CN"
+    gamePanel.Add(makeUI(ui.AddText, n, n, 4, 2, "top_left", "top_left", n, "得分:\n记录:", n, n, n))
+    gamePanel.Add(makeUI(ui.AddText, 4, n, 7, 2, "top_left", "top_left", n, n, n, n, n))
+  :
+    gamePanel.Add(makeUI(ui.AddText, n, n, 8, 2, "top_left", "top_left", n, " Score:\nRecord:", n, n, n))
+    gamePanel.Add(makeUI(ui.AddText, 8, n, 7, 2, "top_left", "top_left", n, n, n, n, n))
+  gamePanel.Add(makeUI(ui.AddText, n, 2, 10, 1, "top_left", "top_left", n, n, n, n, n))
+  gamePanel.Add(makeUI(ui.AddText, n, 4, 10, 1, "top_left", "top_left", n, n, n, n, n))
+  gamePanel.children[3].color = #red
+  gamePanel.Add(shipPanel)
+  
+  splashPanel = makeUI(ui.AddPanel, n, n, scrw, scrh, n, n, ui.AddStyle("#########"), n, n, n, n)    
+  splashPanel.Add(makeUI(ui.AddButton, n, 3, 10, 3, n, n, n, te.xt("Play"), n, newGame, n))
+  splashPanel.Add(makeUI(ui.AddButton, n, 6, 10, 3, n, n, n, te.xt("Exit"), n, loc.Leave, n))
+  splashPanel.Add(makeUI(ui.AddButton, n, 6, 10, 3, n, n, n, te.xt("Continue"), n, continueGame, false))
+
+func makeUI(type, x, y, w, h, dk, anc, sty, text, align, pressFunc, vis)
+  var u = type()
+  ?x ! null
+    u.x = x
+  ?y ! null
+    u.y = y
+  ?w ! null
+    u.w = w
+  ?h ! null
+    u.h = h
+  ?dk ! null
+    u.dock = dk
+  ?anc ! null
+    u.anchor = anc
+  ?sty ! null
+    u.style = sty
+  ?text ! null
+    u.text = text
+  ?pressFunc ! null
+    u.SetPressed(pressFunc)
+  ?vis ! null
+    u.visible = vis
+  return u

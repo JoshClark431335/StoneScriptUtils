@@ -1,0 +1,130 @@
+//CatHat by sun(  UωU)
+
+//v1.1
+
+//to use CatHat you need to turn on
+//big head in the Moondial... Stone
+//if you don't have a big head
+//the cat will float
+//:D
+
+//Instructions : import Cosmetics/Hats/CatHat
+
+var cate = 0
+cate++
+  ?cate = 110
+    cate = 0
+  ?cate = 220
+    cate = 0
+?loc.loop|loc.begin
+  ?cate >= 0
+    cate = 110
+var catt = 0
+catt++
+  ?catt = 100
+    catt = 0
+?cate < 100
+  >h-3,-5,#FFBFFF,ascii
+#####,
+#-.-´'\
+#\ oω°)
+#/` ,|
+(_`,|;
+asciiend
+?cate >= 100
+  ?cate < 104
+    >h-3,-5,#FFBFFF,ascii
+######,
+__.-~´|
+`. -ω´)
+#/` ,|
+(_`,|;
+asciiend
+?cate >= 104
+  ?cate < 110
+    >h-3,-5,#FFBFFF,ascii
+#####,
+#-.-´'\
+#\ -ω´)
+#/` ,|
+(_`,|;
+asciiend
+?cate >= 110
+  ?cate < 114
+    >h-3,-5,#FFBFFF,ascii
+      ,
+#¡`-~´|
+#(=ω= )
+#/  ,|
+(_`,|;
+asciiend
+?cate >= 114
+  ?cate < 164
+    >h-3,-4,#FFBFFF,ascii
+##/`-~＂7
+#(°ωo /
+#/  ,|
+(_`,|;
+asciiend
+?cate >= 164
+  ?cate < 167
+    >h-3,-4,#FFBFFF,ascii
+##/`-~＂7
+#(`ω- /
+#/  ,|
+(_`,|;
+asciiend
+?cate >= 167
+  ?cate < 217
+    >h-3,-4,#FFBFFF,ascii
+##/`-~＂7
+#(°ωo /
+#/  ,|
+(_`,|;
+asciiend
+?cate >= 217
+  ?cate < 220
+    >h-3,-5,#FFBFFF,ascii
+      ,
+#¡`-~´|
+#( =ω=)
+#/  ,|
+(_`,|;
+asciiend
+?catt >= 0
+  ?catt < 88
+    >h-6,-4,#FFBFFF,ascii
+#,
+#｝`,
+｛  ;
+#`＂
+asciiend
+?catt >= 88
+  ?catt < 91
+    >h-7,-4,#FFBFFF,ascii
+#,
+｛`.,
+',  ;
+##´'
+asciiend
+?catt >= 91
+  ?catt < 94
+    >h-8,-2,#FFBFFF,ascii
+,
+\`＂-`
+#`~.,/
+asciiend
+?catt >= 94
+  ?catt < 97
+    >h-9,-2,#FFBFFF,ascii
+#•´`‾`\
+'´‾`＂,
+asciiend
+?catt >= 97
+  ?catt < 100
+    >h-6,-4,#FFBFFF,ascii
+,
+｝´.
+;  j
+#'`
+asciiend

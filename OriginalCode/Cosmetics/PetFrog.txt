@@ -1,0 +1,179 @@
+
+// Pet Frog
+// by: standardcombo
+// v1.4
+
+
+var frogColor
+frogColor = #white
+
+var keepDistance = -17
+var maxX = -11
+
+var maxDistance
+maxDistance = -70
+
+var targetZ = -1
+
+var x = 0
+var y = 0
+var myX = 0
+var myZ = 0
+var lastPlayerX = 0
+var lastPlayerZ = 0
+
+var stateNone = 0
+var stateIdle = 1
+var stateJump = 2
+var currentState = stateNone
+var stateTime = 0
+
+
+func SetState(newState)
+  ?newState = stateJump
+    play frog
+
+  currentState = newState
+  stateTime = 0
+
+
+?currentState = stateNone | time = 1
+  lastPlayerX = pos.x
+  lastPlayerZ = pos.z
+  myX = keepDistance
+  myZ = targetZ
+
+  // Start further away if the frog is summoned while the location is already running
+  ?time > 1
+    myX = maxDistance
+
+  SetState(stateIdle)
+
+
+myX = myX - (pos.x - lastPlayerX)
+
+stateTime++
+
+?currentState = stateIdle
+  ?myX < maxDistance | myX > -maxDistance
+    myX = maxDistance
+  myZ = myZ - (pos.z - lastPlayerZ)
+
+  ?myX < keepDistance
+    SetState(stateJump)
+
+:?currentState = stateJump
+  ?myX < maxX
+    myX++
+
+  ?stateTime >= 6
+    ?myZ > targetZ
+      myZ--
+    :?myZ < targetZ
+      myZ++
+
+  ?stateTime >= 12
+    SetState(stateIdle)
+
+
+lastPlayerX = pos.x
+lastPlayerZ = pos.z
+
+// Draw
+
+?currentState = stateIdle
+  >o@myX@,@myZ@,@frogColor@,ascii
+#
+#
+#####,Oo
+##(\/ .-)
+##´ ·-\´\
+asciiend
+  x = myX + 5
+  y = myZ + 2
+  ?face = "( ^^"
+    >o@x@,@y@,@frogColor@,ascii
+,^^
+ '=
+asciiend
+
+  :?face = "°°"
+    ?time % 10 = 0 & myX > keepDistance
+      myX--
+
+    ?time % 4 <= 1
+      >o@x@,@y@,@frogColor@,ascii
+#oO
+  *
+asciiend
+    ?time % 4 > 1
+      >o@x@,@y@,@frogColor@,ascii
+#Oo
+  *
+asciiend
+
+  :?stateTime % 50 >= 48
+    >o@x@,@y@,@frogColor@,ascii
+,O-
+asciiend
+  :?stateTime % 50 >= 46
+    >o@x@,@y@,@frogColor@,ascii
+,=-
+asciiend
+  :?stateTime % 50 >= 44
+    >o@x@,@y@,@frogColor@,ascii
+,--
+asciiend
+
+?currentState = stateJump
+  ?stateTime/2 = 0
+    >o@myX@,@myZ@,@frogColor@,ascii
+#
+#
+#####,--
+###(! .-)
+###'·-((
+asciiend
+
+  :?stateTime/2 = 1
+    >o@myX@,@myZ@,@frogColor@,ascii
+#
+#####,--
+####/ .-)
+##_(;-//
+###`
+asciiend
+
+  :?stateTime/2 = 2
+    >o@myX@,@myZ@,@frogColor@,ascii
+#####.=-
+####/ .-)
+##_(/-)´`
+#-´‾
+asciiend
+
+  :?stateTime/2 = 3
+    >o@myX@,@myZ@,@frogColor@,ascii
+#####.O-
+###,´ .-)
+#_(/--‾´‾
+-´‾
+asciiend
+
+  :?stateTime/2 = 4
+    >o@myX@,@myZ@,@frogColor@,ascii
+#
+#####.Oo
+-´-`´ .-)
+####`-‾´‾
+asciiend
+
+  :?stateTime/2 = 5
+    >o@myX@,@myZ@,@frogColor@,ascii
+#
+#
+##_##.Oo
+#/-`´ .-)
+###`--\´\
+asciiend
+

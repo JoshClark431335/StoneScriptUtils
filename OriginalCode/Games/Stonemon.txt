@@ -1,0 +1,203 @@
+//Change Log
+//V1.3.1 Fixed imports
+//Refactor V1.3.0 by xx
+//
+//V1.3.0
+//changed to TAB Spacings
+//added SetMaxExecutiontotaltime
+//Improved Import Load Speed across modules
+//added storage data for skipping intro
+//
+//V1.2.0
+//
+//V1.1.1
+//
+//V1.1.0
+//
+//DarkLucifer69
+//Stonemon
+//Version V1.0
+
+
+//draw.clear()
+
+var character = new Games\Stonemon\Creatures
+var enemy = new Games\Stonemon\Creatures
+
+var battlePhase = new Games\Stonemon\BattlePhase
+var gameUIController = new Games\Stonemon\GameUIController
+var inputControl = new Games\Stonemon\InputControl
+
+var intro
+
+var phase = "Boot"
+var index = -1
+
+var delay = 0
+
+var a = 0
+
+func main()
+	?string.Equals(phase, "Boot") | loc.loop
+		battlePhase.Restart(character, enemy)
+		gameUIController.createUI(character, enemy)
+
+	?string.Equals(phase, "Boot")
+		?storage.Get("skipIntro", false)
+			setPhase("Restart")
+		:
+			intro = new Games\Stonemon\Intro
+			setPhase("Intro")
+		
+	:?string.Equals(phase, "Intro")
+		?intro.Run()
+			storage.Set("skipIntro", true)
+			setPhase("Restart")
+
+	:?string.Equals(phase, "Restart")
+		battlePhase.Restart(character, enemy)
+		gameUIController.Restart(enemy.Name)
+		inputControl.Restart()
+		setPhase("Battle")
+		
+	:
+		?gameUIController.needUpdateBar
+			gameUIController.updateBar(character, enemy)
+		?gameUIController.foeApproachOffset
+			gameUIController.updateFoeOffset()
+		?gameUIController.fade.index < 15 & !string.Equals(phase, "playerDeath")
+			gameUIController.updateScreenOpacity()
+
+		?string.Equals(phase, "Battle")
+			//battlePhase.Run(inputControl.cursor, character, enemy)
+			?battlePhase.envy > 0
+				setPhase("startEmpower")
+			:?enemy.CurrentHP <= 0
+				gameUIController.initFoeDeath()
+				setPhase("foeDeath")
+			:?character.CurrentHP <= 0
+				gameUIController.initPlayerDeath()
+				setPhase("playerDeath")
+			:
+				setPhase("TurnStart")
+
+		:?string.Equals(phase, "TurnStart")
+			?battlePhase.turn = "player"
+				battlePhase.turnStart(character)
+				setPhase("playerTurn")
+			:
+				battlePhase.turnStart(enemy)
+				delay = 30
+				setPhase("foeTurn")
+
+			gameUIController.turnStart(character, enemy, battlePhase)
+
+		:?string.Equals(phase, "foeTurn")
+			?delay
+				delay--
+			:
+				battlePhase.foeTrue(enemy, character)
+				setPhase("TurnEnd")
+		
+		:?string.Equals(phase, "playerTurn")
+			inputControl.Battle()
+			inputControl.optionsControl()
+			gameUIController.setBattleCursorPos(inputControl.cursor)
+			?gameUIController.isConfirm("Stats")
+				?gameUIController.confirmIndex = 0
+					setPhase("startFoeStats")
+				:?gameUIController.confirmIndex = 1
+					setPhase("startPlayerStats")
+			:
+				index = getBtnIndex("Battle")
+				?index >= 0 & battlePhase.canUseFromBattle(index, character)
+					battlePhase.TurnHandler(index, character, enemy)
+					setPhase("TurnEnd")
+		
+		:?string.Equals(phase, "TurnEnd")
+			battlePhase.turnEnd()
+			gameUIController.turnEnd(character, enemy, battlePhase)
+			setPhase("Battle")
+
+
+
+		:?string.Equals(phase, "startEmpower")
+			gameUIController.startEmpower(character, battlePhase)
+			setPhase("Empower")
+
+		:?string.Equals(phase, "Empower")
+			inputControl.optionsControl()
+			gameUIController.setEmpowerCursorPos(inputControl.cursor)
+			index = getBtnIndex("Empower")
+			?index >= 0 & battlePhase.canUseFromEmpower(index, character)
+				battlePhase.EmpowerCreature(index, character)
+				gameUIController.setBar(character, enemy)
+				?battlePhase.envy
+					setPhase("startEmpower")
+				:
+					setPhase("endEmpower")
+
+		:?string.Equals(phase, "endEmpower")
+			gameUIController.closeEmpowerWindow()
+			setPhase("Battle")
+
+
+
+		:?string.Equals(phase, "foeDeath")
+			?gameUIController.foeDeath()
+				battlePhase.RoundControl(character, enemy)
+				gameUIController.resetFoeArt(enemy.Name)
+				setPhase("Battle")
+
+		:?string.Equals(phase, "playerDeath")
+			?gameUIController.playerDeath()
+				setPhase("Restart")
+
+
+
+		:?string.Equals(phase, "startPlayerStats")
+			gameUIController.openStatsWindow("player", character)
+			setPhase("playerStats")
+
+		:?string.Equals(phase, "playerStats")
+			inputControl.playerStats()
+			?gameUIController.isConfirm("Stats")
+				?gameUIController.confirmIndex = 0
+					setPhase("startFoeStats")
+				:?gameUIController.confirmIndex = 1
+					setPhase("endStats")
+
+		:?string.Equals(phase, "startFoeStats")
+			gameUIController.openStatsWindow("foe", enemy)
+			setPhase("foeStats")
+		:?string.Equals(phase, "foeStats")
+			inputControl.foeStats()
+			?gameUIController.isConfirm("Stats")
+				?gameUIController.confirmIndex = 0
+					setPhase("endStats")
+				:?gameUIController.confirmIndex = 1
+					setPhase("startPlayerStats")
+
+		:?string.Equals(phase, "endStats")
+			gameUIController.closeStatsWindow()
+			setPhase("playerTurn")
+
+?inputControl.phase
+	setPhase(inputControl.phase)
+
+func setPhase(p)
+	?p & !string.Equals(p, phase)
+		phase = p
+		inputControl.Restart()
+		gameUIController.RestartConfirm()
+
+func getBtnIndex(type)
+	?inputControl.confirm
+		return inputControl.cursor
+	:?gameUIController.isConfirm(type)
+		return gameUIController.confirmIndex
+	:
+		return -1
+main()
+
+//>@phase@ @delay@

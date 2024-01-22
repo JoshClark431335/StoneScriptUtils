@@ -1,0 +1,476 @@
+//Change Log
+//V1.3.1 - minor fix
+//fixed typo - smail > snail
+//V1.3.0
+//changed to TAB Spacings
+//
+//V1.2.0
+//
+//V1.1.1
+//updated MinLengthA() & GetBarArt() with 'for loop' functionality
+//
+//V1.1.0
+//fixed all broken art
+//changed envy > Jealously for Empowerment
+//
+//DarkLucifer69
+//Stonemon
+//Version V1.0.1
+
+func GetArt(name)
+	?name = "Pusher" | name = "Envy" 
+		return pusher
+	:?name = "Scarab"
+		return scarab 
+	:?name = "Xyloalgia"
+		return xyloalgia
+	:?name = "Knee Chopper"
+		return kneeChopper
+	:?name = "Bolesh"
+		return bolesh
+	:?name = "Big A** Snail"
+		return bigAssSnail
+	:?name = "Angry Shroom"
+		return angryShroom
+	:?name = "Skeletony"
+		return skeletony
+	:?name = "Pallas"
+		return pallas
+	:?name = "Dominotaur"
+		return dominotaur
+	:?name = "Bronze Guardian"
+		return bronzeGuardian
+	:?name = "Giant Ice Elemental"
+		return giantIceElemental
+	:?name = "Hrimnir"
+		return hrimnir
+	:?name = "Acronian Cultist"
+		return acronianCultist
+	:?name = "Nagaraja"
+		return nagaraja
+	:?name = "Acronian Scout"
+		return acronianScout
+	:?name = "Dysangelos Has Stones"
+		return dysangelosHasStones
+	:?name = "Dysangelos Elemental"
+		return dysangelosElemental
+	:?name = "Dysangelos Perfected"
+		return dysangelosPerfected
+		
+	:?name = "Cursor"
+		return cursor
+	:?name = "BattleWindow"
+		return battleWindow
+	:?name = "Empower Window"
+		return empowerWindow
+	:?name = "StatsWindow"
+		return statsWindow
+		
+	:?name = "Defending"
+		return shield
+
+
+func GetArtHeight(name)
+	?name = "Pusher" | name = "Envy" 
+		return 3
+	:?name = "Scarab"
+		return 6
+	:?name = "Xyloalgia"
+		return 16
+	:?name = "Knee Chopper"
+		return 6
+	:?name = "Bolesh"
+		return 11
+	:?name = "Big A** Snail"
+		return 6
+	:?name = "Angry Shroom"
+		return 15
+	:?name = "Angry Shroom"
+		return 15
+	:?name = "Skeletony"
+		return 9
+	:?name = "Pallas"
+		return 21
+	:?name = "Dominotaur"
+		return 8
+	:?name = "Bronze Guardian"
+		return 15
+	:?name = "Giant Ice Elemental"
+		return 9
+	:?name = "Hrimnir"
+		return 13
+	:?name = "Acronian Cultist"
+		return 9
+	:?name = "Nagaraja"
+		return 18
+	:?name = "Acronian Scout"
+		return 9
+	:?name = "Dysangelos Has Stones"
+		return 8
+	:?name = "Dysangelos Elemental"
+		return 10
+	:?name = "Dysangelos Perfected"
+		return 16
+
+	:?name = "Cursor"
+		return 3
+	:?name = "BattleWindow"
+		return 8 
+	:?name = "Empower Window"
+		return 9
+	:?name = "StatsWindow"
+		return 13
+		
+	:?name = "Defending"
+		return 4
+
+func GetArtWidth(name)
+	?name = "Pusher" | name = "Envy" 
+		return 3
+	:?name = "Scarab"
+		return 10
+	:?name = "Xyloalgia"
+		return 26
+	:?name = "Knee Chopper"
+		return 14
+	:?name = "Bolesh"
+		return 30
+	:?name = "Big A** Snail"
+		return 15
+	:?name = "Angry Shroom"
+		return 29
+	:?name = "Skeletony"
+		return 8
+	:?name = "Pallas"
+		return 48
+	:?name = "Dominotaur"
+		return 18
+	:?name = "Bronze Guardian"
+		return 26
+	:?name = "Giant Ice Elemental"
+		return 11
+	:?name = "Hrimnir"
+		return 27
+	:?name = "Acronian Cultist"
+		return 14
+	:?name = "Nagaraja"
+		return 23
+	:?name = "Acronian Scout"
+		return 11
+	:?name = "Dysangelos Has Stones"
+		return 23
+	:?name = "Dysangelos Elemental"
+		return 25
+	:?name = "Dysangelos Perfected"
+		return 31
+		
+	:?name = "Cursor"
+		return 12
+	:?name = "BattleWindow"
+		return 30
+	:?name = "Empower Window"
+		return 30
+	:?name = "StatsWindow"
+		return 30
+	
+	:?name = "Defending"
+		return 8
+
+var shield = ascii
+  ___
+ (   )
+  \_/
+Defense+
+asciiend
+
+var pusher = ascii
+ o
+/|V
+/ \
+asciiend
+
+var scarab = ascii
+ /
+/(_,\ ___
+) o /´ -´\
+`──´_,_,_/
+    ( ( `.
+     ` ` ´
+asciiend
+
+//             ,           
+//     _  |'  /  ` /-,     
+//     ´\\/   '      |     
+//      |          /       
+// -\\!  /   |      |      
+//   \\ '  | '     (/     / 
+//    \|            \'|   '
+//    \`              `-´_.
+//    |              ,-´   
+//    \        /`\  /      
+//   /(\      /) ; /       
+//   \ `\    / -´  `- _,   
+//    \        /   ,´ `    
+//    |, _ . /'\  /        
+//    ' | ' |  |  |        
+//             /  /        
+//   _|,_| | ,/   |   ,--. 
+//  /_'   ¯ '    _ \ / /¯`\
+// `¯  `.,-     ´ \ ¯ /    
+//      .  ,-´  `. \¯¯     
+//     _' /       ` `-     
+//     `-´                 
+  
+var xyloalgia = ascii
+    \|            \'|   '/
+    \`              `-´_.´
+    |              ,-´
+    \        /`\  /
+   /(\      /) ; /
+   \ `\    / -´  `- _,
+    \        /   ,´ `
+    |, _ . /'\  /
+    ' | ' |  |  |
+             /  /
+   _|,_| | ,/   |   ,--.
+  /_'   ¯ '    _ \ / /¯`\
+ `¯  `.,-     ´ \ ¯ /
+      .  ,-´¯ `. \¯¯
+     _' /       ` `-
+     `-´
+asciiend
+
+var kneeChopper = ascii
+       ___
+      ()`-.\
+ ,--. _`__(/
+'´‾‾'∞.,)´)\
+ _,--_/ ` ` `
+ ‾‾‾´
+asciiend
+
+var bolesh = ascii
+              _
+    _____/\  ||\  /|
+   /,---.\\\ ||\\/_'--._
+  //  -´´\\\\||/¯ _/\ __`._
+-´´    __ \/¯¯¯\/.|/\\--(\/
+    ,-°∞ ) /\  //||/_\\-´\\
+      _/¯ //\`´/´||  //   \\
+         //  ¯¯  // (´     ``-
+         \\     (´   `
+          `)    `
+           ´
+asciiend
+
+var bigAssSnail = ascii
+O O  ,'¯¯¯`.
+((  / ,--.  \
+/¯\| /  _ \ |
+Vv,\ \ (__/ /
+  \ `._____/-,
+   `..-.___.´
+asciiend
+
+var angryShroom = ascii
+         ./¯)¯`.
+     _,-' ¯¯  ,-\
+  .-'        (__'`._
+ /  ,--.            `.
+|   \ _.'  /`-.    _,-.\
+\  .;::,_  `-._)  (   / |
+ ':. ':  `--..__   `-' /
+    `"|         `--.--'
+ /¯¯\ /           |_
+ \ //¯,   \   /     `---.
+ | V /|   o   o    \¯¯¯`.`.
+  \,' |            |    /  \
+     /    (---)     \   \)_/
+     \              |
+       `--.___..__,'
+asciiend
+
+var skeletony = ascii
+  __
+ ,o_)
+  "':_
+ _.-/)\
+"`,-´_/
+ '"   ;
+     /|
+    / \
+  ,-' ,/
+asciiend
+
+var pallas = ascii
+          _.---._
+         /       \
+        |.-  ,-   |__
+        \ *)  *)( |_/\
+         )  ^`  _/(\\-\
+         `v"uuV`  // |-|
+          |   <..<'  /-/   _______.-._____.-,._
+          |    _ ,-.|-|.-(_.-----`-'-----.\¯\¯`
+          |  ( (   /\  / )                 \)|
+          .  //(`._'`-' / )              (_| |_
+            // (`._/\`-' /               `-'¯'-)
+           /(   `._/ `.-'                  / |
+          (v)       .-.\-\.-.              | |
+          //       (  ( \-)  )             ) |
+_        //         \   `-'  /_           /  |
+ \_   __//          ('`--^--'v )          )  |
+   \/`/'-`.          \(      )/   _  ,,,  \  /
+ /  `(   '`)          \\    //  _/ \`_/   |  |
+        `  \           \\  //,-'_)-' _     ) |
+    '                   )\/(.-.___.-/ \._  \ |
+                       (_(._)_.---._)_)._)_>\/
+asciiend
+
+var dominotaur = ascii
+   ,--.   ( __ )
+  /  /     ¯\/¯
+ '  |    _,-´'-.
+     `==´¯¯\. ¯`)
+           /-´\"
+          ( `\ \
+           )/ )/
+           "  "
+asciiend
+
+var bronzeGuardian = ascii
+    _____
+    )\ __\     //¯¯\
+   / /  .´    (() {-}
+  / /  /       `-,-'|
+ / /,-/    .---./   .---.
+| /  \\   /  /¯¯¯¯¯/ / `\\
+ '--´|`,) \ (      \ ` ,'/
+     \ \\.'`-\  `   `---'
+      \ \\  / )'|`  /  |
+       \ \\'  |_ _ |  /
+        \/\\ [____.' /
+           \\/  .' .'\
+            \.-'_.'  |
+            (_.',     \
+           | _\\/\_ _ _|
+           |   \\| ¯ ¯ |
+asciiend
+
+var giantIceElemental = ascii
+    ,
+    |\
+ . /' \ ,
+ |` '  ´|_
+\'__·   ;/_
+\/  \  ´ ,´
+<\  / ,  >
+ \‾‾  _.'
+  ¯‾‾‾
+asciiend
+
+var hrimnir = ascii
+            )
+           /(__
+          (_   )_ /\. ^ .
+        .^ )¯ ´  V /     >
+       <  (•`´- ) /  ,    >
+      <   {,-,`´ (  \_   >
+     , <|  `.,.-'´  /   |
+ __.´   \           |   /
+/ _  .-´ `"•"´ `"•"´'  /
+\`.) /   ,/ `.___.´/  /
+ `(.´   / \__/  _.´   \
+       (_(_(__)'--| | \`:.
+                  '-'`-`-`
+asciiend
+
+var acronianCultist = ascii
+   ,-.
+   )o))
+  /`/ (
+ / :   \
+('\   /`┼══──
+:  ) /
+∞ /' `.
+' \._, `-.__
+      ¯¯¯
+asciiend
+
+var nagaraja = ascii
+   _____
+   `Vv-,`-.
+      \ ´, `-.
+       )  \   `'-.
+      /  _ \      `.
+     /  ´x) \       \
+   .´   `   |        \
+ ,´,.---._  |         \
+/ /      .`.'  |      |
+`.\       '/  ,'      |
+      __.-'_.´        |
+      `---´          /
+       /            /
+      /            /
+     /            /
+    .            /
+    |            |
+    |            |
+    |            |
+asciiend
+
+var acronianScout = ascii
+      /
+   ),_ ____
+   `o/(  -´
+  ,/_\ );
+  /  /\´
+ / -´ _)_
+L    / .´
+    ; (
+   /   \
+asciiend
+
+var dysangelosHasStones = ascii
+          ___
+         /.-,\
+  .--.  (´  o´
+ (:¯`.\  \`.        .-.
+  `o  \ `.) \      //o'
+       `.´__ `-.,-´/
+ _    .´)(o_) .--'´  _
+(o'_.´.-\,-, _'._   o,\
+ `---´   `--´ `-.`._.'/
+                 `---´
+asciiend
+
+var dysangelosElemental = ascii
+           .--.
+  .--.    /,´`.\     __
+ (:¯`.\   \\  *´   /.-.)
+  `♥  \ `. )\     // φ´
+       `.´__ `-.-´/  _
+ _    .´)(•_) .--´ ❄.\
+(∞'_.´.-\  _  _'-.__.´/
+ `---´   /- )´ `'----´
+        /  /
+        '  '
+asciiend
+
+var dysangelosPerfected = ascii
+            .--. ___
+           ( '--´   `.
+            `.__.-,   \
+    .--.     _.--´    /
+   /    `. .´      .-'¯¯¯¯¯¯'.
+  _|    \  \!.  --(_   ,-     )
+ /  `.  |  ´          (    -:´
+|   _   /,    ____    \/`-.  \
+ \ ( `-´_|  <´(_) `>  '`___) /
+  `-- .´ \   `.,.-´     `---´
+    _|              /     \
+   /  `.  `.__.___.´`,--.  |
+  |   _   !         /  _   /
+   \ ( `-´          \ ( `-´
+    `.`._            `.`._
+      ¯¯¯¯             ¯¯¯¯
+asciiend

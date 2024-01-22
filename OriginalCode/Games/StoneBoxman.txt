@@ -1,0 +1,14 @@
+//StoneBoxMan
+//Version: v1.0
+//Author: Okamiroy
+
+//This script is based on game version of 2.28.6
+
+//How to Play
+//import Games/StoneBoxman
+
+//Just import this file and go to Waterfall to play this game.
+//If you have any custom UI, please hide them temporarily for a better playing.
+
+?loc = waterfall
+  import Games\StoneBoxman\StoneBoxmanMain

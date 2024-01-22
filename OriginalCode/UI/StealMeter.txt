@@ -1,0 +1,95 @@
+/*------------------------------------------------
+
+StealMeter.txt
+
+Steal Meter
+
+Created by: Agerak
+v1.0 Basic Steal Meter with custom coordinates and active color
+v1.1 Fixed a typo that affected max-level Skeleton Arm.
+
+var StealMeter=new UI/StealMeter
+StealMeter.EXE(x,y,c)
+
+x,y are output coordinates, can be set to anywhere in the game screen
+c is any hex color code, controls 'highlighted' color of active buffs
+
+------------------------------------------------*/
+
+func Output(x, y, color, a)
+  >`@x@,@y@,@color@,@a@
+
+var has=0
+var index=0
+var I=0
+var meter=ascii
+/‾\#‾|‾#|‾‾#/‾\#|###║
+`-.##|##├──#├─┤#|###║
+\_/##|##|__#|#|#|__#•
+asciiend
+var ess=ascii
+/‾\
+`-.
+\_/
+asciiend
+var tee=ascii
+####‾|‾
+#####|#
+#####|#
+asciiend
+var eee=ascii
+########|‾‾
+########├──
+########|__
+asciiend
+var aye=ascii
+############/‾\
+############├─┤
+############|#|
+asciiend
+var ell=ascii
+################|##
+################|##
+################|__
+asciiend
+var exc=ascii
+####################║
+####################║
+####################•
+asciiend
+
+func EXE(x,y,c)
+
+//  ?has=0
+//    ?time=2
+//      equip Skeleton Arm
+//    ?time=3
+//      has=item.right
+//  :
+//    index=string.IndexOf(has,"skeleton_arm *",1)
+//    ?index!-1 // has skeleton arm
+//      index=index+14
+//      index=string.Sub(has,index,2) // Is stack value 1*-10
+//      ?index!10
+//        index=int.parse(string.Sub(index,1,1))
+//      >`9,9,@index@ // star level of Skeleton Arm
+// Max charge count = index-4
+
+  ?buffs.count>0
+    index=string.IndexOf(buffs.string,"pick_pocket:",1)
+    ?index!-1 // pick buff exists
+      Output(x,y,#606060,meter)
+      index=index+12
+      index=int.parse(string.Sub(buffs.string,index,1)) // Is stack value 1-N
+      ?index>=1
+        Output(x,y,c,ess)
+      ?index>=2
+        Output(x,y,c,tee)
+      ?index>=3
+        Output(x,y,c,eee)
+      ?index>=4
+        Output(x,y,c,aye)
+      ?index>=5
+        Output(x,y,c,ell)
+      ?index>=6
+        Output(x,y,c,exc)

@@ -1,0 +1,139 @@
+
+//////////////////////////////////////////////////
+
+//Made by: Agerak
+//V1.0 Displays analog time points around the edge of the screen
+//V1.1 Smoothed animation of the 'hands'
+//V2.0 Redesigned the cardinal points and rotation speed to be more uniform
+//V2.1 Added subtle markers at the hours and interaction of hands colors
+//V2.2 Changed how colors are set
+
+//////////////////////////////////////////////////
+
+// To use:
+//var clock = new ui\BorderClock
+//clock.Show()
+
+// Recommended to put at the end of your mindstone so that it will display over other overlays
+
+// To change colors set these properties to the desired value:
+//clock.hourColor = #0000FF
+//clock.minuteColor = #00FF00
+//clock.secondColor = #FF0000
+
+//////////////////////////////////////////////////
+func Output(x, y, color, a)
+  ?1//?this.draw=1 // toggle control for drawing overlay
+    >`@x@,@y@,@color@,@a@
+//////////////////////////////////////////////////
+
+var prevsec=0
+var frametime=0
+
+var hourColor = #0000FF
+var minuteColor = #00FF00
+var secondColor = #FF0000
+
+func Show()
+  var total
+  total=screen.w*2+screen.h*2 // total slots around border
+
+  ?prevsec!time.second
+    frametime=0
+    prevsec=time.second
+
+  var sec
+  sec=total*time.second/60+(total*(time.second+1)/60-total*time.second/60)*frametime/30
+
+  var min
+  min=total*time.minute/60+(total*(time.minute+1)/60-total*time.minute/60)*time.second/60
+
+  var hour
+  hour=total*(time.hour%12)/12+(total*((time.hour%12)+1)/12-total*(time.hour%12)/12)*time.minute/60
+
+  draw.bg(screen.w/2,0,#white)
+  Output(screen.w/2,0,#000000,X)
+  draw.bg(screen.w-1,screen.h/2,#808080)
+  Output(screen.w-1,screen.h/2,#000000,3)
+  draw.bg(screen.w/2,screen.h-1,#808080)
+  Output(screen.w/2,screen.h-1,#000000,6)
+  draw.bg(0,screen.h/2,#808080)
+  Output(0,screen.h/2,#000000,9)
+  draw.bg(screen.w/2+(screen.w+screen.h)/6,0,#404040)
+  draw.bg(screen.w/2+(screen.w+screen.h)/3,0,#404040)
+  draw.bg(screen.w/2-(screen.w+screen.h)/6,0,#404040)
+  draw.bg(screen.w/2-(screen.w+screen.h)/3,0,#404040)
+  draw.bg(screen.w/2+(screen.w+screen.h)/6,screen.h-1,#404040)
+  draw.bg(screen.w/2+(screen.w+screen.h)/3,screen.h-1,#404040)
+  draw.bg(screen.w/2-(screen.w+screen.h)/6,screen.h-1,#404040)
+  draw.bg(screen.w/2-(screen.w+screen.h)/3,screen.h-1,#404040)
+
+// Adjustment for top center noon/0
+  sec=(sec+screen.w/2)%total
+  min=(min+screen.w/2)%total
+  hour=(hour+screen.w/2)%total
+
+  ?hourColor="#0000FF"&minuteColor="#00FF00"&secondColor="#FF0000"
+    ?hour=min&hour=sec
+      hourColor="#rainFF"
+    :?hour=min
+      hourColor="#00FFFF"
+    :?hour=sec
+      hourColor="#FF00FF"
+    :?min=sec
+      minuteColor="#FFFF00"
+  ?hour=min&hour=sec
+    hourColor="#rainFF"
+
+  ?sec<screen.w
+    Output(sec,0,secondColor,S)
+  :
+    sec=sec-screen.w
+    ?sec<screen.h
+      Output(screen.w-1,sec,secondColor,S)
+    :
+      sec=sec-screen.h
+      ?sec<screen.w
+        Output(screen.w-1-sec,screen.h-1,secondColor,S)
+      :
+        sec=sec-screen.w
+        ?sec<screen.h
+          Output(0,screen.h-1-sec,secondColor,S)
+        :
+          WTF=1
+
+  ?min<screen.w
+    Output(min,0,minuteColor,M)
+  :
+    min=min-screen.w
+    ?min<screen.h
+      Output(screen.w-1,min,minuteColor,M)
+    :
+      min=min-screen.h
+      ?min<screen.w
+        Output(screen.w-1-min,screen.h-1,minuteColor,M)
+      :
+        min=min-screen.w
+        ?min<screen.h
+          Output(0,screen.h-1-min,minuteColor,M)
+        :
+          WTF=1
+
+  ?hour<screen.w
+    Output(hour,0,hourColor,H)
+  :
+    hour=hour-screen.w
+    ?hour<screen.h
+      Output(screen.w-1,hour,hourColor,H)
+    :
+      hour=hour-screen.h
+      ?hour<screen.w
+        Output(screen.w-1-hour,screen.h-1,hourColor,H)
+      :
+        hour=hour-screen.w
+        ?hour<screen.h
+          Output(0,screen.h-1-hour,hourColor,H)
+        :
+          WTF=1
+
+  frametime++

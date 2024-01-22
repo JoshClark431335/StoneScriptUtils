@@ -1,0 +1,26 @@
+//DigitsPuzzle/DigitCell
+//Version: v1.0
+//Author: Okamiroy
+
+var box = ascii
+╔════╗
+║####║
+╚════╝
+asciiend
+
+var boxWidth = 6
+var boxHeight = 3
+var boxPosX = 0
+var boxPosY = 0
+var boxColor = white
+
+var digit = 0
+var digitColor = white
+
+func Show()
+  var digitPosX = boxPosX + 2
+  var digitPosY = boxPosY + 1
+  ?digit < 10
+    digitPosX++
+  >`@boxPosX@,@boxPosY@,#@boxColor@,@box@
+  >`@digitPosX@,@digitPosY@,#@digitColor@,@digit@

@@ -1,0 +1,310 @@
+//SSRPG Version: 2.28.6
+//Version: v1.0
+//author: xx
+
+// instruction:
+// import Cosmetics/Bear
+
+
+////////// ascii data // start //////////
+
+var head = [ascii
+##_###_
+#(_)_(_)
+#/     \
+(   '-' )
+#\_____/
+asciiend,
+^ascii
+##_###_
+#(_)_(_)
+#/     \
+(   `-` )
+#\_____/
+asciiend,
+^ascii
+##_###_
+#(_)_(_)
+#/     \
+(  '-'  )
+#\_____/
+asciiend,
+^ascii
+##_###_
+#(_)_(_)
+#/     \
+(  `-`  )
+#\_____/
+asciiend,
+^ascii
+##_###_
+#(_)_(_)
+#/     \
+(   >_< )
+#\_____/
+asciiend]
+
+//0~3(loop:01210 / 01230) move / stop(1 / 3)
+//4 stop
+var body = [
+//move / stop
+^ascii
+#/ /  |\
+(_/   |_)
+##|_|\_)
+asciiend,
+^ascii
+#| |  ||
+#(_)  |)
+##|_|_|
+asciiend,
+^ascii
+##\ \ |
+##|\_)|
+## \_)|
+asciiend,
+^ascii
+#| |  ||
+#(_)  |)
+##|_|_|
+asciiend,
+
+//sit
+^ascii
+#|\ \|_\
+#._\_)_))
+asciiend]
+
+var icecream = ascii
+###___
+##(  .)
+#( '  ,)
+(_______)
+#\_____/
+##\   /
+###\_/
+asciiend
+
+////////// ascii data // end //////////
+
+
+////////// variables // start //////////
+
+var headindex = 0
+var bodyindex = 1
+var img
+
+var x = pos.x - 20
+var y = pos.y
+var z = pos.z
+
+var stopX = 9999
+var stopY = 0
+var stopZ = 0
+
+var sx
+var sy
+
+var bossFight = false
+
+var mode = "stop"
+var timer = 0
+var speed
+
+////////// variables // end //////////
+
+
+///////////////////////////////////
+////////// main // start //////////
+///////////////////////////////////
+
+func main()
+	?loc.loop | (time = 1 & loc ! rocky)
+		resetting()
+	?mode ! "fixed"
+		checkStopPosition()
+		updateMoveMode()
+	moveProcessing()
+	?pos.x - x < 70
+		updateDraw()
+	//test()
+
+/////////////////////////////////
+////////// main // end //////////
+/////////////////////////////////
+
+
+////////// loop initialize // start //////////
+
+func resetting()
+	headindex = 0
+	bodyindex = 1
+
+	?loc = harder
+		x = -500
+		z = 20
+	:
+		x = pos.x - 20
+		z = pos.z
+	y = pos.y
+
+	stopX = 9999
+	stopY = 0
+
+	bossFight = false
+	
+	mode = "stop"
+	timer = 0
+
+////////// loop initialize // end //////////
+
+
+////////// check boss fight // start //////////
+
+func checkStopPosition()
+	?foe.count & (foe = boss | (loc.stars > 10 & ((loc = hall & screen.i = 7) | (loc = deadwood & screen.i = 6))))
+		?(foe.distance <= 35 & pos.x < screen.x)
+			stopX = screen.x - screen.w / 2 + 4
+
+		?loc = icy
+			stopY = -1
+		:?loc = temple | loc = deadwood
+			stopY = -2
+		:?loc = caves | loc = mine | (loc = hall & loc ! harder)
+			stopY = -3
+		:
+			stopY = -4
+
+		?foe = phase1
+			bossFight = true
+	:?!bossFight
+		?loc = temple & ai.paused & !foe.count & loc ! harder
+		//((loc.stars > 5 & pos.x >= 1154) | (loc.stars > 10 & pos.x >= 1085))
+			stopX = pos.x - 15	
+			mode = "fixed"
+		:
+			stopX = 9999
+			stopY = 0
+
+////////// check boss fight // end //////////
+
+////////// check move // start //////////
+
+func updateMoveMode()
+	?x >= stopX & y = stopY
+		mode = "sit"
+	:?mode ! "fixed"
+		?x >= pos.x - 15 & stopX = 9999
+			mode = "stop"
+		:?mode ! "find location"
+			stopZ = pos.z
+
+			?x >= stopX - y + stopY
+				mode = "find location"
+			:?mode ! "run"
+				?x < pos.x - 70
+					mode = "run"
+				:?x < pos.x - 30
+					mode = 3
+				:?x < pos.x - 25
+					mode = 2
+				:?x < pos.x - 18
+					mode = 1
+
+////////// check move // end //////////
+
+
+////////// move // start //////////
+
+func moveProcessing()
+	headindex = 0
+
+	?mode = "sit"
+		bodyindex = 4
+		?totaltime % 330 >= 0 & totaltime % 330 < 12
+			headindex = 2
+
+	:?mode ! "stop" & (x ! stopX | y ! stopY | z ! stopZ)
+		updateMoveSpeed()
+		timer = (timer + 1) % speed
+
+		?timer = 0
+			bodyindex = (bodyindex + 1) % 4
+
+			?x < stopX
+				x++
+				?mode = "run"
+					x++
+
+			?mode = "find location"
+				?y > stopY
+					y--
+				:
+					y = stopY
+			:
+				?y < 0
+					y++
+
+			?z > stopZ
+				z--
+			:?z < stopZ
+				z++
+	:
+		timer = 0
+		bodyindex = 1
+
+	?mode = "run"
+		headindex = 4
+	//blink
+	:?totaltime % 90 >= 0 & totaltime % 90 < 3
+		headindex = headindex + 1
+
+func updateMoveSpeed()
+	?type(mode) = int
+		speed = 4 - mode
+	:?mode = "run"
+		speed = 1
+	:?mode = "find location"
+		speed = 3
+
+////////// move // end //////////
+
+
+////////// draw // start //////////
+
+func updateDraw()
+	sy = y + pos.y - 4 + z - pos.z
+
+	?mode = "sit"
+		sy++
+		
+		// icecream
+		//sx = x - pos.x + 9
+		//>o@sx@,@sy@,@icecream@
+
+	sx = x - pos.x
+
+	// head
+	img = head[headindex]
+	>o@sx@,@sy@,@img@
+
+	sy = sy + 5
+
+	// body
+	img = body[bodyindex]
+	>o@sx@,@sy@,@img@
+
+////////// draw // end //////////
+
+
+////////// test //////////
+func test()
+	img = head[headindex]
+	>`0,0,@img@
+	img = body[bodyindex]
+	>`0,5,@img@
+	a = foe = phase1
+	>`0,10,@headindex@ @bodyindex@ @mode@ @bossFight@\n@x@ @y@ @z@\n@stopX@ @stopY@ @stopZ@\n@sx@ @sy@
+
+
+main()

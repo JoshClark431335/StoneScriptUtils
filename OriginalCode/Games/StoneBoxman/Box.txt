@@ -1,0 +1,16 @@
+//StoneBoxMan - Games/Box
+//Version: v1.0
+//Author: Okamiroy
+
+var Image = "[]"
+var ImageWidth = 2
+var ImageHeight = 1
+var PositionX = 0
+var PositionY = 0
+
+var ColorCommon = green
+var ColorOnTarget = blue
+var Color = ColorCommon
+
+// 0: Common, 1: On target
+var Status = 0

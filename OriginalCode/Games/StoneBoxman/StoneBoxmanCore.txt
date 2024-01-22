@@ -1,0 +1,294 @@
+//StoneBoxMan - Games/StoneBoxmanCore
+//Version: v1.0
+//Author: Okamiroy
+
+// Core of the whole gameplay, including reading the map, drawing the game, controlling the moves and undoing moves
+
+// About moves in one direction:
+// player > road or target : can move player
+// player > wall : cannot move player
+// player > box > road or target : can push box (move both player and box)
+// player > box > box : cannot push box
+// player > box > wall : cannot push box
+// If it cannot move player, it will change the player into a direction as the typing arrow key.
+
+var CellEmpty = new Games\StoneBoxman\MapElement
+CellEmpty.CellType = "0"
+CellEmpty.Name = "CellEmpty"
+CellEmpty.Image = "░░"
+CellEmpty.CanStack = false
+
+var CellRoad = new Games\StoneBoxman\MapElement
+CellRoad.CellType = "1"
+CellRoad.Name = "CellRoad"
+CellRoad.Image = "::"
+CellRoad.CanStack = true
+
+var CellWall = new Games\StoneBoxman\MapElement
+CellWall.CellType = "2"
+CellWall.Name = "CellWall"
+CellWall.Image = "██"
+CellWall.CanStack = false
+
+var CellTarget = new Games\StoneBoxman\MapElement
+CellTarget.CellType = "T"
+CellTarget.Name = "CellTarget"
+CellTarget.Image = "<>"
+CellTarget.Color = yellow
+CellTarget.CanStack = true
+
+var MapRawData = new Games\StoneBoxman\MapRawData
+
+var CurrentMapRawData
+var CellWidth = 0
+var CellHeight = 0
+var RealWidth = 0
+var RealHeight = 0
+
+var MapOffsetX = 0
+var MapOffsetY = 0
+
+var MapData = []
+var BoxData = []
+var Player
+var TraceRecorder
+
+func GetMapRawData()
+  return MapRawData.RawDataList
+
+// Read map raw data
+// mapIndex: The index of map level
+func InitMapData(mapIndex)
+  CurrentMapRawData = MapRawData.RawDataList[mapIndex]
+  CellWidth = CurrentMapRawData.MapWidth
+  CellHeight = CurrentMapRawData.MapHeight
+  RealWidth = CellWidth * CellEmpty.ImageWidth
+  RealHeight = CellHeight * CellEmpty.ImageHeight
+
+  MapData.Clear()
+  BoxData.Clear()
+  Player = new Games\StoneBoxman\Player
+  TraceRecorder = new Games\StoneBoxman\SimpleStack
+  
+  var mapCodeIndex = 0
+  for i = 0 .. CellHeight - 1
+    var rowData
+    rowData = []
+    for j = 0 .. CellWidth - 1
+      var cellValue
+      cellValue = string.Sub(CurrentMapRawData.MapCode, mapCodeIndex, 1)
+      ?cellValue = "0"
+        rowData.Add(CellEmpty)
+      :?cellValue = "1"
+        rowData.Add(CellRoad)
+      :?cellValue = "2"
+        rowData.Add(CellWall)
+      :?cellValue = "B"
+        rowData.Add(CellRoad)
+        var box
+        box = new Games\StoneBoxman\Box
+        box.PositionX = j
+        box.PositionY = i
+        BoxData.Add(box)
+      :?cellValue = "S"
+        rowData.Add(CellRoad)
+        Player.PositionX = j
+        Player.PositionY = i
+      :?cellValue = "T"
+        rowData.Add(CellTarget)
+      :
+        rowData.Add(CellWall)
+      mapCodeIndex++
+    mapCodeIndex = mapCodeIndex + 2
+    MapData.Add(rowData)
+
+func ShowMap()
+  var offsetX = 0
+  var offsetY = 0
+  for i = 0 .. CellHeight - 1
+    for j = 0 .. CellWidth - 1
+      var tempRow
+      tempRow = MapData[i]
+      var tempCell 
+      tempCell = tempRow[j]
+      offsetX = MapOffsetX + j * tempCell.ImageWidth
+      offsetY = MapOffsetY + i * tempCell.ImageHeight
+      >`@offsetX@,@offsetY@,#@tempCell.Color@,@tempCell.Image@
+
+func ShowBox()
+  var boxOffsetX = 0
+  var boxOffsetY = 0
+  for i = 0 .. BoxData.Count() - 1
+    var tempBox
+    tempBox = BoxData[i]
+    boxOffsetX = MapOffsetX + tempBox.PositionX * tempBox.ImageWidth
+    boxOffsetY = MapOffsetY + tempBox.PositionY * tempBox.ImageHeight
+    >`@boxOffsetX@,@boxOffsetY@,#@tempBox.Color@,@tempBox.Image@
+
+func ShowPlayer()
+  var playerOffsetX = 0
+  var playerOffsetY = 0
+  playerOffsetX = MapOffsetX + Player.PositionX * Player.ImageWidth
+  playerOffsetY = MapOffsetY + Player.PositionY * Player.ImageHeight
+  >`@playerOffsetX@,@playerOffsetY@,#@Player.Color@,@Player.Image@
+
+func GetBoxByPosition(posX, posY)
+  var resultBox = null
+  for i = 0 .. BoxData.Count() - 1
+    var tempBox
+    tempBox = BoxData[i]
+    ?tempBox.PositionX = posX & tempBox.PositionY = posY
+      resultBox = tempBox
+  return resultBox
+
+func GetMapCellByPosition(posX, posY)
+  var tempRow
+  tempRow = MapData[posY]
+  var tempCell
+  tempCell = tempRow[posX]
+  return tempCell
+
+// Parse the direction into a certain position change.
+// direction: Enums of direction, 0: Up, 1: Right, 2: Down, 3: Left
+func TryMove(direction)
+  Player.Direction = direction
+  ?direction = 0
+    DoMove(direction, 0, -1)
+  :?direction = 1
+    DoMove(direction, 1, 0)
+  :?direction = 2
+    DoMove(direction, 0, 1)
+  :
+    DoMove(direction, -1, 0)
+
+// Do specific moves
+func DoMove(direction, moveOffsetX, moveOffsetY)
+  var frontBox = null
+  frontBox = GetBoxByPosition(Player.PositionX + moveOffsetX, Player.PositionY + moveOffsetY)
+  ?frontBox = null
+    MovePlayer(direction, moveOffsetX, moveOffsetY)
+  :
+    PushBox(frontBox, direction, moveOffsetX, moveOffsetY)
+    >2
+
+func MovePlayer(direction, moveOffsetX, moveOffsetY)
+  var mapCell = null
+  mapCell = GetMapCellByPosition(Player.PositionX + moveOffsetX, Player.PositionY + moveOffsetY)
+  ?mapCell.CanStack
+    var traceObj = null
+    traceObj = new Games\StoneBoxman\TraceObject
+    traceObj.PlayerOldPosX = Player.PositionX
+    traceObj.PlayerOldPosY = Player.PositionY
+    var lastTrace = null
+    lastTrace = TraceRecorder.GetTop()
+    ?lastTrace ! null
+      traceObj.PlayerOldDirection = lastTrace.PlayerNewDirection
+    :
+      traceObj.PlayerOldDirection = 0
+    traceObj.PlayerNewPosX = Player.PositionX + moveOffsetX
+    traceObj.PlayerNewPosY = Player.PositionX + moveOffsetY
+    traceObj.PlayerNewDirection = direction
+    TraceRecorder.Push(traceObj)
+    SetPlayerStatus(direction, Player.PositionX + moveOffsetX, Player.PositionY + moveOffsetY)
+  :
+    SetPlayerStatus(direction, Player.PositionX, Player.PositionY)
+
+func SetPlayerStatus(direction, posX, posY)
+  Player.PositionX = posX
+  Player.PositionY = posY
+  Player.Direction = direction
+  ?direction = 0
+    Player.Image = Player.ImageToUp
+  :?direction = 1
+    Player.Image = Player.ImageToRight
+  :?direction = 2
+    Player.Image = Player.ImageToDown
+  :
+    Player.Image = Player.ImageToLeft
+
+func PushBox(boxToPush, direction, moveOffsetX, moveOffsetY)
+  var frontFrontCellPosX = 0
+  var frontFrontCellPosY = 0
+  frontFrontCellPosX = Player.PositionX + moveOffsetX + moveOffsetX
+  frontFrontCellPosY = Player.PositionY + moveOffsetY + moveOffsetY
+  var frontFrontBox = null
+  frontFrontBox = GetBoxByPosition(frontFrontCellPosX, frontFrontCellPosY)
+  ?frontFrontBox = null
+    var mapCell = null
+    mapCell = GetMapCellByPosition(frontFrontCellPosX, frontFrontCellPosY)
+    ?mapCell.CanStack
+      var traceObj = null
+      traceObj = new Games\StoneBoxman\TraceObject
+
+      traceObj.PlayerOldPosX = Player.PositionX
+      traceObj.PlayerOldPosY = Player.PositionY
+      var lastTrace = null
+      lastTrace = TraceRecorder.GetTop()
+      ?lastTrace ! null
+        traceObj.PlayerOldDirection = lastTrace.PlayerNewDirection
+      :
+        traceObj.PlayerOldDirection = 0
+      traceObj.PlayerNewPosX = Player.PositionX + moveOffsetX
+      traceObj.PlayerNewPosY = Player.PositionX + moveOffsetY
+      traceObj.PlayerNewDirection = direction
+      SetPlayerStatus(direction, Player.PositionX + moveOffsetX, Player.PositionY + moveOffsetY)
+
+      traceObj.Box = boxToPush
+      traceObj.BoxOldPosX = boxToPush.PositionX
+      traceObj.BoxOldPosY = boxToPush.PositionY
+      traceObj.BoxOldStatus = boxToPush.Status
+      traceObj.BoxNewPosX = frontFrontCellPosX
+      traceObj.BoxNewPosY = frontFrontCellPosY
+      ?IsBoxOnTarget(frontFrontCellPosX, frontFrontCellPosY)
+        traceObj.BoxNewStatus = 1
+      :
+        traceObj.BoxNewStatus = 0
+      TraceRecorder.Push(traceObj)
+      SetBoxStatus(boxToPush, frontFrontCellPosX, frontFrontCellPosY)
+    :
+      // The cell in front of the being pushed box cannot be moved onto (it is the cell of wall), so the player doesn't move, just face another direction.
+      SetPlayerStatus(direction, Player.PositionX, Player.PositionY)
+  :
+    SetPlayerStatus(direction, Player.PositionX, Player.PositionY)
+
+func SetBoxStatus(box, posX, posY)
+  box.PositionX = posX
+  box.PositionY = posY
+  ?IsBoxOnTarget(posX, posY)
+    box.Status = 1
+    box.Color = box.ColorOnTarget
+  :
+    box.Status = 0
+    box.Color = box.ColorCommon
+
+func IsBoxOnTarget(posX, posY)
+  var mapCell = null
+  mapCell = GetMapCellByPosition(posX, posY)
+  ?mapCell.CellType = "T"
+    return true
+  :
+    return false
+
+func JudgeToWin()
+  var judgeResult = true
+  var boxCount = 0
+  boxCount = BoxData.Count()
+  for i = 0 .. boxCount - 1
+    var tempBox = null
+    tempBox = BoxData[i]
+    ?tempBox.Status = 0
+      judgeResult = false
+  return judgeResult
+
+// Pop the trace from stack, then refresh the status of player and box.
+func Undo()
+  var traceObj = null
+  traceObj = TraceRecorder.Pop()
+  ?traceObj ! null
+    SetPlayerStatus(traceObj.PlayerOldDirection, traceObj.PlayerOldPosX, traceObj.PlayerOldPosY)
+    ?traceObj.Box ! null
+      SetBoxStatus(traceObj.Box, traceObj.BoxOldPosX, traceObj.BoxOldPosY)
+
+func ShowStepCount()
+  var count = 0
+  count = TraceRecorder.Count()

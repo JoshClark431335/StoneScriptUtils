@@ -1,0 +1,503 @@
+/*
+Snake
+v2.2.2
+SSRPG Version: 3.49.4
+instruction:
+	import Snake
+
+Support mobile control via UI panel, store highest score permanently
+Bigger food, smaller canvas->more comfortable game experience
+v2.0 edited by Mind Stone Thief
+v1.0 created by: XX
+*/
+
+//////////     initialize     //////////
+
+//ui
+var mainWindow
+var showCanvas
+var foodt
+var pnlCtrl
+var buttonList = []
+var titleText
+var speedChooseText
+var guideText
+
+var height = screen.h - 2
+var width = height
+
+var loopStopTime = 0
+var timer = 0
+
+var space = []
+
+var headX = width / 2
+var headY = height / 2
+
+var direction = 8
+var currentDirection = 8
+
+var initialLevel = 1
+var currentLevel = 1
+var speed = 10
+
+var length = 0
+var eaten = 0
+
+var food = true
+var foodX = headX
+var foodY = headY
+
+var body = []
+var color = "#FFFFFF"
+var ouroborosColor = ["#FF0000","#FF7F00","#FFFF00","#00FF00","#00FFFF","#0000FF","#8B00FF"]
+var ouroboros = -1
+
+var score = 0
+var highestScore = storage.Get("snake_high", 0)
+var highestScoreX
+
+var state = "initialize"
+
+var cc = 0
+
+
+
+//////////////////////////////////
+//////////     main     //////////
+//////////////////////////////////
+
+
+func main()
+	?loc.loop
+		BuildUI()
+		
+		?body.Count()
+			for i = 0..body.Count() - 1
+				showCanvas.Set(body[i][0] * 2, body[i][1], color, "o")
+		showCanvas.Set(headX * 2, headY, color, "O")
+
+		?string.Equals(state, "title")
+			title()
+		:?string.Equals(state, "gameover")
+			gameover()
+		:?string.Equals(state, "playing")
+			setConfirmButton("stop")
+			loopStopTime = 30
+			timer = 0
+
+	?string.Equals(state, "initialize")
+		BuildUI()
+		title()
+		foodt.visible = false
+		state = "title"
+	:?string.Equals(state, "setupData")
+		for i = 1..height
+			?cc < width * height
+				?cc ! getIndex(headX, headY)
+					space.Add(cc)
+				cc++
+			:
+				setFood()
+				foodt.visible = true
+				titleText.visible = false
+				speedChooseText.visible = false
+				guideText.visible = false
+				setConfirmButton("stop")
+				state = "playing"
+				break
+	:?string.Equals(state, "playing")
+		?loopStopTime
+			loopStopTime--
+			>c0,0,@loopStopTime@
+		:
+			playing()
+	:?string.Equals(state, "stop")
+		>c-3,0,s t o p
+	:?string.Equals(state, "gameover")
+		?ouroboros ! -1 & totaltime % 3 = 0
+			ouroboros = (ouroboros + 1) % 7
+			for i = 0..body.Count() - 1
+				showCanvas.Set(body[i][0] * 2, body[i][1], ouroborosColor[(ouroboros + i) % 7], "o")
+
+	displayScore()
+	checkInput()
+	
+////////////////////////////////////////
+
+
+func BuildUI()
+	mainWindow = ui.AddPanel()
+	mainWindow.w = width * 2 + 2
+	mainWindow.h = height + 2
+	mainWindow.style = 3
+	//mainWindow
+
+	pnlCtrl = ui.AddPanel()
+	pnlCtrl.w = 15
+	pnlCtrl.h = 9
+	pnlCtrl.x = 1
+	pnlCtrl.y = 0
+	pnlCtrl.style = 0
+	pnlCtrl.anchor = center_left
+	pnlCtrl.dock = center_left
+	pnlCtrl.clip = true
+	pnlCtrl.visible = true
+	//mainWindow.Add(pnlCtrl)
+
+	buttonList.Clear()
+
+	BuildConfirmButton()
+	BuildArrowButton(5, 3, ascii
+#_
+| |
+\_/
+asciiend)
+	BuildArrowButton(0, 0, ascii
+#_
+/ |
+\_|
+asciiend)
+	BuildArrowButton(10, 0, ascii
+#_
+| \
+|_/
+asciiend)
+	BuildArrowButton(5, -3, ascii
+#_
+/ \
+|_|
+asciiend)
+	BuildShowCanvas()
+	BuildTitleText()
+	BuildSpeedChooseText()
+	BuildguideText()
+	
+	foodt = ui.AddText()
+	foodt.text = ascii
+#_
+(ʘ)
+#‾
+asciiend
+	foodt.w = 3
+	foodt.h = 3
+	foodt.x = foodX * 2
+	foodt.y = foodY
+	foodt.color = ouroborosColor[rng % 7]
+	foodt.anchor = top_left
+	foodt.dock = top_left
+	mainWindow.Add(foodt)
+
+	highestScoreX = mainWindow.absoluteX + mainWindow.w - numberLength(highestScore)
+
+func BuildConfirmButton()
+	var button = ui.AddButton()
+	button.text = ""
+	button.w = 5
+	button.h = 3
+	button.x = 5
+	button.y = 0
+	button.style = 0
+	button.anchor = center_left
+	button.dock = center_left
+	button.SetPressed(buttonAction)
+	buttonList.Add(button)
+	pnlCtrl.Add(button)
+	
+func BuildFood(x, y, c)
+	foodt.x = x + 1
+	foodt.y = y
+	foodt.color = c
+
+func BuildArrowButton(x, y, t)
+	var button = ui.AddButton()
+	button.text = ""
+	button.w = 5
+	button.h = 3
+	button.x = x
+	button.y = y
+	button.tcolor = #EEEEEE
+	button.bcolor = #666666
+	button.hcolor = #999999
+	button.style = 0
+	button.anchor = center_left
+	button.dock = center_left
+	button.SetPressed(buttonAction)
+	buttonList.Add(button)
+
+	var text = ui.AddText()
+	text.text = t
+	text.w = 3
+	text.h = 3
+	text.x = x + 1
+	text.y = y
+	text.anchor = center_left
+	text.dock = center_left
+
+	pnlCtrl.Add(button)
+	pnlCtrl.Add(text)
+
+func BuildShowCanvas()
+	showCanvas = ui.AddCanvas()
+	showCanvas.w = mainWindow.w - 2
+	showCanvas.h = mainWindow.h - 2
+	mainWindow.Add(showCanvas)
+
+	showCanvas.Set(headX * 2, headY, color, "O")
+
+func BuildTitleText()
+	titleText = ui.AddText()
+	titleText.w = mainWindow.w
+	titleText.h = 2
+	titleText.y = -mainWindow.h / 4
+	titleText.align = center
+	mainWindow.Add(titleText)
+
+func BuildSpeedChooseText()
+	speedChooseText = ui.AddText()
+	speedChooseText.w = 9
+	speedChooseText.h = 2
+	speedChooseText.y = mainWindow.h / 8
+	speedChooseText.align = center
+	mainWindow.Add(speedChooseText)
+
+func BuildguideText()
+	guideText = ui.AddText()
+	guideText.w = 18
+	guideText.h = 1
+	guideText.y = mainWindow.h / 4
+	guideText.align = center
+	mainWindow.Add(guideText)
+
+func buttonAction(btn)
+	?buttonList[0] = btn
+		confirm()
+	:
+		for i = 1..buttonList.Count() - 1
+			?buttonList[i] = btn
+				?string.Equals(state, "title") | string.Equals(state, "gameover")
+					changeInitialSpeed([-5,-1,1,5][i-1])
+				:?string.Equals(state, "playing")
+					setDirection(i * 2)
+				break
+
+func setSpeed()
+	?eaten >= currentLevel * currentLevel * 10
+		speed = math.clamp(speed - 1, 1, 10)
+		currentLevel = levelCalculation(speed)
+
+func reset()
+	timer = 0
+	
+	headX = width / 2
+	headY = height / 2
+	direction = 8
+	currentDirection = 8
+	length = 6
+	eaten = 0
+	
+	body.Clear()
+	color = "#FFFFFF"
+	
+	score = 0
+	ouroboros = -1
+	
+	currentLevel = initialLevel
+	speed = levelCalculation(initialLevel)
+
+	showCanvas.Set("#")
+	showCanvas.Set(headX * 2, headY, color, "O")
+
+	cc = 0
+	space.Clear()
+	state = "setupData"
+
+
+//////////     food     //////////
+
+func setFood()
+	var i
+	?space.Count()
+		i = space[rng % space.Count()]
+		foodX = i % width
+		foodY = (i - foodX) / width
+	:
+		i = body[0]
+		foodX = i[0]
+		foodY = i[1]
+	BuildFood(foodX * 2, foodY, ouroborosColor[rng % 7])
+
+//////////     move     //////////
+
+func playing()
+	timer = (timer + 1) % speed
+	?!timer
+		body.Add([headX, headY])
+		showCanvas.Set(headX * 2, headY, color, "o")
+
+		?body.Count() > length
+			var x = body[0][0]
+			var y = body[0][1]
+			space.Add(getIndex(x, y))
+			showCanvas.Set(x * 2, y, "#")
+			body.RemoveAt(0)
+
+		?direction = 2
+			headY++
+			currentDirection = 2
+		:?direction = 4
+			headX--
+			currentDirection = 4
+		:?direction = 6
+			headX++
+			currentDirection = 6
+		:?direction = 8
+			headY--
+			currentDirection = 8
+		
+		?!inRange(headX, headY) | isBody(headX, headY)
+			startGameover()
+		:
+			space.RemoveAt(space.IndexOf(getIndex(headX, headY)))
+			showCanvas.Set(headX * 2, headY, color, "O")
+		
+		?headX > foodX - 2 & headX < foodX + 2 & headY > foodY - 2 & headY < foodY + 2
+			cc = currentLevel
+			?speed = 1
+				cc = cc * 2
+			score = score + cc
+			length++
+			eaten++
+			setSpeed()
+			setFood()
+
+//////////     input     //////////
+
+
+func checkInput()
+	?key = bumpRBegin
+		confirm()
+
+	?string.Equals(state, "title") | string.Equals(state, "gameover")
+		?key = downBegin
+			changeInitialSpeed(-5)
+		:?key = leftBegin
+			changeInitialSpeed(-1)
+		:?key = rightBegin
+			changeInitialSpeed(1)
+		:?key = upbegin
+			changeInitialSpeed(5)
+	:?string.Equals(state, "playing")
+		?key = down
+			setDirection(2)
+		:?key = left
+			setDirection(4)
+		:?key = right
+			setDirection(6)
+		:?key = up
+			setDirection(8)
+
+func setDirection(d)
+	?10 - d ! currentDirection
+		direction = d
+
+func confirm()
+	?string.Equals(state, "playing")
+		state = "stop"
+	:?string.Equals(state, "stop")
+		state = "playing"
+	:?string.Equals(state, "title") | string.Equals(state, "gameover")
+		reset()
+
+//////////               //////////
+
+func title()
+	changeInitialSpeed(0)
+	setGuideText("[C] start / stop")
+	setConfirmButton("start")
+
+func gameover()	
+	changeInitialSpeed(0)
+	setGuideText("[C] restart / stop")
+	setConfirmButton("Retry")
+
+func changeInitialSpeed(n)
+	initialLevel = initialLevel + n
+	initialLevel = math.clamp(initialLevel, 1, 10)
+	var t = toString(initialLevel)
+	speedChooseText.text = string.Format(ascii
+speed
+<- {0} {1} ->
+asciiend,
+^string.sub(t, 0, 1), string.sub(t, 1, 1))
+	speedChooseText.visible = inherit
+
+func setGuideText(t)
+	guideText.text = t
+	guideText.visible = inherit
+
+func setConfirmButton(t)
+	buttonList[0].text = t
+
+func startGameover()
+	?score > highestScore
+		highestScore = score
+		storage.Set("snake_high", highestScore)
+		highestScoreX = mainWindow.absoluteX + mainWindow.w - numberLength(highestScore)
+		titleText.text = "n e w\n" + score
+	:
+		titleText.text = "\n" + score
+	titleText.visible = inherit
+
+	?headX = body[0][0] & headY = body[0][1]
+		ouroboros = 0
+	gameover()
+	state = "gameover"
+
+
+//////////     display score     //////////
+
+func displayScore()
+	>`@mainWindow.absoluteX@,@mainWindow.absoluteY@,@score@
+	>`@highestScoreX@,@mainWindow.absoluteY@,#rainFF,@highestScore@
+
+	>`@mainWindow.absoluteX@,@mainWindow.absoluteY+mainWindow.h-1@,speed:@currentLevel@
+
+
+////////////////////////////////////////
+func inRange(x, y)
+	return x >= 0 & x < width & y >= 0 & y < height
+
+func isBody(x, y)
+	?body.Count()
+		for i = 0..body.Count() - 1
+			?x = body[i][0] & y = body[i][1]
+				return true
+	return false
+
+func levelCalculation(n)
+	return 11 - n
+
+func getIndex(x, y)
+	return width * y + x
+
+func numberLength(n)
+	?n < 10
+		return 1
+	:?n < 100
+		return 2
+	:?n < 1000
+		return 3
+	:?n < 10000
+		return 4
+	:?n < 100000
+		return 5
+	:?n < 1000000
+		return 6
+
+func toString(n)
+	n = "0" + n
+	return string.sub(n, string.size(n) - 2)
+
+
+main()

@@ -1,0 +1,247 @@
+//StoneBoxMan - Games/StoneBoxmanMain
+//Version: v1.0
+//Author: Okamiroy
+
+var shouldHideBG = true
+?shouldHideBG
+  draw.Clear()
+
+?key = ability1Begin
+  ?shouldHideBG
+    shouldHideBG = false
+  :
+    shouldHideBG = true
+
+var map = new Games\StoneBoxman\StoneBoxmanCore
+
+var selectedIndex = 0
+var maxIndex = 0
+
+//0: Show title, 1: Initialize, 2: Gameplay, 3: Win
+var GameStep = 0
+
+?GameStep = 0
+  ShowTitleScreen()
+  ShowTipsForTitleScreen()
+  MonitorKeysForTitleScreen()
+
+?GameStep = 1
+  GameInitialize()
+
+?GameStep = 2
+  DrawTheGame()
+  ShowTipsForGamePlay()
+  MonitorKeysForGamePlay()
+
+?GameStep = 3
+  DrawTheGame()
+  ShowWining()
+  MonitorKeysWiningScreen()
+
+func ShowTitleScreen()
+  var titleWidth = 63
+  var titleHeight = 7
+  var titleString = ascii
+BBBBBB      OOOO    XX      XX  MM      MM    AAAA    NN    NN
+BB    BB  OO    OO    XX  XX    MMMM  MMMM  AA    AA  NNNN  NN
+BBBBBB    OO    OO      XX      MM  MM  MM  AAAAAAAA  NN  NNNN
+BB    BB  OO    OO    XX  XX    MM      MM  AA    AA  NN    NN
+BBBBBB      OOOO    XX      XX  MM      MM  AA    AA  NN    NN
+                                                              
+                                             Coded By Okamiroy
+asciiend
+
+  var titlePosX = 0
+  titlePosX = (screen.w - titleWidth) / 2
+  ?titlePosX < 0
+    titlePosX = 0
+  var titlePosY = 0
+  titlePosY = (screen.h - titleHeight - 7) / 2
+  ?titlePosY < 0
+    titlePosY = 0
+
+  >`@titlePosX@,@titlePosY@,#white,@titleString@
+  
+  var rawData = map.GetMapRawData()
+  var dataCount = rawData.Count()
+  maxIndex = dataCount - 1
+
+  var optionBasicPosX = titlePosX + 28
+  var optionBasicPosY = titlePosY + titleHeight + 3
+
+  ?maxIndex >= 0
+    var optionObjA = null
+    var optionObjB = null
+    var optionObjC = null
+    var optionA
+    var optionB
+    var optionC
+
+    var optionAPosX = optionBasicPosX
+    var optionAPosY = optionBasicPosY
+    var optionBPosX = optionBasicPosX
+    var optionBPosY = optionBasicPosY + 2
+    var optionCPosX = optionBasicPosX
+    var optionCPosY = optionBasicPosY + 4
+
+    var arrowMarkPosX = optionAPosX - 2
+    var arrowMarkPosY = optionAPosY
+
+    ?maxIndex = 0
+      optionObjA = rawData[0]
+      optionA = optionObjA.MapTitle
+      PrintOption(optionAPosX, optionAPosY, optionA, true)
+    :?maxIndex = 1
+      optionObjA = rawData[0]
+      optionObjB = rawData[1]
+      optionA = optionObjA.MapTitle
+      optionB = optionObjB.MapTitle
+      ?selectedIndex = 0
+        PrintOption(optionAPosX, optionAPosY, optionA, true)
+        PrintOption(optionBPosX, optionBPosY, optionB, false)
+      :
+        PrintOption(optionAPosX, optionAPosY, optionA, false)
+        PrintOption(optionBPosX, optionBPosY, optionB, true)
+    :
+      ?selectedIndex = 0
+        optionObjA = rawData[0]
+        optionObjB = rawData[1]
+        optionObjC = rawData[2]
+        optionA = optionObjA.MapTitle
+        optionB = optionObjB.MapTitle
+        optionC = optionObjC.MapTitle
+        PrintOption(optionAPosX, optionAPosY, optionA, true)
+        PrintOption(optionBPosX, optionBPosY, optionB, false)
+        PrintOption(optionCPosX, optionCPosY, optionC, false)
+      :?selectedIndex = maxIndex
+        optionObjA = rawData[maxIndex - 2]
+        optionObjB = rawData[maxIndex - 1]
+        optionObjC = rawData[maxIndex]
+        optionA = optionObjA.MapTitle
+        optionB = optionObjB.MapTitle
+        optionC = optionObjC.MapTitle
+        PrintOption(optionAPosX, optionAPosY, optionA, false)
+        PrintOption(optionBPosX, optionBPosY, optionB, false)
+        PrintOption(optionCPosX, optionCPosY, optionC, true)
+      :?selectedIndex > 0 & selectedIndex < maxIndex
+        optionObjA = rawData[selectedIndex - 1]
+        optionObjB = rawData[selectedIndex]
+        optionObjC = rawData[selectedIndex + 1]
+        optionA = optionObjA.MapTitle
+        optionB = optionObjB.MapTitle
+        optionC = optionObjC.MapTitle
+        PrintOption(optionAPosX, optionAPosY, optionA, false)
+        PrintOption(optionBPosX, optionBPosY, optionB, true)
+        PrintOption(optionCPosX, optionCPosY, optionC, false)
+
+func PrintOption(posX, posY, optionString, isSelected)
+  ?isSelected
+    var arrowMarkPosX = posX - 2
+    var arrowMarkPosY = posY
+    >`@posX@,@posY@,#rainFF,@optionString@
+    >`@arrowMarkPosX@,@arrowMarkPosY@,#white,▶
+  :
+    >`@posX@,@posY@,#white,@optionString@
+
+func ShowTipsForTitleScreen()
+  var tips = ascii
+   ↑↓: Select
+ENTER: Confirm
+SHIFT: Show/Hide BG
+asciiend
+  var tipsHeight = 3
+  var tipsPosY = screen.h - tipsHeight
+  >`0,@tipsPosY@,#white,@tips@
+  
+func MonitorKeysForTitleScreen()
+  ?key = upBegin
+    selectedIndex--
+    ?selectedIndex < 0
+      selectedIndex = maxIndex
+  :?key = downBegin
+    selectedIndex++
+    ?selectedIndex > maxIndex
+      selectedIndex = 0
+  :?key = primaryBegin
+    ?maxIndex >= 0
+      GameStep = 1
+
+func GameInitialize()
+  map.InitMapData(selectedIndex)
+  GameStep = 2
+
+func DrawTheGame()
+  map.MapOffsetX = (screen.w - map.RealWidth) / 2
+  map.MapOffsetY = (screen.h - map.RealHeight) / 2
+  map.ShowMap()
+  map.ShowBox()
+  map.ShowPlayer()
+
+func ShowTipsForGamePlay()
+  var tips = ascii
+ ↑↓←→: Move
+    Z: Undo
+    X: Retry
+    C: Back To Title
+SHIFT: Show/Hide BG
+asciiend
+  var tipsHeight = 5
+  var tipsPosY = screen.h - tipsHeight
+  >`0,@tipsPosY@,#white,@tips@
+  
+  >`1,1,#white,Push all the boxes "  " onto target cells "  " to win the game!
+  >`21,1,#green,[]
+  >`44,1,#yellow,<>
+
+func MonitorKeysForGamePlay()
+  ?key = begin
+    ?key = upBegin
+      map.TryMove(0)
+    :?key = rightBegin
+      map.TryMove(1)
+    :?key = downBegin
+      map.TryMove(2)
+    :?key = leftBegin
+      map.TryMove(3)
+    :?key = bumpLBegin
+      map.Undo()
+    :?key = backBegin
+      GameStep = 1
+    :?key = bumpRBegin
+      GameStep = 0
+    
+    ?map.JudgeToWin()
+      GameStep = 3
+
+func ShowWining()
+  var message = ascii
+                  Conguatulations!                    
+                                                      
+If you want to create your own map, please check the  
+file "MapRawData.txt" in "\Games\StoneBoxman\" folder.
+                                                      
+                                                      
+                                                      
+                                                      
+           Press ENTER to go back to title.           
+asciiend
+  var messageWidth = 55
+  var messageHeight = 9
+  var messagePosX = 0
+  var messagePosY = 0
+  var windowWidth = messageWidth + 4
+  var windowHeight = messageHeight + 4
+  var windowPosX = 0
+  var windowPosY = 0
+
+  messagePosX = (screen.w - messageWidth) / 2
+  messagePosY = (screen.h - messageHeight) / 2
+  windowPosX = messagePosX - 2
+  windowPosY = messagePosY - 2
+
+  >`@messagePosX@,@messagePosY@,#white,@message@
+  draw.Box(windowPosX, windowPosY, windowWidth, windowHeight, white, 2)
+  
+func MonitorKeysWiningScreen()
+  ?key = primaryBegin
+    GameStep = 0

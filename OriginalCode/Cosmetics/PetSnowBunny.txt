@@ -1,0 +1,150 @@
+
+// Pet Snow Bunny
+// by: aeris
+// v1.1
+
+
+var bunnyColor
+bunnyColor = #white
+
+var keepDistance = -18
+var maxX = -11
+
+var maxDistance
+maxDistance = -70
+
+var targetZ = -1
+
+var x = 0
+var y = 0
+var myX = 0
+var myZ = 0
+var lastPlayerX = 0
+var lastPlayerZ = 0
+
+var stateNone = 0
+var stateIdle = 1
+var stateJump = 2
+var currentState = stateNone
+var stateTime = 0
+
+
+func SetState(newState)
+  ?newState = stateJump
+    play scout_wing
+
+  currentState = newState
+  stateTime = 0
+
+
+?currentState = stateNone | time = 1
+  lastPlayerX = pos.x
+  lastPlayerZ = pos.z
+  myX = keepDistance
+  myZ = targetZ
+
+  // Start further away if the bunny is summoned while the location is already running
+  ?time > 1
+    myX = maxDistance
+
+  SetState(stateIdle)
+
+
+myX = myX - (pos.x - lastPlayerX)
+
+stateTime++
+
+?currentState = stateIdle
+  ?myX < maxDistance | myX > -maxDistance
+    myX = maxDistance
+  myZ = myZ - (pos.z - lastPlayerZ)
+
+  ?myX < keepDistance
+    SetState(stateJump)
+
+:?currentState = stateJump
+  ?myX < maxX
+    myX++
+
+  ?stateTime >= 6
+    ?myZ > targetZ
+      myZ--
+    :?myZ < targetZ
+      myZ++
+
+  ?stateTime >= 12
+    SetState(stateIdle)
+
+
+lastPlayerX = pos.x
+lastPlayerZ = pos.z
+
+// Draw
+
+?currentState = stateIdle
+  >o@myX@,@myZ@,@bunnyColor@,ascii
+#
+#####(\(\
+####( n.n)
+##o(,`_"_)
+asciiend
+  x = myX + 6
+  y = myZ + 2
+  ?face = "( ^^"
+    >o@x@,@y@,@bunnyColor@,ascii
+^.^
+asciiend
+
+  :?stateTime % 50 >= 44
+    >o@x@,@y@,@bunnyColor@,ascii
+-.-
+asciiend
+
+?currentState = stateJump
+  ?stateTime/2 = 0
+    >o@myX@,@myZ@,@bunnyColor@,ascii
+#
+####(\(\
+#o__( n.n)
+,/ _'| "|
+asciiend
+
+  :?stateTime/2 = 1
+    >o@myX@,@myZ@,@bunnyColor@,ascii
+#
+####(\(\
+#o__( n.n)
+##\_'/_"/
+asciiend
+
+  :?stateTime/2 = 2
+    >o@myX@,@myZ@,@bunnyColor@,ascii
+#
+###/( n.n)
+#o,- \ " \
+#|_.-  " "
+asciiend
+
+  :?stateTime/2 = 3
+    >o@myX@,@myZ@,@bunnyColor@,ascii
+###/( n.n)
+#o,-' \" \
+,/_.-'  " "
+#
+asciiend
+
+  :?stateTime/2 = 4
+    >o@myX@,@myZ@,@bunnyColor@,ascii
+####\ \\
+#o--( n.n)
+= __' \" \
+########" "
+asciiend
+
+  :?stateTime/2 = 5
+    >o@myX@,@myZ@,@bunnyColor@,ascii
+#
+##o_ \ \\
+=_,  ( n.n)
+###`-' \" \
+asciiend

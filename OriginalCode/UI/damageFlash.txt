@@ -1,0 +1,129 @@
+/*
+	DamageFlash v1.4
+	
+	Written By: Cancerorus Potatoes (Discord: 10100111001)
+	
+	To Use:
+	var DamageFlash = import damageFlash
+	DamageFlash.Main()
+	
+	Depends On:
+	Nothing!
+	
+	What it does:
+	Tracks damage recieved and flashes the outer border on hit
+	Colour of flash is dependant on if you took HP or ARMOUR only damage
+	Also records what the enemy was doing when you got hit, can be accessed by other scripts if needed
+*/
+
+/*
+	Changelog
+	v1.0	tracks hp damage and flashes pink when hit
+	v1.1	added hooks for other scripts to get info on the last hit
+	v1.2	properly tracks max hp scaling mid battle
+	v1.2.1	fixed not triggering when getting hit on the same tick as scaling maxhp
+	v1.3	tracks armour damage and flashes aqua when a hit only does armour damage
+	v1.3.1	fix for when armour goes negative
+	v1.4	made colours and flash length easily customisable
+*/
+
+/* ===============
+    Customisation
+   =============== */
+
+//flashed this colour on HP hit
+var colFlashHP = "FF6565"
+//flashes this colour on armour hit
+var colFlashArm = "206565"
+//ticks for border to remain for
+var flashLength = 5
+//disable the flash (for when you just want the hooks the script provides)
+var disableFlash = false
+
+/* ===================
+    End Customisation
+   =================== */
+
+/* =========================
+    Hooks For Other Scripts
+   ========================= */
+
+//The following variables can be read by other scripts to learn what the foe was doing when you were hit.
+//Note - if there are multiple enemies that could have hit you, state/time/dist may be inaccurate
+var hitState = -1 //state the foe was in when you were hit
+var hitTime = -1 //frame the foe was in when you were hit for HP
+var hitTimeA = -1 //frame the foe was in when you were hit for ARMOUR
+var hitHP = 0 //HP damage dealt on the last hit
+var hitArm = 0 //ARMOUR damage dealt on the last hit
+var hitDist = 0 //distance the foe hit you from
+
+/* ===========
+    End Hooks
+   =========== */
+
+//state tracking, dont touch these
+var prevHP = hp
+var prevMaxHP = maxhp
+var prevArmour = -1
+var prevArmourF = -1
+var hitTick = -1000
+var hitTickA = -1000
+
+func Main()
+	? loc.begin | loc.loop
+		hitState = -1
+		hitTime = -1
+		hitTick = -1000
+		hitTickA = -1000
+		hitTimeA = -1
+		hitHP = 0
+		hitArm = 0
+		hitDist = 0
+		prevArmour = -1
+		prevArmourF = -1
+		
+	//max health has changed
+	? maxhp ! prevMaxHP
+		//scale the prev hp
+		prevHP = prevHP * maxhp / prevMaxHP
+	? hp < prevHP
+		//we have been hit
+		hitState = foe.state
+		hitTime = foe.time
+		hitTick = totaltime
+		hitHP = prevHP - hp
+		hitDist = foe.distance
+	
+	var arm = armor
+	var armf = armor.f
+	//account for negative shields
+	? armf < 0
+		arm = -1
+		armf = 1+armf
+	? arm < prevArmour
+		? armf ! 9 | prevArmourF ! 0 | arm+1 ! prevArmour
+			//non natural armour decay
+			hitState = foe.state
+			hitTimeA = foe.time
+			hitTickA = totaltime
+			hitArm = prevArmour - arm
+			hitDist = foe.distance
+	
+	//reset prevs
+	prevHP = hp
+	prevMaxHP = maxhp
+	prevArmour = arm
+	prevArmourF = armf
+	
+	? !disableFlash
+		? totaltime <= hitTick + flashLength - 1
+			BorderFlash(colFlashHP)
+		:? totaltime <= hitTickA + flashLength - 1
+			BorderFlash(colFlashArm)
+	
+func BorderFlash(col)
+	draw.Bg(0, 0, "#"+col, screen.w, 1) //top border
+	draw.Bg(screen.w-1, 0, "#"+col, 1, screen.h) //right border
+	draw.Bg(0, 0, "#"+col, 1, screen.h) //left border
+	draw.Bg(0, screen.h-1, "#"+col, screen.w, 1) //bottom border
+	

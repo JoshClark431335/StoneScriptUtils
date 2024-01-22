@@ -1,0 +1,189 @@
+// Doom Style Face HUD
+// by: Franklin Ludo
+// v1.4
+// Just import this script anywhere in your mind stone, should work.
+
+//Variables
+var fstate
+var hploss = 0
+var lhp = hp
+var fcd = 0
+
+?fcd > 0
+  fcd--
+
+?hp < lhp
+  hploss = lhp - hp
+  lhp = hp
+
+?(time / 4) % 16 = 0
+  hploss = 0
+
+
+//Face Logic
+?fcd = 0
+  fstate = neutral
+
+?(time / 32) % 10 < 5
+  ?fcd = 0
+    ?(time / 32) % 3 = 0
+      fstate = rer
+    ?(time / 32) % 3 = 1
+      fstate = neutral
+    ?(time / 32) % 3 = 2
+      fstate = rel
+
+?(time / 4) % 45 > 40
+  ?fcd = 0
+    fstate = blink
+
+?foe.distance < 30
+  ?fcd = 0
+    fstate = scowl
+
+?foe.count > 0 &
+^foe.hp <= foe.maxhp * 0.25 &
+^foe.hp ! 0
+    fstate = grin
+    fcd = 60
+
+?hploss >= maxhp * 0.15
+    fstate = shock
+
+?hp <= 0
+  fstate = dead
+
+
+//HUD
+>`@screen.w - 13@,0,ascii
+╔═══════════╗
+║           ║
+║           ║
+║           ║
+║           ║
+║           ║
+║           ║
+╚═══════════╝
+asciiend
+
+//Faces
+//Neutral
+?fstate = neutral
+  >`@screen.w -13@,1,ascii
+# .'     `.
+#/ __   __ \
+#  <o) (o>  
+#           
+#\   ———   /
+# `._   _.´
+asciiend
+
+//Scowl
+?fstate = scowl
+  >`@screen.w -13@,1,ascii
+# .'     `.
+#/ ._`-´_. \
+#  <o\ /o>  
+#    ___    
+#\  ´———`  /
+# `._   _.´
+asciiend
+
+//Blink
+?fstate = blink
+  >`@screen.w -13@,1,ascii
+# .'     `.
+#/ __   __ \
+#  `—   —´  
+#           
+#\   ———   /
+# `._   _.´
+asciiend
+
+//Raised Eyebrow (R)
+?fstate = rer
+  >`@screen.w -13@,1,ascii
+# .'     `.
+#/ __  .—— \
+#  <_o (_o  
+#           
+#\   ———   /
+# `._   _.´
+asciiend
+
+//Raised Eyebrow (L)
+?fstate = rel
+  >`@screen.w -13@,1,ascii
+# .'     `.
+#/ ——.  __ \
+#  o_) o_>  
+#           
+#\   ———   /
+# `._   _.´
+asciiend
+
+//Grin
+?fstate = grin
+  >`@screen.w -13@,1,ascii
+# .'     `.
+#/ __`-´__ \
+#  <o\ /o>  
+#   _____   
+#\  `———´  /
+# `._   _.´
+asciiend
+
+//Shock
+?fstate = shock
+  >`@screen.w -13@,1,ascii
+# .' ._. `.
+#/ ——. .—— \
+#  (o) (o)  
+#    ___    
+#\  /___\  /
+# `._   _.´
+asciiend
+
+//Dead
+?fstate = dead
+  >`@screen.w -13@,1,ascii
+# .'     `.
+#/ __   __ \
+#  `—   —´  
+#           
+#\   ———   /
+# `._   _.´
+asciiend
+
+//Wounds 1
+?hp < maxhp * 0.90
+  >`@screen.w -13@,1,#red,ascii
+###########
+############
+#############
+#######.#####
+########`###
+###########
+asciiend
+
+//Wounds 2
+?hp < maxhp * 0.60
+  >`@screen.w -13@,1,#red,ascii
+###########
+########`###
+##,-—.#######
+##|####.#####
+########`###
+#######▀###
+asciiend
+
+//Wounds 3
+?hp < maxhp * 0.30
+  >`@screen.w -13@,1,#red,ascii
+######.####
+#######`\###
+##,▄▄.#######
+##|██##.¯Y##
+###██###`###
+###▀█##▀###
+asciiend

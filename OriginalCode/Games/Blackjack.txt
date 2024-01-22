@@ -1,0 +1,877 @@
+//Blackjack by link2_thepast
+//Original implementation by Bitrageous
+//
+//v1.0
+//Adds a Blackjack minigame that can be played while you run levels. Use the minimize [-] button to show/hide the game.
+// Add "import Games/Blackjack" to the Mind Stone, then visit any location (Deadwood Waterfall is nice and peaceful)
+
+
+
+//- SETTINGS -
+var DEFAULT_TO_MINIMIZED = false
+
+
+
+//- CONSTANTS -
+var SEED_MONEY = 300
+var LOAN_MONEY = 100
+var MONEY_KEY = "blackjack_money"
+
+var DEAL_CARDS = 2
+var CARD_DEAL_RATE = 0.3
+var CARD_DEAL_ERR = 0.2
+
+var CARD_FLIP_TIME = 5
+
+var MINIM_RATE = 0.2
+var MINIM_ERR = 0.2
+var MINIMIZED_W = 27
+var MAXIMIZED_W = 45
+
+
+
+//- VARIABLES -
+// Game state machine
+//states:
+//  SETUP
+//  BET
+//  DEAL_PLAYER_CARD
+//  DEAL_PLAYER_FLIP
+//  DEAL_DEALER_CARD
+//  DEAL_DEALER_FLIP
+//  DEAL_INIT_EVALUATE
+//  PLAYER_TURN
+//  DRAW_PLAYER_CARD
+//  DRAW_PLAYER_FLIP
+//  PLAYER_EVALUATE
+//  DEALER_TURN
+//  DRAW_DEALER_CARD
+//  DRAW_DEALER_FLIP
+//  DEALER_EVALUATE
+//  WIN
+//  TIE
+//  LOSE
+var state = SETUP
+var next_state = state
+var state_time = 0
+
+var enter = true
+var exit = false
+
+// State variables - used to help decide state transitions
+//   be very careful about when these are updated,
+//   could lead to inconsistent state transitions
+var SV_doubleDown = false
+var SV_helpVisible = false
+var SV_playerDealTarget = DEAL_CARDS
+var SV_dealerDealTarget = DEAL_CARDS
+var SV_cardDealError = 0.0
+var SV_playerRequest = none
+
+// General status variables
+var initialized = false
+var minimized = (DEFAULT_TO_MINIMIZED | loc.IsQuest | loc = uulaa_shop)
+
+var prev_bet = 0
+
+var deckX
+var deckY
+var f_cardX = 0.0
+var f_cardY = 0.0
+var handX
+var handY
+
+var f_frmW = 0.0
+var f_frmY = 0.0
+var windowY
+
+// UI objects
+var stlTransp = ui.AddStyle("#########")
+var stlFrame = ui.AddStyle("╓─╖║ ║╙─╜")
+var stlSimple = ui.AddStyle("┌─┐│ │└─┘")
+var stlStack = ui.AddStyle("┌─┐│ │├─┤")
+var stlHand = ui.AddStyle("╒═-│  '  ")
+
+var strTitle = "[ BLACKJACK ]"
+var strMin = "[-]"
+var strMax = "[+]"
+
+var pnlMain
+var pnlHelp
+var pnlGame
+var pnlBet
+var pnlPlay
+var pnlSettle
+
+var pnlHelp
+var txtHelp
+var btnHelp
+
+var txtTitle
+var txtMinMax
+var txtInfo
+
+var btnMinMax
+var btnBet
+var btnBetUp
+var btnBetDown
+var btnReBet
+var btnHit
+var btnStay
+var btnDouble
+var btnSettle
+
+var bnkPlayer
+
+var hndPlayer
+var hndDealer
+
+var crdDeck
+var crdNewCard
+
+var clrFrame =        #999999
+var clrTitle =        #white
+var clrPlayer =       #cyan
+var clrPlayerAccent = #yellow
+var clrDealer =       #white
+var clrDealerAccent = #cyan
+var clrInfoGood =     #green
+var clrInfoBad =      #red
+
+
+
+//- MAIN LOOP -
+Update()
+
+
+
+//- FUNCTIONS -
+// Main setup function
+func TryReset()
+  //rerun initialization at every: level start, level loop, boss transition
+  ?initialized & (loc.begin | loc.loop | time = 1)
+    initialized = false
+  
+  //reset variables and build components
+  ?!initialized
+    initialized = true
+    
+    state = SETUP
+    
+    SV_doubleDown = false
+    SV_helpVisible = false
+    SV_playerDealTarget = DEAL_CARDS
+    SV_dealerDealTarget = DEAL_CARDS
+    SV_cardDealError = 0.0
+    SV_playerRequest = none
+    
+    BuildUI()
+    ResetHands()
+
+// Gameplay reset function
+func ResetHands()
+  hndPlayer.Clear()
+  hndDealer.Clear()
+  hndPlayer.UpdateValueDisp()
+  hndDealer.UpdateValueDisp()
+  
+  SV_playerDealTarget = DEAL_CARDS
+  SV_dealerDealTarget = DEAL_CARDS
+
+
+
+// Main loop function
+func Update()
+  TryReset()
+  
+  // Main state machine
+  Enter()
+  Loop()
+  Exit()
+  
+  state = next_state
+  state_time++
+
+
+
+// Called on transition TO new state
+func Enter()
+  ?enter
+    enter = false
+    
+    state_time = 0
+    SV_playerRequest = none
+    
+    ? state = BET
+      pnlBet.visible = inherit
+      
+      //only show re-bet button if there's a prior bet
+      ?prev_bet ! 0
+        btnReBet.visible = inherit
+      
+      //borrow money
+      ?bnkPlayer.money = 0
+        ShowUpdateInfo(false)
+        bnkPlayer.AddMoney(LOAN_MONEY)
+    
+    :?state = DEAL_PLAYER_CARD | state = DRAW_PLAYER_CARD
+      play booklet_turn_page
+      crdNewCard.MoveTo(deckX, deckY)
+      crdNewCard.SetVisible(inherit)
+      
+      f_cardX = 0.0 + deckX
+      f_cardY = 0.0 + deckY
+      handX = hndPlayer.pnlMain.x + hndPlayer.size*4 + 1
+      handY = hndPlayer.pnlMain.y + 1
+    
+    :?state = DEAL_PLAYER_FLIP | state = DRAW_PLAYER_FLIP
+      play click
+      hndPlayer.GetAt(-1).SetFaceUp(true)
+      hndPlayer.UpdateValueDisp()
+    
+    :?state = DEAL_DEALER_CARD | state = DRAW_DEALER_CARD
+      play booklet_turn_page
+      crdNewCard.MoveTo(deckX, deckY)
+      crdNewCard.SetVisible(inherit)
+      
+      f_cardX = 0.0 + deckX
+      f_cardY = 0.0 + deckY
+      handX = hndDealer.pnlMain.x + hndDealer.size*4 + 1
+      handY = hndDealer.pnlMain.y + 1
+    
+    :?state = DEAL_DEALER_FLIP | state = DRAW_DEALER_FLIP
+      play click
+      hndDealer.GetAt(-1).SetFaceUp(true)
+      hndDealer.UpdateValueDisp()
+    
+    :?state = PLAYER_TURN
+      pnlPlay.visible = inherit
+      SV_playerDealTarget = hndPlayer.size + 1
+    
+    :?state = DEALER_TURN
+      SV_dealerDealTarget = hndDealer.size + 1
+    
+    :?state = WIN | state = TIE | state = LOSE
+      pnlSettle.visible = inherit
+      ShowUpdateInfo( (state ! LOSE) )
+      
+      //reveal hidden dealer card
+      var d_c = hndDealer.GetAt(-1)
+      ?!d_c.face_up
+        play booklet_turn_page
+        d_c.SetFaceUp(true)
+        hndDealer.UpdateValueDisp()
+      
+      //set win payout rate
+      ? state = WIN & SV_dealerDealTarget = DEAL_CARDS //player blackjack
+        bnkPlayer.SetBetMult(1.5)
+      :?state = WIN
+        bnkPlayer.SetBetMult(2)
+      :?state = TIE
+        bnkPlayer.SetBetMult(1)
+      :?state = LOSE
+        bnkPlayer.SetBetMult(0)
+
+
+
+// Called once per tick while in state
+func Loop()
+  
+  // Update game window position
+  UpdateFrame()
+  
+  // Update money/bet display
+  bnkPlayer.UpdateDisplay()
+  
+  ?state = BET
+    // Multiply bet buttons x10 while shift is held
+    ?key = ability1Begin
+      btnBetUp.text = "+10"
+      btnBetDown.text = "-10"
+    :?key = ability1End
+      btnBetUp.text = "+"
+      btnBetDown.text = "-"
+  
+  :?state = DEAL_PLAYER_CARD | state = DEAL_DEALER_CARD | state = DRAW_PLAYER_CARD | state = DRAW_DEALER_CARD
+    // Move cards during deal/draw states
+    f_cardX = math.Lerp(f_cardX, handX, CARD_DEAL_RATE)
+    f_cardY = math.Lerp(f_cardY, handY, CARD_DEAL_RATE)
+    
+    //composite x and y error into 1 variable
+    SV_cardDealError = math.Abs(handX-f_cardX) + math.Abs(handY-f_cardY)
+    
+    crdNewCard.MoveTo(f_cardX, f_cardY)
+  
+  // Move to next state and schedule exit logic if necessary
+  next_state = NextState()
+  ?next_state ! state
+    exit = true
+
+
+
+// Called on transition FROM old state
+func Exit()
+  ?exit
+    exit = false
+    enter = true
+    
+    ? state = BET
+      pnlBet.visible = false
+      HideInfo()
+      
+      SV_playerDealTarget = DEAL_CARDS
+      SV_dealerDealTarget = DEAL_CARDS
+    
+    :?state = DEAL_PLAYER_CARD | state = DRAW_PLAYER_CARD
+      hndPlayer.Add(GetRandomCard(), GetRandomSuit())
+      hndPlayer.GetAt(-1).SetFaceUp(false)
+      crdNewCard.SetVisible(false)
+    
+    :?state = DEAL_DEALER_CARD | state = DRAW_DEALER_CARD
+      hndDealer.Add(GetRandomCard(), GetRandomSuit())
+      hndDealer.GetAt(-1).SetFaceUp(false)
+      crdNewCard.SetVisible(false)
+    
+    :?state = PLAYER_TURN
+      pnlPlay.visible = false
+    
+    :?state = WIN | state = TIE | state = LOSE
+      pnlSettle.visible = false
+      HideInfo()
+      play booklet_close
+      
+      SV_doubleDown = false
+      bnkPlayer.Settle()
+      ResetHands()
+
+
+
+// Determine next state
+func NextState()
+  ? state = SETUP
+    return BET
+
+  :?state = BET
+    ?SV_playerRequest = bet
+      return DEAL_PLAYER_CARD
+
+  :?state = DEAL_PLAYER_CARD
+    ?SV_cardDealError < CARD_DEAL_ERR*2
+      return DEAL_PLAYER_FLIP
+  
+  :?state = DEAL_PLAYER_FLIP
+    ?state_time > CARD_FLIP_TIME
+      ?ReachedPlrDealTarget()
+        return DEAL_DEALER_CARD
+      :
+        return DEAL_PLAYER_CARD
+  
+  :?state = DEAL_DEALER_CARD
+    ?SV_cardDealError < CARD_DEAL_ERR*2
+      ?ReachedDlrDealTarget()
+        return DEAL_INIT_EVALUATE
+      :
+        return DEAL_DEALER_FLIP
+  
+  :?state = DEAL_DEALER_FLIP
+    ?state_time > CARD_FLIP_TIME
+      return DEAL_DEALER_CARD
+  
+  :?state = DRAW_PLAYER_CARD
+    ?SV_cardDealError < CARD_DEAL_ERR*2
+      return DRAW_PLAYER_FLIP
+  
+  :?state = DRAW_PLAYER_FLIP
+    ?state_time > CARD_FLIP_TIME
+      return PLAYER_EVALUATE
+  
+  :?state = DRAW_DEALER_CARD
+    ?SV_cardDealError < CARD_DEAL_ERR*2
+      return DRAW_DEALER_FLIP
+  
+  :?state = DRAW_DEALER_FLIP
+    ?state_time > CARD_FLIP_TIME
+      return DEALER_TURN
+  
+  :?state = DEAL_INIT_EVALUATE
+    ?hndPlayer.HasBlackjack()
+      ?hndDealer.HasBlackjack()
+        return TIE
+      :
+        return WIN
+    :?hndDealer.HasBlackjack()
+      return LOSE
+    :
+      return PLAYER_TURN
+  
+  :?state = PLAYER_EVALUATE
+    ?hndPlayer.HasBusted()
+      return LOSE
+    :?SV_doubleDown
+      return DRAW_DEALER_FLIP
+    :
+      return PLAYER_TURN
+  
+  :?state = DEALER_EVALUATE
+    ?hndDealer.HasBusted() | (hndDealer.GetBestTotal() < hndPlayer.GetBestTotal())
+      return WIN
+    :? hndDealer.GetBestTotal() = hndPlayer.GetBestTotal()
+      return TIE
+    :
+      return LOSE
+  
+  :?state = PLAYER_TURN
+    ?SV_playerRequest = hit | SV_playerRequest = double
+      return DRAW_PLAYER_CARD
+    :?SV_playerRequest = stay
+      return DRAW_DEALER_FLIP
+  
+  :?state = DEALER_TURN
+    ?hndDealer.GetBestTotal() < 17
+      return DRAW_DEALER_CARD
+    :
+      return DEALER_EVALUATE
+
+  :?state = WIN | state = TIE | state = LOSE
+    ?SV_playerRequest = settle
+      return BET
+  :
+    return BET
+  
+  return state
+
+
+
+// Create and arrange UI components
+func BuildUI()
+  pnlMain = ui.AddPanel()
+  pnlMain.style = stlFrame
+  pnlMain.color = clrFrame
+  pnlMain.anchor = bottom_center
+  pnlMain.dock = bottom_center
+  pnlMain.clip = true
+  pnlMain.x = 0
+  pnlMain.y = 0
+  pnlMain.w = MAXIMIZED_W
+  pnlMain.h = 17
+  
+  pnlGame = ui.AddPanel()
+  pnlGame.style = 0
+  pnlGame.anchor = bottom_center
+  pnlGame.dock = bottom_center
+  pnlGame.clip = true
+  pnlGame.y = -1
+  pnlGame.w = pnlMain.w-2
+  pnlGame.h = pnlMain.h-2
+  pnlGame.visible = inherit
+  
+  pnlHelp = ui.AddPanel()
+  pnlHelp.style = 0
+  pnlHelp.anchor = bottom_center
+  pnlHelp.dock = bottom_center
+  pnlHelp.y = -1
+  pnlHelp.w = pnlMain.w-2
+  pnlHelp.h = pnlMain.h-2
+  pnlHelp.visible = false
+  
+  pnlBet = ui.AddPanel()
+  pnlBet.style = 0
+  pnlBet.anchor = bottom_center
+  pnlBet.dock = bottom_center
+  pnlBet.w = pnlGame.w
+  pnlBet.h = 5
+  pnlBet.visible = false
+  
+  pnlPlay = ui.AddPanel()
+  pnlPlay.style = 0
+  pnlPlay.anchor = bottom_center
+  pnlPlay.dock = bottom_center
+  pnlPlay.w = pnlMain.w - 18
+  pnlPlay.h = 3
+  pnlPlay.visible = false
+  
+  pnlSettle = ui.AddPanel()
+  pnlSettle.style = 0
+  pnlSettle.anchor = bottom_center
+  pnlSettle.dock = bottom_center
+  pnlSettle.w = pnlGame.w
+  pnlSettle.h = 3
+  pnlSettle.visible = false
+  
+  btnHelp = ui.AddButton()
+  btnHelp.SetPressed(ShowHideHelp)
+  btnHelp.visible = inherit
+  btnHelp.style = stlSimple
+  btnHelp.anchor = bottom_left
+  btnHelp.dock = bottom_left
+  btnHelp.text = "?"
+  btnHelp.x = 1
+  btnHelp.y = -1
+  btnHelp.w = 5
+  btnHelp.h = 3
+  
+  btnBet = ui.AddButton()
+  btnBet.SetPressed(PlaceBet)
+  btnBet.visible = inherit
+  btnBet.style = stlSimple
+  btnBet.anchor = bottom_center
+  btnBet.dock = bottom_center
+  btnBet.text = "Place Bet"
+  btnBet.w = 13
+  btnBet.h = 3
+  
+  btnBetDown = ui.AddButton()
+  btnBetDown.SetDown(DecrBet)
+  btnBetDown.visible = inherit
+  btnBetDown.style = stlSimple
+  btnBetDown.anchor = bottom_right
+  btnBetDown.dock = bottom_right
+  btnBetDown.text = "-"
+  btnBetDown.x = 0 //-btnBetUp.w
+  btnBetDown.w = 5
+  btnBetDown.h = 3
+  
+  btnBetUp = ui.AddButton()
+  btnBetUp.SetDown(IncrBet)
+  btnBetUp.visible = inherit
+  btnBetUp.style = stlStack
+  btnBetUp.anchor = bottom_right
+  btnBetUp.dock = bottom_right
+  btnBetUp.text = "+"
+  btnBetUp.y = -2
+  btnBetUp.w = 5
+  btnBetUp.h = 3
+  
+  btnReBet = ui.AddButton()
+  btnReBet.SetDown(ReBet)
+  btnReBet.visible = false  //hidden for first hand
+  btnReBet.style = stlSimple
+  btnReBet.anchor = bottom_right
+  btnReBet.dock = bottom_right
+  btnReBet.text = "Re-Bet"
+  btnReBet.x = -btnBetDown.w
+  btnReBet.w = 8
+  btnReBet.h = 3
+  
+  btnMinMax = ui.AddButton()
+  btnMinMax.SetPressed(MinMaxFrame)
+  btnMinMax.visible = inherit
+  btnMinMax.style = stlTransp
+  btnMinMax.anchor = top_right
+  btnMinMax.dock = top_right
+  btnMinMax.text = ""
+  btnMinMax.x = 0
+  btnMinMax.y = -1
+  btnMinMax.w = 5
+  btnMinMax.h = 3
+  
+  btnHit = ui.AddButton()
+  btnHit.SetPressed(Hit)
+  btnHit.visible = inherit
+  btnHit.style = stlSimple
+  btnHit.anchor = bottom_left
+  btnHit.dock = bottom_left
+  btnHit.text = "Hit"
+  btnHit.w = 7
+  btnHit.h = 3
+  
+  btnStay = ui.AddButton()
+  btnStay.SetPressed(Stay)
+  btnStay.visible = inherit
+  btnStay.style = stlSimple
+  btnStay.anchor = bottom_left
+  btnStay.dock = bottom_left
+  btnStay.text = "Stay"
+  btnStay.x = btnHit.w
+  btnStay.w = 8
+  btnStay.h = 3
+  
+  btnDouble = ui.AddButton()
+  btnDouble.SetPressed(DoubleDown)
+  btnDouble.visible = inherit
+  btnDouble.style = stlSimple
+  btnDouble.anchor = bottom_left
+  btnDouble.dock = bottom_left
+  btnDouble.text = "Double Down"
+  btnDouble.x = btnHit.w + btnStay.w
+  btnDouble.w = 15
+  btnDouble.h = 3
+  
+  btnSettle = ui.AddButton()
+  btnSettle.SetPressed(SettleUp)
+  btnSettle.visible = inherit
+  btnSettle.style = stlSimple
+  btnSettle.anchor = bottom_center
+  btnSettle.dock = bottom_center
+  btnSettle.text = "Settle Up"
+  btnSettle.w = 13
+  btnSettle.h = 3
+  
+  txtTitle = ui.AddText(strTitle)
+  txtTitle.color = clrTitle
+  txtTitle.anchor = top_center
+  txtTitle.dock = top_center
+  txtTitle.w = 13
+  txtTitle.h = 1
+  
+  txtHelp = ui.AddText()
+  txtHelp.text = GetHelpText()
+  txtHelp.color = clrTitle
+  txtHelp.anchor = top_left
+  txtHelp.dock = top_left
+  txtHelp.visible = inherit
+  txtHelp.w = pnlHelp.w
+  txtHelp.h = pnlHelp.h
+  
+  txtMinMax = ui.AddText(strMin)
+  txtMinMax.color = clrTitle
+  txtMinMax.anchor = top_right
+  txtMinMax.dock = top_right
+  txtMinMax.x = -1
+  txtMinMax.w = 3
+  txtMinMax.h = 1
+  
+  txtInfo = ui.AddText()
+  txtInfo.visible = false
+  txtInfo.align = center
+  txtInfo.anchor = bottom_left
+  txtInfo.dock = bottom_left
+  txtInfo.x = 1
+  txtInfo.y = -pnlPlay.h-1
+  txtInfo.w = pnlGame.w
+  txtInfo.h = 1
+  
+  hndDealer = new Games/Blackjack/Hand
+  hndDealer.Init("Dealer", stlHand, clrDealer, clrDealerAccent)
+  hndDealer.MoveTo(1,0)
+  hndDealer.Size(25,5)
+  
+  hndPlayer = new Games/Blackjack/Hand
+  hndPlayer.Init(player.name, stlHand, clrPlayer, clrPlayerAccent)
+  hndPlayer.MoveTo(1,5)
+  hndPlayer.Size(25,5)
+  
+  bnkPlayer = new Games/Blackjack/Bank
+  bnkPlayer.Init(MONEY_KEY, SEED_MONEY)
+  
+  deckX = pnlMain.w-7
+  deckY = 0
+  
+  //card to represent deck, right-aligned
+  crdDeck = new Games/Blackjack/Card
+  crdDeck.Init(0, 0) //will never be played
+  crdDeck.SetFaceUp(false)
+  crdDeck.pnlMain.anchor = top_right
+  crdDeck.pnlMain.dock = top_right
+  crdDeck.pnlMain.x = -1
+  crdDeck.pnlMain.y = 0
+  
+  //card to represent drawn card, left-aligned to match coords w/ hands
+  crdNewCard = new Games/Blackjack/Card
+  crdNewCard.Init(0, 0) //also will never be played
+  crdNewCard.SetFaceUp(false)
+  crdNewCard.MoveTo(deckX, deckY)
+  crdNewCard.SetVisible(false)
+  
+  //start game in minimized state, if required
+  ?minimized
+    txtMinMax.text = strMax
+    pnlMain.w = MINIMIZED_W
+    pnlMain.y = pnlMain.h-1
+  
+  f_frmY = 0.0 + pnlMain.y
+  f_frmW = 0.0 + pnlMain.w
+  
+  //add Components to their containers
+  pnlMain.Add(txtTitle)
+  pnlMain.Add(txtMinMax)
+  pnlMain.Add(btnMinMax)
+  
+  pnlGame.Add(hndDealer.pnlMain)
+  pnlGame.Add(hndPlayer.pnlMain)
+  pnlGame.Add(crdDeck.pnlMain)
+  pnlGame.Add(crdNewCard.pnlMain)
+  pnlGame.Add(bnkPlayer.pnlMain)
+  
+  pnlBet.Add(btnBet)
+  pnlBet.Add(btnBetDown)
+  pnlBet.Add(btnBetUp)
+  pnlBet.Add(btnReBet)
+  pnlGame.Add(pnlBet)
+  
+  pnlSettle.Add(btnSettle)
+  pnlGame.Add(pnlSettle)
+  
+  pnlPlay.Add(btnHit)
+  pnlPlay.Add(btnStay)
+  pnlPlay.Add(btnDouble)
+  pnlGame.Add(pnlPlay)
+  
+  pnlGame.Add(txtInfo)
+  
+  pnlHelp.Add(txtHelp)
+  
+  pnlMain.Add(pnlGame)
+  pnlMain.Add(pnlHelp)
+  pnlMain.Add(btnHelp)
+
+
+// Functions for minimizing frame
+func MinMaxFrame()
+  minimized = !minimized
+
+func UpdateFrame()
+  ?minimized
+    f_frmY = math.Lerp(f_frmY, pnlMain.h-1, MINIM_RATE)
+    f_frmW = math.Lerp(f_frmW, MINIMIZED_W, MINIM_RATE)
+  :
+    f_frmY = math.Lerp(f_frmY, 0, MINIM_RATE)
+    f_frmW = math.Lerp(f_frmW, MAXIMIZED_W, MINIM_RATE)
+  
+  //update component parameters only during min/max transition
+  ?math.Abs(pnlMain.y - f_frmY) > MINIM_ERR
+    ?minimized
+      txtMinMax.text = strMax
+    :
+      txtMinMax.text = strMin
+    
+    pnlMain.y = math.RoundToInt(f_frmY)
+    pnlMain.w = math.RoundToInt(f_frmW)
+    pnlGame.w = pnlMain.w-2
+    pnlHelp.w = pnlMain.w-2
+    pnlBet.w = pnlGame.w
+
+
+
+func ReachedPlrDealTarget()
+  return (hndPlayer.size = SV_playerDealTarget)
+
+func ReachedDlrDealTarget()
+  //evaluated before latest card gets added to dealer's hand, so -1
+  return (hndDealer.size = SV_dealerDealTarget-1)
+
+// Infinite decks, even 1-13 value distribution
+func GetRandomCard()
+  return rng%13 + 1
+
+// Infinite decks, even 0-3 suit distribution
+func GetRandomSuit()
+  return rng%4
+
+
+
+//- PLAYER BUTTON FUNCTIONS -
+// Submit player interactions to the state machine
+func ShowHideHelp()
+  SV_helpVisible = !SV_helpVisible
+  
+  ?SV_helpVisible
+    pnlHelp.visible = inherit
+    pnlGame.visible = false
+    btnHelp.text = "X"
+  :
+    pnlHelp.visible = false
+    pnlGame.visible = inherit
+    btnHelp.text = "?"
+
+func ShowUpdateInfo(good)
+  txtInfo.visible = inherit
+  txtInfo.text = GetInfoStr()
+  
+  ?good
+    txtInfo.color = clrInfoGood
+  :
+    txtInfo.color = clrInfoBad
+
+func HideInfo()
+  txtInfo.visible = false
+
+func IncrBet()
+  ?key = ability1
+    bnkPlayer.AddBetImmediate(10)
+  :
+    bnkPlayer.AddBetImmediate(1)
+
+func DecrBet()
+  ?key = ability1
+    bnkPlayer.AddBetImmediate(-10)
+  :
+    bnkPlayer.AddBetImmediate(-1)
+
+func ReBet()
+  bnkPlayer.AddBet(prev_bet - bnkPlayer.bet)
+
+func PlaceBet()
+  ?bnkPlayer.bet <= 0
+    return
+  
+  prev_bet = bnkPlayer.bet
+  SV_playerRequest = bet
+
+func Hit()
+  SV_playerRequest = hit
+
+func Stay()
+  SV_playerRequest = stay
+
+func DoubleDown()
+  ?!bnkPlayer.CanDoubleDown()
+    return
+  
+  SV_doubleDown = true
+  bnkPlayer.AddBet(bnkPlayer.bet)
+  SV_playerRequest = double
+
+func SettleUp()
+  SV_playerRequest = settle
+
+
+
+//- TEXT STRINGS -
+// tucked away here at the bottom since they're not super important
+
+// BASIC rules of blackjack, look up online for more detailed ones
+func GetHelpText()
+  return ascii
+###########################################
+ Blackjack is a 2-person betting game. Try
+ to draw more points than the dealer, but
+ don't bust over 21!
+ 
+ [color=#cyan]Hit:[/color] Draw another card.
+ [color=#cyan]Stay:[/color] End turn.
+ [color=#cyan]Double Down:[/color] Double your bet and draw
+              1 more card. End turn.
+ [color=#cyan]Blackjack:[/color] Win 1.5x your bet if dealt 21.
+ [color=#cyan]Soften:[/color] If you would bust with an [color=#cyan]A[/color], make
+       it worth 1 and keep playing.
+#####
+##### [color=#cyan]J[/color],[color=#cyan]Q[/color],[color=#cyan]K[/color] = 10. [color=#cyan]A[/color] = 1 or 11, you choose.
+#####
+asciiend
+
+// Get the appropriate info string, based on current game state and state variable status
+func GetInfoStr()
+  ? state = BET
+    return "Got a loan to keep gambling..."
+  
+  :?state = WIN
+    ? hndPlayer.HasBlackjack()
+      return "Blackjack! You win 1.5x your bet."
+    :?hndDealer.HasBusted()
+      return "Dealer went bust! You win!"
+    :
+      return "You win!"
+  
+  :?state = TIE
+    return "It's a tie! Your bet is returned."
+  
+  :?state = LOSE
+    ? hndDealer.HasBlackjack()
+      return "Dealer blackjack! You lose..."
+    :?hndPlayer.HasBusted()
+      return "You went bust! You lose..."
+    :
+      return "You lose..."
+  
+  return "Unknown status in: " + state

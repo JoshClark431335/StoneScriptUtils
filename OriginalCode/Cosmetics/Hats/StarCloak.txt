@@ -1,0 +1,35 @@
+// Star Cloak - by Raeborga
+// v1.0
+// Requires big head
+
+var bgc = white
+
+?loc.stars>30
+ bgc=rain
+?loc.stars<31
+ bgc=red
+?loc.stars<26
+ bgc=blue
+?loc.stars<21
+ bgc=green
+?loc.stars<16
+ bgc=yellow
+?loc.stars<11
+ bgc=cyan
+?loc.stars<6
+ bgc=white
+?loc.stars<1
+ bgc=magenta
+
+>h-3,-2,#bf9f7f,ascii
+##__##
+##, `#
+#(###)
+##^.^##
+#//####
+´´###``
+asciiend
+
+>h-2,-1,#@bgc@,ascii
+☆
+asciiend

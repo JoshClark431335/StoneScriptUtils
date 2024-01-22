@@ -1,0 +1,367 @@
+/*
+StoneBoxMan
+Version: v1.1
+how to use:
+replace the MapRawData.txt file in Games\StoneBoxman folder
+v1.0 Author: Okamiroy
+v1.1 Extended level added by Mind Stone Thief
+level original author:
+DrFogh
+email: bjertrup58@gmail.com
+Url: www.sokoban.dk
+*/
+// Data to save raw maps.
+// You can create your own map here. Just modify the "LEVEL CUSTOM" one, or add a new one like other code.
+
+// Cell types of map code:
+// 0: Empty cell
+// 1: Road cell
+// 2: Wall cell
+// B: Box cell
+// S: Start cell
+// T: Target cell
+
+// Notice:
+// You have to create a new Instance of "RawData" for your custom map.
+// Your map should be a rectangle, and exactly matching the width and height, and without any space character. 
+// You have to set ONLY ONE start cell.
+// The number of boxes has to be the same as the number of target cells.
+
+var RawDataList = []
+var RawData
+
+RawData = new Games\StoneBoxman\MapRawDataObject
+RawData.MapTitle = "LEVEL 1"
+RawData.MapWidth = 8
+RawData.MapHeight = 8
+RawData.MapCode = ascii
+02222000
+02S12220
+021B1120
+22212122
+2T212112
+2TB11212
+2T111B12
+22222222
+asciiend
+RawDataList.Add(RawData)
+
+RawData = new Games\StoneBoxman\MapRawDataObject
+RawData.MapTitle = "LEVEL 2"
+RawData.MapWidth = 8
+RawData.MapHeight = 7
+RawData.MapCode = ascii
+02222220
+02111122
+22T22B12
+21TTB112
+2112B112
+211S1222
+22222200
+asciiend
+RawDataList.Add(RawData)
+
+RawData = new Games\StoneBoxman\MapRawDataObject
+RawData.MapTitle = "LEVEL 3"
+RawData.MapWidth = 10
+RawData.MapHeight = 7
+RawData.MapCode = ascii
+0222222220
+2211111122
+2211222112
+21BSB11B12
+21TT22B112
+22TT221112
+0222222222
+asciiend
+RawDataList.Add(RawData)
+
+RawData = new Games\StoneBoxman\MapRawDataObject
+RawData.MapTitle = "LEVEL 4"
+RawData.MapWidth = 8
+RawData.MapHeight = 8
+RawData.MapCode = ascii
+00222200
+002TT200
+0221T220
+0211BT20
+221B1122
+2112BB12
+211S1112
+22222222
+asciiend
+RawDataList.Add(RawData)
+
+RawData = new Games\StoneBoxman\MapRawDataObject
+RawData.MapTitle = "LEVEL 5"
+RawData.MapWidth = 10
+RawData.MapHeight = 7
+RawData.MapCode = ascii
+0002222220
+0222111120
+22T1B22122
+2TTB1B11S2
+2TT1B1B122
+2222221120
+0000022220
+asciiend
+RawDataList.Add(RawData)
+
+RawData = new Games\StoneBoxman\MapRawDataObject
+RawData.MapTitle = "LEVEL 6"
+RawData.MapWidth = 11
+RawData.MapHeight = 9
+RawData.MapCode = ascii
+02222222220
+02112211120
+02111B11120
+02B12221B20
+0212TTT2120
+2212TTT2122
+21B11B11B12
+21111S21112
+22222222222
+asciiend
+RawDataList.Add(RawData)
+
+RawData = new Games\StoneBoxman\MapRawDataObject
+RawData.MapTitle = "LEVEL 7"
+RawData.MapWidth = 8
+RawData.MapHeight = 7
+RawData.MapCode = ascii
+02222220
+22111122
+21B1BB12
+2TTTTTT2
+21BB1B12
+2221S222
+00222200
+asciiend
+RawDataList.Add(RawData)
+
+RawData = new Games\StoneBoxman\MapRawDataObject
+RawData.MapTitle = "LEVEL 8"
+RawData.MapWidth = 7
+RawData.MapHeight = 8
+RawData.MapCode = ascii
+2222222
+2TTBTT2
+2TT2TT2
+21BBB12
+211B112
+21BBB12
+2112S12
+2222222
+asciiend
+RawDataList.Add(RawData)
+
+RawData = new Games\StoneBoxman\MapRawDataObject
+RawData.MapTitle = "LEVEL 9"
+RawData.MapWidth = 7
+RawData.MapHeight = 7
+RawData.MapCode = ascii
+2222222
+2T1T1T2
+21BBB12
+2TBSBT2
+21BBB12
+2T1T1T2
+2222222
+asciiend
+RawDataList.Add(RawData)
+
+RawData = new Games\StoneBoxman\MapRawDataObject
+RawData.MapTitle = "LEVEL 10"
+RawData.MapWidth = 9
+RawData.MapHeight = 7
+RawData.MapCode = ascii
+222222200
+211TB1222
+2BTBTB112
+2TBTBTS12
+21TBTB122
+211TB1120
+222222220
+asciiend
+RawDataList.Add(RawData)
+
+RawData = new Games\StoneBoxman\MapRawDataObject
+RawData.MapTitle = "LEVEL 11"
+RawData.MapWidth = 15
+RawData.MapHeight = 5
+RawData.MapCode = ascii
+222222222222222
+21T1T1T1T1T1T12
+21B1B1B1B1B1B12
+222221S11122222
+000022222220000
+asciiend
+RawDataList.Add(RawData)
+
+RawData = new Games\StoneBoxman\MapRawDataObject
+RawData.MapTitle = "LEVEL 12"
+RawData.MapWidth = 13
+RawData.MapHeight = 12
+RawData.MapCode = ascii
+0002222220000
+0002111120000
+0002111122220
+2222121221122
+211B11121B112
+21SB2TTTTT212
+2221212B2B112
+0021112111122
+0022221121120
+0000021122220
+0000021120000
+0000022220000
+asciiend
+RawDataList.Add(RawData)
+
+RawData = new Games\StoneBoxman\MapRawDataObject
+RawData.MapTitle = "LEVEL 13"
+RawData.MapWidth = 12
+RawData.MapHeight = 16
+RawData.MapCode = ascii
+002222220000
+022111120000
+021111122220
+021221211120
+021TTTT11120
+222TTTT22220
+211TTTT20000
+212TTTT22220
+212222B11120
+2111B11B1120
+2221B1B1B122
+002B1B1B1B12
+0021B111B112
+002B1BBB1222
+002111S12200
+002222222000
+asciiend
+RawDataList.Add(RawData)
+
+RawData = new Games\StoneBoxman\MapRawDataObject
+RawData.MapTitle = "LEVEL 14"
+RawData.MapWidth = 9
+RawData.MapHeight = 9
+RawData.MapCode = ascii
+222222220
+211111120
+212222120
+21TBT1120
+22B2B2122
+02TBT1112
+021221212
+02S111112
+022222222
+asciiend
+RawDataList.Add(RawData)
+
+RawData = new Games\StoneBoxman\MapRawDataObject
+RawData.MapTitle = "LEVEL 15"
+RawData.MapWidth = 11
+RawData.MapHeight = 8
+RawData.MapCode = ascii
+22222222222
+21T1T1T1112
+21B11TB1112
+22122222122
+21121112120
+211B1BS1120
+21122222220
+22220000000
+asciiend
+RawDataList.Add(RawData)
+
+RawData = new Games\StoneBoxman\MapRawDataObject
+RawData.MapTitle = "LEVEL 16"
+RawData.MapWidth = 8
+RawData.MapHeight = 7
+RawData.MapCode = ascii
+00022222
+22221112
+211TBT12
+2S2B1B12
+211TBT12
+22111222
+12222200
+asciiend
+RawDataList.Add(RawData)
+
+RawData = new Games\StoneBoxman\MapRawDataObject
+RawData.MapTitle = "LEVEL 17"
+RawData.MapWidth = 15
+RawData.MapHeight = 9
+RawData.MapCode = ascii
+222222222222222
+211111111111112
+21BBBB212BBBB12
+221111111111122
+2222222S2222222
+221TTTT1TTTT112
+211111111111112
+211122222222112
+222220000002222
+asciiend
+RawDataList.Add(RawData)
+
+RawData = new Games\StoneBoxman\MapRawDataObject
+RawData.MapTitle = "LEVEL 18"
+RawData.MapWidth = 11
+RawData.MapHeight = 9
+RawData.MapCode = ascii
+22222220000
+21121122220
+21121B11122
+211TTT2B112
+2212B121212
+211T1T21B12
+2112B111222
+21121S22200
+22222220000
+asciiend
+RawDataList.Add(RawData)
+
+RawData = new Games\StoneBoxman\MapRawDataObject
+RawData.MapTitle = "LEVEL 19"
+RawData.MapWidth = 9
+RawData.MapHeight = 11
+RawData.MapCode = ascii
+002222200
+0221S1220
+221BBB122
+21B1T1B12
+21T111T12
+2111T1B12
+211111112
+21B1T1112
+21T111T12
+211111112
+222222222
+asciiend
+RawDataList.Add(RawData)
+
+RawData = new Games\StoneBoxman\MapRawDataObject
+RawData.MapTitle = "LEVEL 20"
+RawData.MapWidth = 19
+RawData.MapHeight = 15
+RawData.MapCode = ascii
+0000000022222200000
+2222222221111222200
+2111111221221B11200
+212B21B11121B111222
+21111B1211S11211112
+21211212B222222B212
+21B11B12T1T1TT21112
+2222B122T2T1T11BB12
+00021121T1T1TT2B122
+00022121TTT1TT21120
+000021222B222121220
+00002B1111111111120
+00002112222222B2120
+0000222200000211120
+0000000000000222220
+asciiend
+RawDataList.Add(RawData)

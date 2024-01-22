@@ -1,0 +1,163 @@
+//Change Log
+//V1.3.0
+//changed to TAB Spacings
+//removed var INTRO
+//
+//V1.2.0
+//
+//V1.1.1
+//
+//V1.1.0
+//
+//DarkLucifer69
+//Stonemon
+//Version V1.0
+
+var fade = new Games\Stonemon\fade
+
+var centeredX = (screen.w / 2) - 26
+var centeredY = (screen.h / 2) - 2
+var sceneState = -1
+var scene
+
+var intro = [ascii
+
+
+
+                        o
+asciiend,ascii
+
+
+                   I See them...
+                        o
+asciiend,ascii
+
+
+                They have so Much...
+                        o
+asciiend,ascii
+
+
+            But they dont apreciate it...
+                        o
+asciiend,ascii
+
+
+                      I...
+                        o
+asciiend,ascii
+
+
+               I would be Diffrent!
+                        o
+asciiend,ascii
+
+
+             I wouldnt waste that Power!
+                        o
+asciiend,ascii
+
+
+                     But...
+                        o
+asciiend,ascii
+
+
+                  What can i do?
+                        o
+asciiend,ascii
+
+
+               I'M STUCK LIKE THIS!
+                        o
+asciiend,ascii
+
+
+                  Just a stone...
+                        o
+asciiend,ascii
+
+
+                      Hu..?
+                        o
+asciiend,ascii
+
+
+                What's this feeling?
+                        o
+asciiend,ascii
+
+
+
+                        o/
+asciiend,ascii
+
+
+                    I think...
+                       .on
+asciiend,ascii
+
+
+                       _o
+                      '/\
+asciiend,ascii
+
+                        __o
+                        _/\
+                       ' '
+asciiend,ascii
+                     I'm...
+                        o
+                       /|\
+                       / \
+asciiend,ascii
+                     I See...
+                        o
+                       /|\
+                       / \
+asciiend,ascii
+           Yes... I wont waste this chance!
+                        o
+                       /|\
+                       / \
+asciiend,ascii
+        I will take what they Dont Deserve!
+                        o
+                       /|\
+                       / \
+asciiend,ascii
+I will take that which should have always been MINE!
+                        o
+                       /|\
+                       / \
+asciiend,ascii
+            I am Envy! ALL will Envy ME!
+                       \o/
+                        |
+                       / \
+asciiend]
+
+func Restart()
+   fade.index = 15
+
+func Run()
+	?fade.state
+		>`@centeredX@,@centeredY@,@fade.color@,@scene@
+		?fade.index > -10 | sceneState = 22 & fade.index > -20
+			fade.chengeIndex(-(totaltime % 2))
+		:
+			fade.state = false
+	:
+		?fade.index < 20
+			>`@centeredX@,@centeredY@,@fade.color@,@scene@
+			fade.chengeIndex(totaltime % 2)
+		:
+			fade.state = true
+			sceneState++
+			?sceneState < 23
+				scene = intro[sceneState]
+			:
+				return true
+	return false
+
+Restart()

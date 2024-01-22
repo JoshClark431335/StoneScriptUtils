@@ -1,0 +1,195 @@
+//made by insult2 (insult#2146)
+//v1.2.0
+
+//DESCRIPTION
+//shows how good you are at The Game.
+
+//INSTRUCTIONS
+//enter deadwood waterfall to activate the
+//script. click the details button for
+//more details.
+
+//grade calculation goes as follows:
+//35% lost items
+//25% power level
+//12.5% maxhp
+//10% ki crystals
+//10% moondial
+//7.5% ki
+
+var bigstr = 0
+var a = 50
+var b = 0
+var c = 0
+var cstr = ＂＂
+var bar = ［］
+var cstr2 = ＂＂
+var d = 0
+var donttry = false
+var num
+
+var remark=［
+＂Didnt even try＂,＂Could be better＂,
+＂Below average＂,＂Somewhat okay＂,
+＂Average＂,＂Cool, I guess＂,
+＂Good enough＂,＂I would stop by now＂,
+＂Straight A＂,＂Unbelievably good＂,
+＂Perfection＂
+］
+
+var colors =［
+#999999,#EEEEEE,#cyan,#yellow,#green,#blue,
+#red,#magenta,#FFAA00,#AA00FF,#rainFF
+］
+
+var text = string.Break(＂Remarks:＂,1)
+var gcc = item.getCount(＂enchant＂)
+var uion = false
+
+//save grade calc
+var kic = math.Min(res.ki,2000000) / 2000000.0
+var mhc = math.Min((maxhp-20),60) / 60.0
+var gpc = math.Min(totalgp,25000) / 25000.0
+var osc = math.Min(item.getCount(＂moon＂),1)
+
+//lost item count
+var lic = math.Min(160,
+^item.getCount(＂blade＂) + item.getCount(＂mask＂)
+^+ item.getCount(＂fire_talisman＂)  +
+^item.getCount(＂bash＂) + item.getCount(＂arm＂))
+
+var licp = lic / 160.0
+var oscp = osc / 1.0
+
+var gr = -1.0
+var A = 3
+var h
+
+func gradecalc(x)
+ h = (-x * x + (2 + A) * x)/(1 + A)
+ return h
+
+var kicc = math.Min(res.crystals,250) / 250.0
+
+var gru = math.Min(0.075 * kic + 0.125 * mhc
+^ + 0.25 * gpc
+^ + 0.35 * licp + 0.1 * oscp + 0.1 * kicc,1)
+
+?gr = -1.0
+ gr = gradecalc(gru)
+
+var grk = gr * 20
+var grkr = gr * 100
+var grck = math.FloorToInt(gr * 10)
+
+var acgr = gr * 10000 / 100.00000
+var acgru = gru * 10000 / 100.00000
+
+var ccolor = colors［grck］
+var cremark = remark［grck］
+
+var moond = ＂No＂
+?osc = 1
+ moond = ＂Yes＂
+
+var formstr =
+^＂Name:# ｛0｝ \n
+^MaxHP:# ｛1｝ \n
+^Lost Items:# ｛2｝ \n
+^Moondial:# ｛3｝ \n
+^Ki:# ｛4｝ \n
+^Crystals:# ｛8｝ \n \n
+^Power:# ｛5｝ \n
+^Grade:# ｛6｝% \n
+^U-Grade:# ｛7｝% ##＂
+var formstrd = string.Format(
+^formstr,player.name,maxhp,lic,moond,res.ki,
+^totalgp,acgr,acgru,res.crystals)
+var largestr=string.Split(formstrd)
+
+//scaler
+var y = 0
+?bar = ＂＂
+ for i = 1..20
+  ?grk >= i & gr <= 1
+   bar.Add(＂█＂)
+  :
+   bar.Add(＂▒＂)
+
+var flipflop = false
+func swap()
+ flipflop = ! flipflop
+
+?flipflop = true
+ ?y ! 4
+  b = 0
+  c = 0
+  d = 0
+  cstr = ＂＂
+  cstr2 = ＂＂
+  y += 1
+:
+ ?y ! 0
+  y -= 1
+  bigstr = 0
+  largstr = ＂＂
+
+//easter eggs
+?gr > 1
+ ambient.Stop()
+ ccolor = #990000
+ cremark = ＂You know what you did.＂
+ acgr = 0
+ gr = 0
+ grkr = 0
+
+var largstr
+
+?loc = waterfall & totalTime > 30 & donttry
+^ = false
+ >c@a@,-7,Braggability Meter 1.2
+ ?a ! 7
+  a -= 1
+ :?flipflop = false
+  ?cstr = ＂＂
+   >c7,-5,@ccolor@,Save:\n@cstr@
+  ?b ! 21
+   play xp_tick
+   cstr = string.Join(＂＂,bar,0,b)
+   b += 1
+  :
+   >c7,-3,@ccolor@,@c@%
+   ?c ! Math.roundToInt(grkr)
+    c += 1
+   :
+    ?cstr2 = ＂R＂
+     >c7,-1,@cstr2@
+    ?d ! 8
+     d += 1
+     cstr2 = string.Join(＂＂,text,0,d)
+    :
+     ?uion = false
+      play error
+     >c7,0,@ccolor@,@cremark@
+     uion = true
+ :
+  >c7,-5,@ccolor@,@largstr@
+  ?largestr［bigstr］ ! ＂##＂
+   bigstr += 1
+   largstr = string.Join(＂＂,largestr,0,bigstr)
+?uion = true
+ var but = ui.AddButton()
+ but.text = ＂<click to see details>＂
+ but.x = 18
+ but.y = 2+y
+ but.h = 1
+ but.w = 22
+ but.hcolor = #AAAAAA
+ but.tcolor = #888888
+ but.SetPressed(swap)
+
+?item.left = grap
+ donttry = true
+ a = 0
+ uion = false
+ ui.Clear()

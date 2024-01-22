@@ -1,0 +1,581 @@
+//Change Log
+//V1.3.0
+//changed to TAB Spacings
+//replaced some uses of line continues with with ascii/asciiend
+//
+//V1.2.0
+//player death animation
+//foe fade on death and entrance on generation
+//
+//V1.1.1
+//various minor tweaks
+//added instructions for restarting a run early
+//
+//V1.1.0
+//updated print for envy empowerment to match change to "Jealousy"
+//
+//DarkLucifer69
+//Stonemon
+//Version V1.0
+
+//imports
+var art = new Games\Stonemon\Art
+var fade = new Games\Stonemon\fade
+var deathFade = new Games\Stonemon\fade
+
+//death stuff
+var deathString = "Your Jealously Has Failed you!\n\n   But Envy Will Find A Way"
+var deathX = (screen.w / 2) - 15
+var deathY = (screen.h / 2) - 2
+
+var foeApproachOffset = 0
+
+var characterHPbar = new Games\Stonemon\bar
+var characterMPbar = new Games\Stonemon\bar
+var foeHPbar = new Games\Stonemon\bar
+var foeMPbar = new Games\Stonemon\bar
+var needUpdateBar = true
+
+var mainWindow
+var basedata
+var playerArt
+var foeArt
+var playerDefending
+var foeDefending
+var playerStatBar
+var foeStatBar
+var battleWindow
+var battleWindowButton = []
+var statsWindow
+var statsWindowText
+var statsWindowButton = []
+var empowerWindow
+var empowerWindowText
+var empowerWindowButton = []
+var instructionsText
+var filter
+
+var corsurIndex = 0
+var corsurShowTimer = 90
+
+var confirmType = ""
+var confirmIndex = -1
+
+func Restart(name)
+	resetFoeArt(name)
+
+func RestartConfirm()
+	setCorsurIndex(0)
+
+	confirmType = ""
+	confirmIndex = -1
+
+func isConfirm(type)
+	return string.Equals(type, confirmType) & confirmIndex >= 0
+
+func setCorsurPos(index, btnList)
+	?corsurIndex ! index
+		setCorsurIndex(index)
+	?corsurShowTimer
+		for i = 0..btnList.Count() - 1
+			?i = index
+				btnList[i].style = 7
+			:			
+				btnList[i].style = 1
+		corsurShowTimer--
+		?!corsurShowTimer
+			btnList[index].style = 1
+
+func setCorsurIndex(index)
+	corsurIndex = index
+	corsurShowTimer = 90
+
+func updateBar(character, enemy)
+	?characterHPbar.needUpdate() | characterMPbar.needUpdate() |
+	^foeHPbar.needUpdate() | foeMPbar.needUpdate()
+		?characterHPbar.needUpdate()
+			characterHPbar.update()
+		?characterMPbar.needUpdate()
+			characterMPbar.update()
+		updatePlayerStatBar(character)
+
+		?foeHPbar.needUpdate()
+			foeHPbar.update()
+		?foeMPbar.needUpdate()
+			foeMPbar.update()
+		updateFoeStatBar(enemy)
+	:
+		needUpdateBar = false
+
+func updatePlayerStatBar(character)
+	playerStatBar.text = string.Format(
+	^"       {0}:{1}☆\nHP:{2} {3}\nMP:{4} {5}",
+	^character.Name,character.Quality,
+	^characterHPbar.stringCurrent,characterHPbar.bar,
+	^characterMPbar.stringCurrent,characterMPbar.bar)
+
+func updateFoeStatBar(enemy)
+	foeStatBar.text = string.Format(
+	^"       {0}:{1}☆\nHP:{2} {3}\nMP:{4} {5}",
+	^enemy.Name,enemy.Quality,
+	^foeHPbar.stringCurrent,foeHPbar.bar,
+	^foeMPbar.stringCurrent,foeMPbar.bar)
+
+func updateScreenOpacity()
+	changeScreenOpacity(totaltime % 3)
+
+
+func resetFoeArt(name)
+	foeApproachOffset = 40
+
+	foeArt.text = art.GetArt(name)
+	foeArt.w = art.GetArtWidth(name)
+	foeArt.h = art.GetArtHeight(name)
+	foeArt.x = (screen.w - (screen.w / 4)) - (foeArt.w / 2)
+	foeArt.y = (screen.h / 4) - (foeArt.h / 2)
+	foeArt.color = #FFFFFF
+
+	foeDefending.x = foeArt.x - foeArt.w - 1
+	foeDefending.y = foeArt.y
+
+	foeArt.x += foeApproachOffset
+
+func updateFoeOffset()
+	?totaltime % 2 = 0
+		foeArt.x--
+		foeApproachOffset--
+
+func turnStart(character, enemy, battlePhase)
+	setBasedata(battlePhase)
+	setDefendingVisible(character, enemy)
+	turnEnd(character, enemy, battlePhase)
+
+func turnEnd(character, enemy, battlePhase)
+	setBar(character, enemy)
+	setBattleButtonAvailable(character, battlePhase)
+
+func setBasedata(battlePhase)
+	basedata.text = string.Format(ascii
+{0}'s turn
+Last Damage: {1}
+HealItems:{2}
+Defeated: {3}
+asciiend,
+^battlePhase.turn, battlePhase.lastDamage, battlePhase.itemCount, battlePhase.killCount)
+
+func setDefendingVisible(character, enemy)
+	?character.Defending
+		playerDefending.visible = inherit
+	:
+		playerDefending.visible = false
+	?enemy.Defending
+		foeDefending.visible = inherit
+	:
+		foeDefending.visible = false
+
+func setBar(character, enemy)
+	characterHPbar.set(character.CurrentHP, character.Max_HP)
+	characterMPbar.set(character.CurrentMP, character.Max_MP)
+	foeHPbar.set(enemy.CurrentHP, enemy.Max_HP)
+	foeMPbar.set(enemy.CurrentMP, enemy.Max_MP)
+	needUpdateBar = true
+
+func setBattleButtonAvailable(character, battlePhase)
+	for i = 0..battleWindowButton.Count() - 1
+		?battlePhase.canUseFromBattle(i, character)
+			battleWindowButton[i].bcolor = #FFFFFF
+		:
+			battleWindowButton[i].bcolor = #777777
+
+func setBattleCursorPos(index)
+	setCorsurPos(index, battleWindowButton)
+
+func startEmpower(character, battlePhase)
+	setEmpowerButtonAvailable(character, battlePhase)
+	empowerWindowText.text = string.Format("Sate your Jealousy:   {0}", battlePhase.envy)
+	empowerWindow.visible = inherit
+
+func setEmpowerButtonAvailable(character, battlePhase)
+	for i = 0..empowerWindowButton.Count() - 1
+		?battlePhase.canUseFromEmpower(i, character)
+			empowerWindowButton[i].bcolor = #FFFFFF
+		:
+			empowerWindowButton[i].bcolor = #777777
+
+func setEmpowerCursorPos(index)
+	setCorsurPos(index, empowerWindowButton)
+
+func closeEmpowerWindow()
+	empowerWindow.visible = false
+
+func openStatsWindow(type, creature)
+	?type = "player"
+		CreatureStats(creature, characterHPbar.stringMax, characterMPbar.stringMax)
+	:
+		CreatureStats(creature, foeHPbar.stringMax, foeMPbar.stringMax)
+	setStatsButtonText(type)
+	statsWindow.visible = inherit
+
+func closeStatsWindow()
+	setStatsButtonText("")
+	statsWindow.visible = false
+
+func setStatsButtonText(type)
+	?type = "foe"
+		statsWindowButton[0].text = "X"
+	:
+		statsWindowButton[0].text = "Enemy"
+	?type = "player"
+		statsWindowButton[1].text = "X"
+	:
+		statsWindowButton[1].text = "Envy"
+
+
+func CreatureStats(creature, HPString, MPString)
+	var totalDamage = creature.Damage + creature.DamageMod
+	
+	statsWindowText.text = string.Format(ascii
+######Creature Stats
+Name:#{0}
+MaxHP:#{1}###MaxMP:#{2}
+Damage:#{3}
+Skill Name:#{4}
+Skill Cost:#{5}
+Skill Effect:
+#{6}
+Skill Description:
+#{7}
+asciiend,
+^creature.Name, HPString, MPString,
+^totalDamage, creature.SkillName, creature.SkillCost,
+^creature.SkillEffect,creature.SkillDescription)
+
+func initFoeDeath()
+	deathFade.index = 0
+	deathFade.changeColor()
+
+func foeDeath()
+	?deathFade.index > 0
+		?totaltime % 2
+			deathFade.chengeIndex(-1)
+			foeArt.color = deathFade.color
+		return false
+	return true
+
+func initPlayerDeath()
+	deathFade.index = 15
+	deathFade.changeColor()
+	deathFade.state = true
+
+func playerDeath()
+	>`@deathX@,@deathY@,@deathFade.color@,@deathString@
+	?totaltime % 2 = 0
+		?fade.index > 0
+			changeScreenOpacity(-1)
+
+		?deathFade.state = true
+			deathFade.chengeIndex(-1)
+			?deathFade.index < -15
+				deathFade.state = false
+		:
+			deathFade.chengeIndex(1)
+			?deathFade.index > 16
+				return true
+	return false
+
+func changeScreenOpacity(n)
+	fade.chengeIndex(n)
+	filter.SetFG(fade.color)
+
+func createUI(character, enemy)
+	createMainWindow()
+	createBaseDataWindow()
+	createPlayerArt(character.Name)
+	createfoeArt()
+	createDefending()
+	createBattleWindow()
+	createPlayerStatBar()
+	createFoeStatBar()
+	createStatsWindow()
+	createEmpowerWindow()
+	createStatsWindowButton()
+	//createInstructions()
+	createFilter()
+
+	resetFoeArt(enemy.Name)
+
+func createMainWindow()
+	mainWindow = ui.AddPanel()
+	mainWindow.w = screen.w
+	mainWindow.h = screen.h
+	mainWindow.style = 0
+
+func createBaseDataWindow()
+	basedata = ui.AddText()
+	basedata.w = 16
+	basedata.h = 4
+	basedata.anchor = center_left
+	basedata.dock = center_left
+	mainWindow.Add(basedata)
+
+func createPlayerArt(name)
+	playerArt = ui.AddText()
+	playerArt.text = art.GetArt(name)
+	playerArt.w = art.GetArtWidth(name)
+	playerArt.h = art.GetArtHeight(name)
+	playerArt.x = (screen.w / 4) - (playerArt.w / 2)
+	playerArt.y = (screen.h - (screen.h / 4)) - (playerArt.h / 2)
+	playerArt.anchor = top_left
+	playerArt.dock = top_left
+	mainWindow.Add(playerArt)
+
+func createfoeArt()
+	foeArt = ui.AddText()
+	foeArt.anchor = top_left
+	foeArt.dock = top_left
+	mainWindow.Add(foeArt)
+
+func createDefending()
+	var art = ascii
+  ___
+ (   )
+  \_/
+Defense+
+asciiend
+
+	playerDefending = ui.AddText()
+	playerDefending.text = art
+	playerDefending.w = 8
+	playerDefending.h = 4
+	playerDefending.x = playerArt.x + playerArt.w + 2
+	playerDefending.y = playerArt.y - 3
+	playerDefending.anchor = top_left
+	playerDefending.dock = top_left
+	playerDefending.visible = false
+	mainWindow.Add(playerDefending)
+
+	foeDefending = ui.AddText()
+	foeDefending.text = art
+	foeDefending.w = 8
+	foeDefending.h = 4
+	foeDefending.anchor = top_left
+	foeDefending.dock = top_left
+	foeDefending.visible = false	
+	mainWindow.Add(foeDefending)
+
+func createPlayerStatBar()
+	playerStatBar = ui.AddText()
+	playerStatBar.w = 30
+	playerStatBar.h = 3
+	//playerStatBar.x = -1
+	playerStatBar.y = battleWindow.y - battleWindow.h
+	playerStatBar.anchor = bottom_right
+	playerStatBar.dock = bottom_right
+	mainWindow.Add(playerStatBar)
+
+func createFoeStatBar()
+	foeStatBar = ui.AddText()
+	foeStatBar.w = 30
+	foeStatBar.x = 2
+	foeStatBar.y = 1
+	foeStatBar.anchor = top_left
+	foeStatBar.dock = top_left
+	mainWindow.Add(foeStatBar)
+
+func createBattleWindow()
+	battleWindow = ui.AddPanel()
+	battleWindow.w = 30
+	battleWindow.h = 8
+	battleWindow.x = -1
+	battleWindow.y = -3
+	battleWindow.anchor = bottom_right
+	battleWindow.dock = bottom_right
+
+	var button
+	button = ui.AddButton()
+	button.text = "Attack"
+	button.w = 12
+	button.h = 3
+	button.x = -1
+	button.anchor = bottom_right
+	button.bcolor = #FFFFFF
+	button.SetUp(action)
+	battleWindow.Add(button)
+
+	battleWindowButton.Add(button)
+
+	button = ui.AddButton()
+	button.text = "Skill"
+	button.w = 12
+	button.h = 3
+	button.x = 1
+	button.anchor = bottom_left
+	button.bcolor = #FFFFFF
+	button.SetUp(action)
+	battleWindow.Add(button)
+
+	battleWindowButton.Add(button)
+	
+	button = ui.AddButton()
+	button.text = "Defend"
+	button.w = 12
+	button.h = 3
+	button.x = -1
+	button.anchor = top_right
+	button.bcolor = #FFFFFF
+	button.SetUp(action)
+	battleWindow.Add(button)
+
+	battleWindowButton.Add(button)
+	
+	button = ui.AddButton()
+	button.text = "Items"
+	button.w = 12
+	button.h = 3
+	button.x = 1
+	button.anchor = top_left
+	button.bcolor = #FFFFFF
+	button.SetUp(action)
+	battleWindow.Add(button)
+
+	battleWindowButton.Add(button)
+
+	mainWindow.Add(battleWindow)
+
+func createStatsWindow()
+	statsWindow = ui.AddPanel()
+	statsWindow.w = 30
+	statsWindow.h = 13
+	statsWindow.clip = true
+	statsWindow.visible = false
+
+	statsWindowText = ui.AddText()
+	statsWindowText.w = statsWindow.w - 2
+	statsWindowText.h = statsWindow.h - 2
+	statsWindow.Add(statsWindowText)
+
+	mainWindow.Add(statsWindow)
+
+func createEmpowerWindow()
+	empowerWindow = ui.AddPanel()
+	empowerWindow.w = 30
+	empowerWindow.h = 9
+	empowerWindow.clip = true
+	empowerWindow.visible = false
+
+	empowerWindowText = ui.AddText()
+	empowerWindowText.w = 30
+	empowerWindowText.x = 3
+	empowerWindowText.y = 1
+	empowerWindowText.anchor = top_center
+	empowerWindowText.dock = top_center
+	empowerWindow.Add(empowerWindowText)
+	
+	var button
+	button = ui.AddButton()
+	button.text = "Max HP"
+	button.w = 12
+	button.h = 3
+	button.x = -1
+	button.y = 1
+	button.anchor = bottom_right
+	button.bcolor = #FFFFFF
+	button.SetUp(action)
+	empowerWindow.Add(button)
+
+	empowerWindowButton.Add(button)
+
+	button = ui.AddButton()
+	button.text = "Max MP"
+	button.w = 12
+	button.h = 3
+	button.x = 1
+	button.y = 1
+	button.anchor = bottom_left
+	button.bcolor = #FFFFFF
+	button.SetUp(action)
+	empowerWindow.Add(button)
+
+	empowerWindowButton.Add(button)
+	
+	button = ui.AddButton()
+	button.text = "Skill Cost"
+	button.w = 12
+	button.h = 3
+	button.x = -1
+	button.y = 1
+	button.anchor = top_right
+	button.bcolor = #FFFFFF
+	button.SetUp(action)
+	empowerWindow.Add(button)
+
+	empowerWindowButton.Add(button)
+	
+	button = ui.AddButton()
+	button.text = "Damage"
+	button.w = 12
+	button.h = 3
+	button.x = 1
+	button.y = 1
+	button.anchor = top_left
+	button.bcolor = #FFFFFF
+	button.SetUp(action)
+	empowerWindow.Add(button)
+
+	empowerWindowButton.Add(button)
+
+	mainWindow.Add(empowerWindow)
+
+func createStatsWindowButton()
+	var button
+	button = ui.AddButton()
+	button.text = "Enemy"
+	button.w = string.Size(button.text) + 2
+	button.h = 3
+	button.x = 1
+	button.anchor = bottom_left
+	button.dock = bottom_left
+	button.SetUp(action)
+	statsWindowButton.Add(button)
+	mainWindow.Add(button)
+	button = ui.AddButton()
+
+	button.text = "Envy"
+	button.w = string.Size(button.text) + 2
+	button.h = 3
+	button.x = statsWindowButton[0].x + statsWindowButton[0].w
+	button.anchor = bottom_left
+	button.dock = bottom_left
+	button.SetUp(action)	
+	statsWindowButton.Add(button)
+	mainWindow.Add(button)
+
+func createInstructions()
+	instructionsText = ui.AddText()
+	instructionsText.text = "Shift + Control - Restart\nZ - View Enemy Stats, X - View Your Stats, C - Action"
+	instructionsText.w = screen.w
+	instructionsText.h = 2
+	instructionsText.anchor = bottom_left
+	instructionsText.dock = bottom_left
+	mainWindow.Add(instructionsText)
+
+func createFilter()
+	filter = ui.AddCanvas()
+	filter.w = screen.w
+	filter.h = screen.h
+	filter.blend = subtract
+	filter.SetFG(#FFFFFF)
+	mainWindow.Add(filter)
+
+func action(btn)
+	return actionCheck("Battle", btn, battleWindowButton) |
+	^actionCheck("Empower", btn, empowerWindowButton) |
+	^actionCheck("Stats", btn, statsWindowButton)
+
+func actionCheck(type, btn, btnList)
+	for i = 0..btnList.Count() - 1
+		?btn = btnList[i]
+			confirmIndex = i
+			confirmType = type
+			return true
+	return false

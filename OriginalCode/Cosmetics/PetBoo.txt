@@ -1,0 +1,451 @@
+/*
+PetBoo
+v2.1
+by Mind Stone Thief
+optimized by MaxMinMedian(ZCGV)
+
+Special thanks:
+quips from Superfluous J
+and the moving mechanism from xx
+
+v2.0   - Optimized for mobile
+v2.0.1 - Fixed duplicate copies on certain legend maps.
+         Fixed BooPnl blacking out 1 tile at the top-left corner of Boo.
+v2.1   - Fixed duplicate copy bug. Again.
+*/
+
+var happy = false
+var asleep = false
+var BooPnl
+var BooPnlChildren
+var txtBox
+
+var minDistance = 42 //minimum distance
+var totTime
+var euler = 2.718281828459
+var aiwalk
+var foe_ = foe
+var notRocky = (loc ! rocky)
+var px = pos.x
+var x = px - minDistance + 1
+var pz = pos.z
+var z = pz - 1
+var pkup = pickup
+var speed = 0
+var markposX
+var fallsleeptime = 150
+var d
+var t = 0
+var sx
+var bodyY
+
+var timeToQuip = randGeometric(1.0/181)    //Time left to next quip.
+var quipme = 0     //Are we currently saying a quip?
+var quippos        //Where the quip starts, horizontally. A factor of the length of the quip's longest line.
+var quipht         //Where the quip starts, vertically. A factor of the quip's line count.
+var quipct         //The quip's line count.
+var thequip        //The quip. A string, possibly cut into multiple lines by \n's
+var midquip        //A line of the quip that is to be put into an array
+var quiplside      //The left side of the quip outline. Literally 2 to the left of the quip's left side.
+var quiparr = []   //The quip, stored in an array of strings instead of 1 string with \n's
+var i              //for a for loop, to iterate the quip line by line.
+var j              //for a for loop, to draw black squares in the quip text box before writing the quip.
+var qoffx = 10
+var qoffy = -1
+var lastquip = ""
+
+////////////////////////////////////////////////
+
+BooMain()
+
+////////////////////////////////////////////////
+
+func initPetBoo()
+
+  var resetBoo = func()
+    BooPnlChildren[2].Stop()
+    BooPnlChildren[4].visible = false
+    BooPnlChildren[5].visible = false
+    BooPnlChildren[6].visible = false
+    BooPnlChildren[7].visible = false
+    happy = false
+    asleep = false
+    
+  ?ui.root.children.Count() > 0  // Oh no PetBoo is lost!
+    for u : ui.root.children
+      ?u.w = 66111
+        BooPnl = u
+        BooPnlChildren = BooPnl.children
+        txtBox = BooPnlChildren[6].children[0]
+        resetBoo()
+        return
+
+  var addAndInitAnim = func(anim, y, dur, loop)
+    BooPnl.Add(anim)
+    anim.anchor = top_left
+    anim.dock = top_left
+    anim.x = 0
+    anim.y = y
+    anim.duration = dur
+    anim.loop = loop
+    anim.Play()
+    
+  BooPnl = ui.AddPanel()
+  BooPnlChildren = BooPnl.children
+  BooPnl.w = 66111
+  BooPnl.h = 1
+  BooPnl.style = ui.AddStyle("#########")
+  BooPnl.anchor = top_left
+  BooPnl.dock = top_left
+
+  addAndInitAnim(ui.AddAnim(ascii
+##.-.
+#(# #)#
+-´   `-
+%%
+##.-.
+_(# #)_
+`.   .´
+%%
+##.-.
+#(# #)
+-´   `-
+%%
+##.-.
+#(# #)
+#/   \
+asciiend), 0, 40, true)
+
+  addAndInitAnim(ui.AddAnim(ascii
+##o#o#
+%%
+##=#=#
+%%
+##-#-#
+%%
+##-#-#
+%%
+##=#=#
+%%
+##o#o#
+asciiend), 1, 30, false)
+
+  addAndInitAnim(ui.AddAnim(ascii
+###°##
+%%
+######
+%%
+###o##
+%%
+###-##
+%%
+###O##
+%%
+###o##
+%%
+###-##
+%%
+###O##
+%%
+###-##
+%%
+###o##
+%%
+###-##
+%%
+###O##
+%%
+###-##
+asciiend), 2, 156, true)
+
+  addAndInitAnim(ui.AddAnim(ascii
+,_) /
+#`-´
+%%
+,_\ (
+#`--´
+%%
+#,\ (
+##`--'
+%%
+##\ (
+###'-'
+%%
+##) /
+##'-'
+%%
+#,) /
+#'-´
+asciiend), 3, 18, true)
+
+  addAndInitAnim(ui.AddAnim(ascii
+#####Z##z
+##- -#
+###°##
+%%
+#######Z##z
+##- -#
+###O##
+%%
+#####z##Z
+##- -#
+###°##
+%%
+#######z##Z
+##- -#
+###O##
+asciiend), 0, 60, true)
+
+  addAndInitAnim(ui.AddAnim(ascii
+##^_^#
+### ##
+asciiend), 1, 30, true)
+
+  BooPnl.Add(ui.AddPanel())
+  BooPnlChildren[6].y = -1
+  BooPnlChildren[6].anchor = bottom_center
+  BooPnlChildren[6].dock = top_left
+  BooPnlChildren[6].x = 6
+  BooPnlChildren[6].color = #808080
+  BooPnlChildren[6].style = ui.AddStyle("
+^.─.
+^│ │
+^'─'")
+  txtBox = ui.AddText("")
+  BooPnlChildren[6].Add(txtBox)
+  txtBox.anchor = center_center
+  txtBox.dock = center_center
+  txtBox.align = left
+  BooPnl.Add(ui.AddText(".,\n/"))
+  BooPnlChildren[7].anchor = bottom_center
+  BooPnlChildren[7].dock = top_left
+  BooPnlChildren[7].w = 2
+  BooPnlChildren[7].h = 2
+  BooPnlChildren[7].x = 6
+  BooPnlChildren[7].y = 0
+  BooPnlChildren[7].color = #808080
+  resetBoo()
+  
+
+func BooMain()
+  
+  totTime = totaltime
+  foe_ = foe
+  aiwalk = ai.walking
+  px = pos.x
+  pz = pos.z
+  pkup = pickup
+
+  ?totTime = 1
+    initPetBoo()
+
+  //5s fall asleep
+  ?speed = 0 & !aiwalk
+    fallsleeptime--
+    ?fallsleeptime <= 0
+      markposX = px
+  ?aiwalk
+    fallsleeptime = 150
+    ?asleep
+      BooPnlChildren[4].visible = false
+      asleep = false
+  d = px - minDistance
+  ?totTime = 1 | time = 1 & notRocky
+    x = d
+    z = pz
+    speed = 0
+    t = 0
+    quipme = 0
+    fallsleeptime = 150
+  ?x >= d
+    speed = 0
+  :?speed ! 1
+    ?x < d - 20 // 5 + 5 + 10
+      speed = 1
+    :?x < d - 10 // 5 + 5
+      speed = 2
+    :?x < d - 5 // 5
+      speed = 3
+  ?speed <= 1 | !(totTime % (speed - 1))
+    ?speed ! 0 & (x < d | z ! pz)
+      ?x < d
+        x++
+        ?speed = 1
+          t = (t + 1) % 30
+          ?t = 0
+            x++
+      ?z > pz
+        z--
+      :?z < pz
+        z++
+    :
+      t = 0
+
+  ?totTime % 180 = 0 // every 180 frames, blink for the first 30 frames.
+                      // 5 frames duration per each of 6 blinkframes.
+    BooPnlChildren[1].Play()
+
+  ?quipme > 0
+    quipme--
+    ?quipme = 1
+      BooPnlChildren[2].Stop()
+      BooPnlChildren[2].frame = 0
+      BooPnlChildren[6].visible = false
+      BooPnlChildren[7].visible = false
+      quipme = 0
+    :?asleep
+      BooPnlChildren[4].visible = false
+      asleep = false
+
+  :?speed = 0 & markposX = px //sleep with a snoring mouth
+    BooPnlChildren[2].Stop()
+    BooPnlChildren[2].frame = 0
+    ?!asleep
+      BooPnlChildren[4].visible = true
+      asleep = true
+
+  sx = x - px + 30
+  ?sx > -100
+    bodyY = z - pz + pos.y - 2
+  BooPnl.x = screen.FromWorldX(x + 30)
+  BooPnl.y = screen.FromWorldZ(z - 5)
+
+  ?foe_ = phase
+    ?happy = false & foe.hp <= 0
+      BooPnlChildren[5].visible = true
+      happy = true
+      ?asleep
+        BooPnlChildren[4].visible = false
+        asleep = false
+    :?happy = true & foe.hp > 0
+      BooPnlChildren[5].visible = false
+      happy = false
+
+  ?pkup = treasure & quipme <= 0
+    timeToQuip = 0
+
+  ?quipme = 0 & timeToQuip > 0
+    timeToQuip--
+  //If we're not saying a quip, check if we should start a new one.
+  :?timeToQuip = 0 & !asleep
+    //reset quip timer (you say it for 105 frames)
+    quipme = 106
+    BooPnlChildren[2].Play()
+    timeToQuip = 300 + randGeometric(1.0/181) // At least 10 seconds between quips
+    
+    //Get a quip and put that quip into an array.
+    thequip = getaquip()
+    thequip = te.xt(thequip) // Translate it
+    quiparr.Clear()
+    quiparr = string.Break(thequip, 16)
+    
+    //Find the maximum width of the lines in the quip, and set the variables for drawing the text box later.
+    quipct = quiparr.Count()
+    quippos = 0
+    for i = 0..quipct-1
+      midquip = quiparr[i]
+      ?quippos < string.Size(midquip)
+        quippos = string.Size(midquip)
+    BooPnlChildren[6].visible = true
+    BooPnlChildren[7].visible = true
+    txtBox.text = string.Join("\n", quiparr)
+    txtBox.h = quipct
+    txtBox.w = quippos
+    BooPnlChildren[6].h = quipct + 2
+    BooPnlChildren[6].w = quippos + 4
+    quippos=-quippos+1
+    quiplside=quippos-2
+    play boo_voice
+
+func randGeometric(p)
+  return math.FloorToInt(math.Log(rngf, 1-p))
+
+func getaquip()
+  var ds = debuffs.string
+  var php = hp
+  var pmaxhp = maxhp
+  var fs = foe.state
+  //place all valid quips in an array, then pick one at random
+  var a = [] //big array of potential things to say
+  var c = 0  //the random thing that gets said
+
+  a.Clear()
+	
+  // **************************
+  // **** QUIPS START HERE ****
+  // **************************
+  ?pkup = treasure
+    a.Add("LOOT!!!")
+  :
+    //Quips based on world.
+
+    //Quips based on your status
+    ?ai.walking
+      a.Add("I'm hovering")
+      a.Add("*hums a tune*")
+      a.Add("My dark world feels brighter by your side.")
+      a.Add("This is much better than throwing stones.\nOr mining!")
+      a.Add("This is fun to watch!")
+      a.Add("Let's see if you can get even stronger?")
+      a.Add("What other cool weapons do you have?")
+      a.Add("Can we get some snow cones after this?")
+      a.Add("If you need, I can give you a little PUSH.\nGet it? Haha")
+    ?ds = debuff_dot
+      a.Add("SOOO HOOOT")
+    ?ds = debuff_chill
+      a.Add("Oh no.\nCold, isn't it?")
+    ?ds = debuff_damage
+      a.Add("You're looking weaker...")
+    ?php = pmaxhp
+      a.Add("So far, so good")
+      a.Add("This is gonna be great!")
+      a.Add("We're on an adventure!")
+      a.Add("weeee\nooooo\nweeee\nooooo")
+      a.Add("You're in great form!")
+    ?php < pmaxhp / 2
+      a.Add("Be careful to not be UNMADE!")
+    ?armor > pmaxhp / 2
+      a.Add("Your defense is looking great!")
+		
+    //Quips based on location
+    ?loc = "mine"
+      a.Add("Being in the mines again is a strange feeling.")
+      a.Add("Hello everyone! I'm back!")
+		
+    //Quips based on enemy status
+    ?fs = 33
+      a.Add("Oh I'm sorry, was that aimed at me?")
+    ?fs = 115
+      a.Add("Uh oh what's that?")
+    ?foe_ = nagaraja
+      a.Add("Oh no!\nThe Tongue!!!")
+    ?foe_ = boss & foe_ ! pallas
+      a.Add("I think you're gonna win.")
+      a.Add("Boss? More like WUSS!")
+      a.Add("They told me this fight would be HARD")
+    ?foe_ = pallas
+      a.Add("THE GREAT FALLEN GOD!")
+		
+    //Random dependant quips
+    ?harvest.distance ! 9999
+      a.Add("What's this thing?")
+    ?pkup
+      a.Add("LOOT!!!")
+	
+  //In case there are no other quips
+  //NOTE YOU NEED AT LEAST ONE OF THESE
+  //or the script will get errors if there are no quips.
+  ?a.Count() = 0
+    a.Add(" ... ")
+  ?a.Count() = 1
+    a.Add(" ... ")
+  //return 1 quip. Avoid returning the same as last time
+  c = a.IndexOf(lastquip)
+  ?c = -1
+    lastquip = a[rng % a.Count()]
+  :
+    var r = rng % (a.Count()-1)
+    ?r >= c
+      r++
+    lastquip = a[r]
+  return lastquip

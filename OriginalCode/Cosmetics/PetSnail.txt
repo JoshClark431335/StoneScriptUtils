@@ -1,0 +1,326 @@
+/*
+ Pet Snail by: Agerak
+
+ Meet Gery ('g' like gif) the snail!
+
+ v1.0 - original version, basic movement, idle animation, and react animations
+ v1.1 - adjusted design and animations and follow distance/speed
+ v1.2 - added sound and toggle
+
+import Cosmetics\PetSnail
+
+You can set custom colors for the color variables below vVv
+
+#_#Oo
+(@)/# Idle
+¯¯¯"#
+
+#_#Oo
+(@)/# 'walking'
+¯`´"#
+*/
+
+var SnailEyeColor
+var snailShellColor
+var snailSpiralColor
+var snailBodyColor
+var sound
+
+// COLOR CUSTOMIZATION and AUDIO TOGGLE
+
+sound=1 // Change this to 0 if you do not want the snail sound to play when he moves
+
+SnailEyeColor = #ECFFBE    // Eye Color    default is #ECFFBE Australian Mint apparantly lol https://abouts.co/color/ECFFBE
+//####Oo
+
+snailShellColor = #F5B7B1  // Shell Color  default is #F5B7B1 pink
+//#_#
+//(#)
+
+snailSpiralColor = #FF0000 // Spiral Color default is #FF0000 red
+//#
+//#@
+
+snailBodyColor = #80FFFA   // Body Color   default is #80FFFA cyan
+//#
+//####/
+//¯¯¯¯"
+
+/*
+WIP
+##_#Oo
+#(@)/#
+#\╤/"#
+(╳┊)##
+#|┊|##
+
+  var moldX
+  moldX=myX-1
+  >o@moldX@,@myZ@,#663399,ascii
+#
+#
+#\╤/
+(≡┊)
+#|┊|
+asciiend
+  >o@moldX@,@myZ@,#CFB53B,ascii
+#
+#
+##╤
+asciiend
+  >o@moldX@,@myZ@,#0088FF,ascii
+#
+#
+#
+#≡
+asciiend
+*/
+
+var keepDistance = -11 // distance at which the movement animation will play (stateSlime)
+var maxX = -10         // closest offset pet will get to character.  Closer to 0, closer to character
+var maxDistance = -100 // if the pet exceeds this distance, it will teleport to this distance (cannot be further away than this)
+var targetZ = 2       // We want to start the drawing 1 unit below the player agent
+
+?loc.loop
+  keepDistance = -11
+  maxX = -10
+  maxDistance = -100
+  targetZ = 2
+
+var x = 0
+var y = 0
+var myX = 0
+var myZ = 0
+var lastPlayerX = 0
+var lastPlayerZ = 0
+
+var stateNone = 0
+var stateIdle = 1
+var stateSlime = 2
+var currentState = stateNone
+var stateTime = 0
+
+func SetState(newState)
+  ?newState = stateSlime & sound=1
+    play snail_walk // sound played when pet moves
+  currentState = newState
+  stateTime = 0
+
+?currentState = stateNone | time = 1
+  lastPlayerX = pos.x
+  lastPlayerZ = pos.z
+  myX = keepDistance
+  myZ = targetZ
+
+  // Start further away if the snail is summoned while the location is already running
+  ?time > 1
+    myX = maxDistance
+
+  SetState(stateIdle)
+
+myX = myX - (pos.x - lastPlayerX) // If player has moved, increment myX (distance from player)
+
+stateTime++
+
+?currentState = stateIdle
+  ?myX < maxDistance | myX > -maxDistance
+    myX = maxDistance
+  myZ = myZ - (pos.z - lastPlayerZ)
+
+  ?myX < keepDistance
+    SetState(stateSlime)
+
+:?currentState = stateSlime
+  ?myX < maxX
+    myX++
+
+  ?stateTime >= 6
+    ?myZ > targetZ
+      myZ--
+    :?myZ < targetZ
+      myZ++
+
+  ?stateTime >= 15
+    SetState(stateIdle)
+
+lastPlayerX = pos.x
+lastPlayerZ = pos.z
+
+// Draw
+?currentState = stateIdle
+  >o@myX@,@myZ@,@SnailEyeColor@,ascii
+###Oo
+asciiend
+  >o@myX@,@myZ@,@snailShellColor@,ascii
+#_#
+(#)
+asciiend
+  >o@myX@,@myZ@,@snailSpiralColor@,ascii
+#
+#@
+asciiend
+  >o@myX@,@myZ@,@snailBodyColor@,ascii
+#
+###/
+¯¯¯"
+asciiend
+  x = myX
+  y = myZ
+  ?face = "( ^^"
+    >o@x@,@y@,@SnailEyeColor@,ascii
+###^^
+asciiend
+    >o@x@,@y@,@snailBodyColor@,ascii
+#
+###/
+¯¯¯°<meow!
+asciiend
+  :?face = "( TT"
+    >o@x@,@y@,@SnailEyeColor@,ascii
+###><
+asciiend
+  :?face = "°°"
+    ?time % 10 = 0 & myX > keepDistance
+      myX--
+    ?time % 4 <= 1
+      >o@x@,@y@,@SnailEyeColor@,ascii
+###oO
+asciiend
+    ?time % 4 > 1
+      >o@x@,@y@,@SnailEyeColor@,ascii
+###Oo
+asciiend
+  :?stateTime % 50 >= 48
+    >o@x@,@y@,@SnailEyeColor@,ascii
+###O-
+asciiend
+  :?stateTime % 50 >= 46
+    >o@x@,@y@,@SnailEyeColor@,ascii
+###=-
+asciiend
+  :?stateTime % 50 >= 44
+    >o@x@,@y@,@SnailEyeColor@,ascii
+###--
+asciiend
+?currentState = stateSlime
+  ?stateTime/3 = 0
+    >o@myX@,@myZ@,@SnailEyeColor@,ascii
+####Oo
+asciiend
+    >o@myX@,@myZ@,@snailShellColor@,ascii
+#_#
+(#)
+asciiend
+    >o@myX@,@myZ@,@snailSpiralColor@,ascii
+#
+#@
+asciiend
+    >o@myX@,@myZ@,@snailBodyColor@,ascii
+#
+###/
+¯¯`^
+asciiend
+  :?stateTime/3 = 1
+    >o@myX@,@myZ@,@SnailEyeColor@,ascii
+###Oo
+asciiend
+    >o@myX@,@myZ@,@snailShellColor@,ascii
+#_#
+(#)
+asciiend
+    >o@myX@,@myZ@,@snailSpiralColor@,ascii
+#
+#@
+asciiend
+    >o@myX@,@myZ@,@snailBodyColor@,ascii
+#
+###/
+¯`´"
+asciiend
+  :?stateTime/3 = 2
+    >o@myX@,@myZ@,@SnailEyeColor@,ascii
+###Oo
+asciiend
+    >o@myX@,@myZ@,@snailShellColor@,ascii
+#_#
+(#)
+asciiend
+    >o@myX@,@myZ@,@snailSpiralColor@,ascii
+#
+#@
+asciiend
+    >o@myX@,@myZ@,@snailBodyColor@,ascii
+#
+###/
+`´¯'
+asciiend
+  :?stateTime/3 = 3
+    >o@myX@,@myZ@,@SnailEyeColor@,ascii
+###Oo
+asciiend
+    >o@myX@,@myZ@,@snailShellColor@,ascii
+#_#
+(#)
+asciiend
+    >o@myX@,@myZ@,@snailSpiralColor@,ascii
+#
+#@
+asciiend
+    >o@myX@,@myZ@,@snailBodyColor@,ascii
+#
+###/
+´¯¯"
+asciiend
+  :?stateTime/3 = 4
+    >o@myX@,@myZ@,@SnailEyeColor@,ascii
+###Oo
+asciiend
+    >o@myX@,@myZ@,@snailShellColor@,ascii
+#_#
+(#)
+asciiend
+    >o@myX@,@myZ@,@snailSpiralColor@,ascii
+#
+#@
+asciiend
+    >o@myX@,@myZ@,@snailBodyColor@,ascii
+#
+###/
+¯¯¯"
+asciiend
+  x = myX
+  y = myZ
+  ?face = "( ^^"
+    >o@x@,@y@,@SnailEyeColor@,ascii
+###^^
+asciiend
+    >o@x@,@y@,@snailBodyColor@,ascii
+#
+###/
+¯¯¯°<meow!
+asciiend
+  :?face = "( TT"
+    >o@x@,@y@,@SnailEyeColor@,ascii
+###><
+asciiend
+  :?face = "°°"
+    ?time % 10 = 0 & myX > keepDistance
+      myX--
+    ?time % 4 <= 1
+      >o@x@,@y@,@SnailEyeColor@,ascii
+###oO
+asciiend
+    >o@myX@,@myZ@,@snailBodyColor@,ascii
+#
+###/
+¯¯¯°
+asciiend
+    ?time % 4 > 1
+      >o@x@,@y@,@SnailEyeColor@,ascii
+###Oo
+asciiend
+    >o@myX@,@myZ@,@snailBodyColor@,ascii
+#
+###/
+¯¯¯"
+asciiend

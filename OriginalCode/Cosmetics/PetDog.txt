@@ -1,0 +1,434 @@
+
+// Pet Dog
+// by: standardcombo
+// v1.2
+
+
+var petColor
+petColor = #white
+
+var keepDistance = -36
+var maxX = -19
+
+var maxDistance
+maxDistance = -70
+
+var targetZ = -4
+
+var x = 0
+var y = 0
+var myX = 0
+var myZ = 0
+var lastPlayerX = 0
+var lastPlayerZ = 0
+
+var headX = 8
+var headY = -2
+var bodyX = 5
+var bodyY = 1
+var petX
+var petY
+var lastInputX = 0
+var isPettingHead = false
+var isPettingBody = false
+var pettingDirection = 0
+
+
+var stateNone = 0
+var stateIdle = 1
+var stateBark = 2
+var stateJump = 3
+var stateStopping = 4
+var currentState = stateNone
+var stateTime = 0
+
+var barkDuration = 6
+
+
+func SetState(newState)
+  ?newState = stateJump
+    play haunted_gate_shuffle
+
+  currentState = newState
+  stateTime = 0
+
+
+?currentState = stateNone | time = 1
+  lastPlayerX = pos.x
+  lastPlayerZ = pos.z
+  myX = keepDistance
+  myZ = targetZ
+
+  // Start further away if the frog is summoned while the location is already running
+  ?time > 1
+    myX = maxDistance
+
+  SetState(stateIdle)
+
+
+// Bark input
+?key = primaryBegin
+  play dog_bark
+  ?currentState = stateIdle
+    SetState(stateBark)
+  :?currentState = stateBark
+    stateTime = 1
+
+
+myX = myX - (pos.x - lastPlayerX)
+
+stateTime++
+
+?currentState = stateIdle
+  ?myX < maxDistance | myX > -maxDistance
+    myX = maxDistance
+  myZ = myZ - (pos.z - lastPlayerZ)
+
+  ?myX < keepDistance
+    SetState(stateJump)
+  :
+    petX = screen.FromWorldX(pos.x) + myX
+    petY = screen.FromWorldZ(pos.z - pos.y) + myZ
+    ?input.x >= petX + headX & input.x <= petX + headX + 5 & 
+^    input.y >= petY + headY & input.y <= petY + headY + 2
+      isPettingHead = true
+      isPettingBody = false
+      ?input.x < lastInputX
+        pettingDirection -= 3
+      :?input.x > lastInputX
+        pettingDirection += 3
+    :?input.x >= petX + bodyX & input.x <= petX + bodyX + 6 & 
+^    input.y >= petY + bodyY & input.y <= petY + bodyY + 2
+      isPettingHead = false
+      isPettingBody = true
+      ?input.x < lastInputX
+        pettingDirection -= 3
+      :?input.x > lastInputX
+        pettingDirection += 3
+    :
+      isPettingHead = false
+      isPettingBody = false
+    lastInputX = input.x
+    ?pettingDirection > 0
+      pettingDirection--
+    :?pettingDirection < 0
+      pettingDirection++
+
+
+:?currentState = stateBark
+  ?stateTime >= barkDuration
+    SetState(stateIdle)
+  myZ = myZ - (pos.z - lastPlayerZ)
+
+:?currentState = stateJump
+  ?myX < maxX
+    myX++
+
+  ?stateTime >= 6 & time % 2 = 0
+    ?myZ > targetZ
+      myZ--
+    :?myZ < targetZ
+      myZ++
+
+  ?stateTime >= 12
+    ?myX < maxX - 1
+      SetState(stateJump)
+    :
+      SetState(stateStopping)
+
+:?currentState = stateStopping
+  ?stateTime >= 1
+    SetState(stateIdle)
+
+
+lastPlayerX = pos.x
+lastPlayerZ = pos.z
+
+
+// Draw
+
+?currentState = stateIdle
+  >o@myX@,@myZ@,@petColor@,ascii
+#
+#
+#########|\´/
+#########/   -,
+######,-´ `--´
+#####/ _   ;
+#### , _)\(
+#### `-'  `"
+asciiend
+
+  x = myX + 8
+  y = myZ + 3
+  
+  ?face = "^^" | isPettingHead | isPettingBody
+    >o@x@,@y@,@petColor@,ascii
+#/ ^^
+asciiend
+
+  :?(bighead = false & time % 90 > 8) | face = "''" | face = ",," | face = "°°"
+    >o@x@,@y@,@petColor@,ascii
+#/ ''
+asciiend
+
+
+  // Petting
+
+  ?isPettingHead & pettingDirection < -1
+    >o@x@,@y - 1@,@petColor@,ascii
+#|\\ #
+asciiend
+  :?isPettingHead & pettingDirection > 1
+    >o@x@,@y - 1@,@petColor@,ascii
+# /|/
+asciiend
+
+  ?isPettingBody
+    ?time % 6 = 0 | time % 6 = 1
+      >o@x - 4@,@y + 2@,@petColor@,ascii
+#/´¯)/
+#_ -´
+#   #
+asciiend
+    ?time % 6 = 2
+      >o@x - 4@,@y + 2@,@petColor@,ascii
+#/´¯),:
+#_ -´ ;
+# `--´
+asciiend
+    ?time % 6 = 3
+      >o@x - 4@,@y + 2@,@petColor@,ascii
+#/ _
+#_  )
+# `--'
+asciiend
+    ?time % 6 = 4
+      >o@x - 4@,@y + 2@,@petColor@,ascii
+#/.-.
+#_ -',
+# `¯´
+asciiend
+    ?time % 6 = 5
+      >o@x - 4@,@y + 2@,@petColor@,ascii
+#/,´),
+#_ .-´
+#   #
+asciiend
+
+
+  // Tongue
+  
+  y++
+  
+  ?time % 100 < 50
+    ?time % 100 <= 3 | time % 100 >= 46
+      >o@x@,@y@,@petColor@,ascii
+# `--'
+asciiend
+
+    :?time % 100 <= 7 | time % 100 >= 42
+      >o@x@,@y@,@petColor@,ascii
+# `-';
+asciiend
+
+    :?time % 8 <= 3
+      >o@x@,@y@,@petColor@,ascii
+# `-\)
+asciiend
+    :
+      >o@x@,@y@,@petColor@,ascii
+# `-`'
+asciiend
+
+
+?currentState = stateBark
+  ?stateTime = 0 | stateTime = (barkDuration - 1)
+    >o@myX@,@myZ@,@petColor@,ascii
+#
+#
+#########|\|
+#########/  `-,
+######,-´ `--`
+#####/ _   ;
+#### , _)\(
+#### `-'  `"
+asciiend
+  :
+    >o@myX@,@myZ@,@petColor@,ascii
+#
+#
+#########\``--,
+#########/ _.-'
+######,-´  '
+#####/ _   ;
+#### , _)\(
+#### `-'  `"
+asciiend
+
+
+?currentState = stateIdle | currentState = stateBark
+  // Tail
+  
+  x = myX
+  y = myZ + 5
+  
+  ?time % 10 <= 1
+    >o@x@,@y@,@petColor@,ascii
+#
+#,--'
+#`- ‾
+asciiend
+
+  :?time % 10 = 2
+    >o@x@,@y@,@petColor@,ascii
+#
+#,--'
+#\' ‾
+asciiend
+
+  :?time % 10 = 3
+    >o@x@,@y@,@petColor@,ascii
+#
+,--'´
+'´ ‾ 
+asciiend
+
+  :?time % 10 = 4
+    >o@x@,@y@,@petColor@,ascii
+#_
+#\`'´
+##`‾ 
+asciiend
+
+  :?time % 10 = 5 | time % 10 = 6
+    >o@x@,@y@,@petColor@,ascii
+##,
+#(`'´
+##‾  
+asciiend
+
+  :?time % 10 = 7
+    >o@x@,@y@,@petColor@,ascii
+#,
+#\`-´
+##‾‾ 
+asciiend
+
+  :?time % 10 = 8
+    >o@x@,@y@,@petColor@,ascii
+#
+\---'
+#` ‾ 
+asciiend
+
+  :?time % 10 = 9
+    >o@x@,@y@,@petColor@,ascii
+#
+#,--'
+´‾ ‾‾
+asciiend
+
+
+
+?currentState = stateJump
+  ?stateTime/2 = 0
+    >o@myX@,@myZ@,@petColor@,ascii
+#
+###########-.-,
+##########.´ ''-,
+#;###.--'´  `--´
+#\`-´   _  /
+##`´#\ )| /`.
+#####(( ;/ `'
+######`"´
+asciiend
+
+  :?stateTime/2 = 1
+    >o@myX@,@myZ@,@petColor@,ascii
+###########-.-,
+###########/ ''-,
+#######_.-´ `--´
+#,##,-´     /
+('-´    _. /`-.
+#`'´| ;‾#`,|##`'
+####// \#.-'
+###`'##`'
+asciiend
+
+  :?stateTime/2 = 2
+    >o@myX@,@myZ@,@petColor@,ascii
+###########|\´/
+#########_.´ ''-,
+####,-'´    `--´
+,.-´     _  )_
+`-'/ _.´##'--,)
+#,´.´.######, 
+#|| (####### `'
+#`'#`'
+asciiend
+
+  :?stateTime/2 = 3
+    >o@myX@,@myZ@,@petColor@,ascii
+#
+###########;(,|
+,.---._ __.' ''-,
+`-'´.       `--´
+###/ ,-.__  |
+#,´-´#####`-.`.
+'´#`'######, `,)
+###########`-'
+asciiend
+
+  :?stateTime/2 = 4
+    >o@myX@,@myZ@,@petColor@,ascii
+#
+#,
+('-._######;(,|
+ `'´ `-.__.' ''-,
+####/       `--´
+#,-´_.´`.__ !
+#'´'#####, `.`.
+#########`-' `-'
+asciiend
+
+  :?stateTime/2 = 5
+    >o@myX@,@myZ@,@petColor@,ascii
+#
+#
+#;#########|\´/
+#\`-----._.´ ''-,
+##`´/       `--´
+###,'_,-._/ !
+####\\.##,|(
+#####`"#'´`-'
+asciiend
+
+
+
+?currentState = stateStopping
+  ?stateTime = 0
+    >o@myX@,@myZ@,@petColor@,ascii
+#
+#
+##########|\´/
+#;########/ ''-,
+#\`--.---´ `--´
+##`´|  ;  , !
+####`,(`--|(
+##### `"  `-'
+asciiend
+  :
+    >o@myX@,@myZ@,@petColor@,ascii
+#
+#
+#########|\´/
+#########/ ''-,
+#;###,--´ `--´
+#\`-´  -.  ;
+##`- ;,-'\(
+#####`-'  `"
+asciiend
+
+
+

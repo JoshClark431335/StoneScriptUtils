@@ -1,0 +1,19 @@
+//StoneBoxMan - Games/Player
+//Version: v1.0
+//Author: Okamiroy
+
+var ImageToUp = "WW"
+var ImageToRight = "EE"
+var ImageToDown = "MM"
+var ImageToLeft = "33"
+
+// 0: Up, 1: Right, 2: Down, 3: Left
+var Direction = 0
+
+var Image = ImageToUp
+var ImageWidth = 2
+var ImageHeight = 1
+var Color = red
+
+var PositionX = 0
+var PositionY = 0

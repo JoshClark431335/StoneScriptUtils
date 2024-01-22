@@ -1,0 +1,25 @@
+// Chef Hat
+// by: Fyda
+// edited by bitty45 to allow smallhead
+// small guidance on the smallhat art from standardcombo
+// Version 2.0.0
+// to use: import Cosmetics/Hats/ChefHat
+
+var bigHat = ascii
+## _ _ _
+##( | | )
+###|   |
+###╘═══╛
+asciiend
+
+var smallhat = ascii
+CCO
+|_|
+asciiend
+
+var bighead_ = bighead
+
+?bighead_
+  >h-5,-4,#white,@bigHat@
+:
+  >h-1,-1,#white,@smallhat@

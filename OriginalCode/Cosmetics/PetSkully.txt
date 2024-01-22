@@ -1,0 +1,599 @@
+
+// Pet Skully
+// by: Newominus
+// v1.4
+// -Requires big head mode for boss kill victory chest animation and emotes
+//Based on PetFrog by StandardCombo
+
+// Place inside cosmetics folder and import with stonescript using "import Cosmetics/PetSkully"
+// Features your very own pet skully with swappable chests and customisable movement trails!
+
+var skullColor //the color the skull is
+var chestType //how the chest looks
+var cloudType //how the movement cloud looks
+var chestColor //the color the chest is
+var cloudColor //cloud movement trail color
+var clouderColor //cloud movement trail color on the last few frames
+var sparkColor //spark movement trail color
+var sparkerColor //spark movement trail color on the last few frames
+var wingColor //wing movement trail color
+var chesttrailColor //chest movement trail color
+var chesttrailerColor //chest movement trail color
+
+//CHOOSE YOUR SKULL COLOR--------------------------------<
+skullColor = #808080   //grey
+
+//CHOOSE YOUR CHEST---------------------------------------<
+//Replace with one below: bone | delta
+chestType = bone
+
+//CHOOSE YOUR MOVEMENT TRAIL--------------------------------<
+//Replace with one below: cloud | sparks | wings | chesttrail
+cloudType = cloud
+
+//CHOOSE YOUR AFTER-EFFECT COLOR--------------------------------<
+cloudColor = #808080   //grey
+clouderColor = #2e2e2e //grey but darker
+sparkColor = #white    //white
+sparkerColor = #808080 //grey
+wingColor = #yellow
+chesttrailColor = #white
+chesttrailerColor = #808080
+
+?chestType = bone
+  chestColor = #white
+:?chestType = delta
+  chestColor = #rainbow
+
+var keepDistance = -26 // distance at which the movement animation will play (stateMoving)
+var maxX = -16         // closest offset pet will get to character.  Closer to 0, closer to character
+var maxDistance = -70  // if the pet exceeds this distance, it will teleport to this distance (cannot be further away than this)
+var targetZ = -1       // We want to start the drawing 1 unit above the player agent
+
+?loc.loop
+  keepDistance = -26
+  maxX = -16
+  maxDistance = -70
+  targetZ = -1
+
+var x = 0
+var y = 0
+var myX = 0
+var myZ = 0
+var lastPlayerX = 0
+var lastPlayerZ = 0
+
+var stateNone = 0
+var stateIdle = 1
+var stateMoving = 2
+var currentState = stateNone
+var stateTime = 0
+var chestTime = 0
+
+
+func SetState(newState)
+  ?newState = stateMoving
+    play haunted_gate_shuffle //play sound when moving
+  currentState = newState
+  stateTime = 0
+
+?currentState = stateNone | time = 1
+  lastPlayerX = pos.x
+  lastPlayerZ = pos.z
+  myX = keepDistance
+  myZ = targetZ
+
+// Start further away if skully is summoned while the location is already running
+  ?time > 1
+    myX = maxDistance
+
+  SetState(stateIdle)
+
+myX = myX - (pos.x - lastPlayerX) // If player has moved, increment myX (distance from player)
+
+stateTime++
+
+?face = "( ^^" & stateTime > 30
+  chestTime++
+?face ! "( ^^"
+  chestTime = 0
+
+?currentState = stateIdle 
+  ?myX < maxDistance | myX > -maxDistance
+    myX = maxDistance
+  myZ = myZ - (pos.z - lastPlayerZ)
+
+  ?myX < keepDistance
+    SetState(stateMoving)
+	
+:?currentState = stateMoving
+  ?myX < maxX
+    myX++
+	
+  ?stateTime >= 6
+    ?myZ > targetZ
+      myZ--
+    :?myZ < targetZ
+      myZ++
+
+  ?stateTime >= 12
+    SetState(stateIdle)
+	
+lastPlayerX = pos.x
+lastPlayerZ = pos.z
+
+//DRAW state timers--------------------------------<
+//for debugging or whatever, uncomment if you want to see
+
+//>`0,7,StateTime = @stateTime@
+//>`0,8,ChestTime = @chestTime@
+
+//IDLE---------------------------------------------<
+
+?currentState = stateIdle & face ! "( ^^" 
+  >o@myX@,@myZ@,@skullColor@,ascii
+#####
+#####
+#####
+#####,--.
+####(_o,o)
+######`"´
+asciiend
+
+//EYES----------------------------------------<
+?currentState = stateIdle
+  ?face = "°°"
+      ?time % 10 = 0 & myX > keepDistance
+        myX--
+
+      ?time % 4 <= 1
+        >o@myX@,@myZ@,@skullColor@,ascii
+#
+#
+#
+#
+######O,o
+asciiend
+      ?time % 4 > 1
+       >o@myX@,@myZ@,@skullColor@,ascii
+#
+#
+#
+#
+######o,O
+asciiend
+
+//BLINKING----------------------------
+
+  ?face ! "( ^^"
+    ?stateTime % 50 >= 48
+        >o@myX@,@myZ@,@skullColor@,ascii
+#
+#
+#
+#
+######=,=
+asciiend
+    :?stateTime % 50 >= 46
+        >o@myX@,@myZ@,@skullColor@,ascii
+#
+#
+#
+#
+######-,-
+asciiend
+    :?stateTime % 50 >= 44
+        >o@myX@,@myZ@,@skullColor@,ascii
+#
+#
+#
+#
+######=,=
+asciiend
+
+//CHEST ANIMATION-----------------------------------------------<
+
+  x = myX + 6
+  y = myZ + 4
+?face = "( ^^" 
+    ?chestTime <= 5 | chestTime > 40
+      >o@myX@,@myZ@,@skullColor@,ascii
+#
+#
+#
+#####,--.
+####(_o,o)
+######`"´
+asciiend
+//-------------------------------
+    :?chestTime <= 10 | chestTime <= 40  & chestTime > 35
+      >o@myX@,@myZ@,@skullColor@,ascii
+#
+#
+#####,--.
+####(_o,o)
+######`"´
+#
+asciiend
+      ?chestType = bone
+        >o@myX@,@myZ@,@chestColor@,ascii
+#
+#
+#
+#
+####ε╪###╪3
+#####└───┘
+asciiend
+      :?chestType = delta
+       >o@myX@,@myZ@,@chestColor@,ascii
+#
+#
+#
+#
+#####╞###╡
+#####└───┘
+asciiend
+//-------------------------------
+    :?chestTime <= 15 | chestTime <= 35  & chestTime > 30
+      >o@myX@,@myZ@,@skullColor@,ascii
+#
+#####,--.
+####(_o,o)
+######`"´
+#
+#
+asciiend
+      ?chestType = bone
+        >o@myX@,@myZ@,@chestColor@,ascii
+#
+#
+#
+#
+####ε╪=o=╪3
+#####└───┘
+asciiend
+      :?chestType = delta
+        >o@myX@,@myZ@,@chestColor@,ascii
+#
+#
+#
+#
+#####╞-∆-╡
+#####└───┘
+asciiend
+//-------------------------------
+    :?chestTime <= 30
+      >o@myX@,@myZ@,@skullColor@,ascii
+#####,--.
+####(_o,o)
+######`"´
+#
+#
+#
+asciiend
+      ?chestType = bone
+        >o@myX@,@myZ@,@chestColor@,ascii
+#
+#
+#
+######___
+####ε╪=o=╪3
+#####└───┘
+asciiend
+      :?chestType = delta
+        >o@myX@,@myZ@,@chestColor@,ascii
+#####
+#####
+#####
+######___
+#####╞-∆-╡
+#####└───┘
+asciiend
+
+//MOVING-------------------------------------------<
+?currentState = stateMoving
+  ?stateTime/2 = 0
+    >o@myX@,@myZ@,@skullColor@,ascii
+#
+#
+#
+#####,--.
+####(_o,o)
+######`"´
+asciiend
+
+  ?stateTime/2 = 1
+    >o@myX@,@myZ@,@skullColor@,ascii
+#
+#
+#
+#####,--.
+####(_o,o)
+######`"´
+asciiend
+
+  ?stateTime/2 = 2
+    >o@myX@,@myZ@,@skullColor@,ascii
+#
+#
+#
+#####,--.
+####(_o,o)
+######`"´
+asciiend
+
+  ?stateTime/2 = 3
+    >o@myX@,@myZ@,@skullColor@,ascii
+#
+#
+#
+#####,--.
+####(_o,o)
+######`"´
+asciiend
+
+  ?stateTime/2 = 4
+    >o@myX@,@myZ@,@skullColor@,ascii
+#
+#
+#
+#####,--.
+####(_o,o)
+######`"´
+asciiend
+
+  ?stateTime/2 = 5
+    >o@myX@,@myZ@,@skullColor@,ascii
+#
+#
+#
+#####,--.
+####(_o,o)
+######`"´
+asciiend
+
+//MOVING CLOUD POOT---------------------------------<
+
+?currentState = stateMoving
+  ?stateTime/2 = 0
+    ?cloudType = cloud
+      >o@myX@,@myZ@,@cloudColor@,ascii
+#
+#
+#
+#
+#
+#
+asciiend
+    :?cloudType = sparks
+      >o@myX@,@myZ@,@sparkColor@,ascii
+#
+#
+#
+#
+#
+#####\
+asciiend
+    :?cloudType = wings
+      >o@myX@,@myZ@,@wingColor@,ascii
+#
+##.\###;
+##( \#| 
+####¯
+#
+#
+asciiend
+    :?cloudType = chesttrail
+      >o@myX@,@myZ@,@chesttrailColor@,ascii
+#
+#
+#
+####
+###
+####└─
+asciiend
+
+//-------------------------------1
+
+  ?stateTime/2 = 1
+    ?cloudType = cloud
+      >o@myX@,@myZ@,@cloudColor@,ascii
+#
+#
+#
+#
+#
+####(\
+asciiend
+    :?cloudType = sparks
+      >o@myX@,@myZ@,@sparkColor@,ascii
+#
+#
+#
+#
+###\
+####-
+asciiend
+    :?cloudType = wings
+      >o@myX@,@myZ@,@wingColor@,ascii
+#
+##__###_
+#\  \#/ 
+##`¯¯
+#
+#
+asciiend
+    :?cloudType = chesttrail
+      >o@myX@,@myZ@,@chesttrailColor@,ascii
+#
+#
+#
+###_
+##├
+##└──
+asciiend
+
+//-------------------------------2
+
+  ?stateTime/2 = 2
+    ?cloudType = cloud
+      >o@myX@,@myZ@,@cloudColor@,ascii
+#
+#
+#
+#
+##_
+#( `
+asciiend
+    :?cloudType = sparks
+      >o@myX@,@myZ@,@sparkColor@,ascii
+#
+#
+#
+##_
+###_
+#
+asciiend
+    :?cloudType = wings
+      >o@myX@,@myZ@,@wingColor@,ascii
+#
+#
+#___
+/_.'¯#¯
+#
+#
+asciiend
+    :?cloudType = chesttrail
+      >o@myX@,@myZ@,@chesttrailColor@,ascii
+#
+#
+#
+##__
+#├─
+#└───
+asciiend
+
+
+//-------------------------------3
+
+  ?stateTime/2 = 3
+    ?cloudType = cloud
+      >o@myX@,@myZ@,@clouderColor@,ascii
+#
+#
+#
+#
+#_
+´ `
+asciiend
+    :?cloudType = sparks
+      >o@myX@,@myZ@,@sparkColor@,ascii
+#
+#
+#
+#-
+##_
+#
+asciiend
+    :?cloudType = wings
+      >o@myX@,@myZ@,@wingColor@,ascii
+#
+##__###_
+#\  \#/ 
+##`¯¯
+#
+#
+asciiend
+    :?cloudType = chesttrail
+      >o@myX@,@myZ@,@chesttrailColor@,ascii
+#
+#
+#
+#___
+├─o
+└───┘
+asciiend
+
+//-------------------------------4
+
+  ?stateTime/2 = 4
+    ?cloudType = cloud
+      >o@myX@,@myZ@,@clouderColor@,ascii
+#
+#
+#
+#
+#
+;`.
+asciiend
+    :?cloudType = sparks
+      >o@myX@,@myZ@,@sparkerColor@,ascii
+#
+#
+#
+_
+#
+/
+asciiend
+    :?cloudType = wings
+      >o@myX@,@myZ@,@wingColor@,ascii
+#
+##.\###;
+##( \#| 
+####¯
+#
+#
+asciiend
+    :?cloudType = chesttrail
+      >o@myX@,@myZ@,@chesttrailerColor@,ascii
+#
+#
+#
+#
+#__
+├─o─┤
+asciiend
+
+//-------------------------------5
+
+  ?stateTime/2 = 5
+    ?cloudType = cloud
+      >o@myX@,@myZ@,@clouderColor@,ascii
+#
+#
+#
+#
+#
+.
+asciiend
+    :?cloudType = sparks
+      >o@myX@,@myZ@,@sparkerColor@,ascii
+#
+#
+#
+_
+#
+#
+asciiend
+    :?cloudType = wings
+      >o@myX@,@myZ@,@wingColor@,ascii
+#
+#
+###(\#| 
+####¯
+#
+#
+asciiend
+    :?cloudType = chesttrail
+      >o@myX@,@myZ@,@chesttrailerColor@,ascii
+#
+#
+#
+#
+#.
+\_|_
+asciiend
+
+//-------------------------------6
+
+

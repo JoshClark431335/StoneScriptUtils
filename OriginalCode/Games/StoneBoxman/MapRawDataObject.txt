@@ -1,0 +1,17 @@
+//StoneBoxMan - Games/MapRawDataObject
+//Version: v1.0
+//Author: Okamiroy
+
+var MapTitle = "DEFAULTMAP"
+var MapWidth = 8
+var MapHeight = 8
+var MapCode = ascii
+00222000
+002T2000
+00212222
+222B1BT2
+2T1BS222
+2222B200
+0002T200
+00022200
+asciiend

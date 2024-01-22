@@ -1,0 +1,73 @@
+// FlanBi
+// Mystic Sword Game V1.0
+// The script plays itself, press down to play
+
+disable hud
+var sword
+sword = ascii
+##o
+##|
+_(@)_
+#|:|
+#|:|
+#|:|
+#\:/
+##v
+asciiend
+
+var rock
+rock = ascii
+####/‾‾`#´‾‾\
+/‾‾‾‾‾‾‾‾\   ‾‾‾\
+asciiend
+
+//sword -43 38
+var A = 1
+var Y = -6
+var X = 43
+var croissance = 0
+?X < -40
+ croissance = 1
+ A = 1
+?X > 39
+ croissance = 0
+ A = 0
+? croissance = 1 
+ X = X + 1
+? croissance = 0
+ X = X  - 1
+>c@X-2@,@Y-5@,#rainFF,@sword@
+
+//rock
+var score = 0
+var minR = -42
+var maxR = 26
+var nR = 1
+var touche = 0
+?touche = 1
+ nR = minR + rng % (maxR - minR + 1)
+ touche = 0
+ score = score + 1
+>c@nR@,11,#A0A0A0,@rock@
+var hR = nR + 8
+hR = nR + 8
+>c@hR-1@,11,#rainFF,`O´
+
+//Touche et descente
+var points = 0
+var descente = 0
+?key = downBegin
+ descente = 1
+ croissance = 3
+
+?descente = 1 & Y < 12
+ Y = Y + 1
+ ? Y = 11
+  descente = 0
+   ?hR = X | X = hR + 1 |X = hR - 1
+    touche = 1
+  Y = -6
+  croissance = A
+
+>Score : @score@    Put the mystic sword back
+^ in its sacred rock! (press down to launch)    

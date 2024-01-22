@@ -1,0 +1,63 @@
+/*
+	Print v1.2
+	
+	Written By: Cancerorus Potatoes (Discord: 10100111001)
+	
+	To Use (individually, dont import this directly unless you intend to use it directly in your own scripts!):
+	var Print = import FancyUI/print
+	
+	Depends On:
+	Nothing!
+	
+	What it does:
+	Many useful printing functions/wrapper functions
+	Gets rid of '#' from your colour strings
+*/
+
+/*
+	Changelog
+	v1.0	Print Left and right
+	v1.1	Print middle, print background rectangle
+	v1.2	Int to Hex function
+*/
+
+//regular print right
+func Print(xx, yy, col, str)
+	>`@xx@,@yy@,#@col@,@str@
+	
+//prints to the left from x,y
+func PrintL(xx, yy, col, str)
+	Print(xx-string.Size(str), yy, col, str)
+	
+//prints with x,y as the center point (horizontal)
+func PrintM(xx, yy, col, str)
+	var len = string.Size(str)
+	Print(xx-(len/2-((len+1)%2)), yy, col, str)
+
+//prints a rectangle on the background with the given colour
+func BG(xx, yy, w, h, col)
+	draw.Bg(xx,yy,"#"+col,w,h)
+	
+//d = the number to convert
+//n = the number of hex digits to return (2 for specifying colours)
+func IntToHex(d, n)
+	var hex = ""
+	var c = 0
+	for i = 1..n
+		c = d%16
+		? c >= 0 & c <= 9
+			hex = c + hex
+		:? c = 10
+			hex = "A" + hex
+		:? c = 11
+			hex = "B" + hex
+		:? c = 12
+			hex = "C" + hex
+		:? c = 13
+			hex = "D" + hex
+		:? c = 14
+			hex = "E" + hex
+		:? c = 15
+			hex = "F" + hex
+		d = d/16
+	return hex

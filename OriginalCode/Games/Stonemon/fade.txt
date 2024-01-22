@@ -1,0 +1,15 @@
+var palette = ["#FFFFFF","#EEEEEE","#DDDDDD","#CCCCCC","#BBBBBB","#AAAAAA","#999999","#888888","#777777","#666666","#555555","#444444","#333333","#222222","#111111","#000000"]
+
+var state = true
+var index = 0
+var color
+
+func chengeIndex(n)
+    ?n
+        index += n
+        changeColor()
+
+func changeColor()
+	color = palette[math.Clamp(index, 0, palette.Count() - 1)]
+
+changeColor()

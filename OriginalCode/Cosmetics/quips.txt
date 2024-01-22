@@ -1,0 +1,233 @@
+/*Quips v2.0.0
+  By Superfluous J
+  Import it, it's all you need to do.
+  
+  To add your own quips or remove quips in the file, search for "QUIPS START HERE" in the script.
+  The script checks for a state, and then adds a quip to a list of potential quips based on that state.
+  To add a quip for, say, starting out each time on Rocky Plateau, you could add:
+  ?loc = Rocky & loc.time=1
+    a.Add("A witty saying\nwould be here\nif I had one.")
+
+  This would make the character sometimes say (But only in Rocky Plateau):
+  .────────────────.
+  │ A witty saying │
+  │ would be here  │
+  │ if I had one.  │
+  '───────────. .──'
+               \│
+
+*/
+
+/*******************************************************************************************
+  Set "demo=0" for normal timings. demo=1 makes the player a chatterbox so you can see more
+  quips and get a feel for what might get said at various times.
+*******************************************************************************************/
+var demo=1
+
+/*******************************************************************************************
+  Here are many variables to know what the state was in the previous tick, so you can only trigger a
+  quip if, say, you lost 5 or more hit points. Or the enemy count went down (or up) by 10 or more. See
+  the quips already present for ideas. These variables all start with "old_" and are to remember what
+  game variables were on the previous tick. If you add your own variables here, make sure you also 
+  set it at the end of the main script where I set all the other "old_" variables.
+*******************************************************************************************/
+var old_hp=0
+var old_maxhp=0
+var old_armor=0
+var old_maxarmor=0
+var old_debuffs=""
+var old_foe=""
+var old_foecount=0
+var old_foedistance=0
+var old_foedebuffs=""
+var old_foestate=0
+var old_foehp=0
+var old_foemaxhp=0
+var old_foearmor=0
+
+var quipexclstr= "a"//A string that holds identifiers for quips so they don't repeat too often.
+var quiptimer = -1//Are we supposed to start a quip? (negative, we said a quip. 0, we should say a quip. positive, timer before we can say a quip)
+var quipme = 0     //Are we currently saying a quip?
+var quippos        //Where the quip starts, horizontally. A factor of the length of the quip's longest line.
+var quipht         //Where the quip starts, vertically. A factor of the quip's line count.
+var quipct         //The quip's line count.
+var quiplen        //The length of the raw quip.
+var thequip        //The quip. A string, possibly cut into multiple lines by \n's
+var midquip        //A line of the quip that is to be put into an array
+var quiplside      //The left side of the quip outline. Literally 2 to the left of the quip's left side.
+var quiparr = []   //The quip, stored in an array of strings instead of 1 string with \n's
+var i              //for a for loop, to iterate the quip line by line.
+var j              //for a for loop, to draw black squares in the quip text box before writing the quip.
+
+/*******************************************************************************************
+First, determine if a long enough time has passed so we can say a quip.
+This is a matter of taste. Either you want to be a chatterbox so you'd set it low, or you want quips to be rare so you set it high.
+The variable "quiptimer" here is the number of ticks between the last quip ending and a new quip starting, and is determined by the function.
+Any function can be used, but the default "500 + rng % 500" will force a 500 tick wait, and allow a quip to be said after 0-500 more ticks.
+If quiptimer is less than zero, reset it. If it's greater than 0 decrement it by 1. If it's 0, we'll handle that below.
+*******************************************************************************************/
+
+?quiptimer < 0
+  ?demo=1
+    quiptimer = 50
+  :
+    quiptimer = 500 + rng%500
+:?quiptimer > 0
+  quiptimer = quiptimer - 1
+
+// If we're saying a quip...
+?quipme > 0
+  //draw the top 2 corners of the quip word bubble.
+  quipht = -4-quipct
+  >o@quiplside@,@quipht@,#808080,.
+  >o2,@quipht@,#808080,.
+  
+  //draw the top and bottom lines of the quip word bubble, and the \│ part.
+  for i = quippos-1..1
+    >o@i@,@quipht@,#808080,─
+    >o@i@,-3,#808080,─
+  >o@quiplside@,-3,#808080,'
+  >o-3,-3,#808080,. .──'
+  >o-2,-2,#808080,\│
+  
+  //write the quip, first clearing the line with solid black ascii.
+  for i = 0..quipct-1
+    quipht = -3-quipct+i
+    for j = quippos-1..1
+      >o@j@,@quipht@,#000000,.
+    midquip = quiparr[i]
+    >o@quippos@,@quipht@,@midquip@
+    >o@quiplside@,@quipht@,#808080,│
+    >o2,@quipht@,#808080,│
+
+  //reduce the quipme timer, so you'll stop talking.
+  quipme = quipme - 1
+
+//If we're supposed to be saying a quip, AND we win a coin flip (or are demonstrating)
+:?quiptimer = 0 & (demo = 1 | rng < 5000)
+  //find a quip to say. NOTE: Returns a quip or 0_NO_QUIP, which means nothing quip-worthy is currently happening.
+  thequip = getaquip()
+  ?thequip ! "0_NO_QUIP"
+    //reset quip timer (you say it for 50 frames)
+    quipme = 50
+    //clear the quip array and put the quip into it, for saying.
+    quiparr.Clear()
+    quiparr = string.Break(thequip,1000)
+    //Find the maximum width of the lines in the quip, and set the variables for drawing the text box later.
+    quipct = quiparr.Count()
+    quippos = 0
+    for i = 0..quipct-1
+      midquip = quiparr[i]
+      ?quippos < string.Size(midquip)
+        quippos = string.Size(midquip)
+    quippos=-quippos+1
+    quiplside=quippos-2
+    //set quiptimer to -1, so we know next loop to reset it.
+    quiptimer = -1
+
+//Set all variables for the next tick.
+old_hp       = hp
+old_maxhp    = maxhp
+old_armor    = armor
+old_maxarmor = maxarmor
+old_debuffs  = debuffs.string
+old_foe      = foe
+old_foecount = foe.count
+old_foedistance = foe.distance
+old_foedebuffs = foe.debuffs.string
+old_foestate = foe.state
+old_foehp = foe.hp
+old_foemaxhp = foe.maxhp
+old_foearmor = foe.armor
+
+/***************
+   FUNCTIONS
+***************/
+func getaquip()
+  //variables of what all important stats were last tick, to check changes in game state.
+  var a = [] //array of potential things to say
+  var c = 0  //the random thing that gets said
+  a.Clear()
+
+  // **************************
+  // **** QUIPS START HERE ****
+  // **************************
+  
+  //Quips based on world.
+  ?loc = rocky
+    ?foe.state=126 & foe.time=80
+      a.Add("Why yes, I'd love\na challenge!")
+ 
+  //Quips based on your status
+  ?hp < old_hp
+    a.Add("Ouch!")
+    a.Add("Oof!")
+    a.Add("Stop it!")
+  ?hp > old_hp & hp=maxhp
+    a.Add("There, all better.")
+  ?hp < old_hp & hp*10 < maxhp
+    a.Add("I'm getting too\nold for this!")
+  ?armor > old_armor & armor = maxarmor
+    a.Add("Armor up!")
+  ?debuffs.string="debuff_chill" & old_debuffs ! "debuff_chill"
+    a.Add("Brr!")
+  ?debuffs.string="debuff_dot" & old_debuffs ! "debuff_dot"
+    a.Add("I'm on fire!\nNo not like that\nI mean I'm\nliterally ON FIRE!")
+  ?debuffs.string="debuff_damage" & old_debuffs ! "debuff_damage"
+    a.Add("I don't feel\nso good...")
+  
+  //Quips based on enemy status
+  ?foe.hp < old_foehp & foe.hp*10 < foe.maxhp & foe.hp < 500 & foe.maxhp > 100
+    a.Add("DM Says you're\ngonna die!\nRoll a D6!")
+    a.Add("Almost there!")
+    a.Add("JUST DIE\nALREADY!")
+  ?foe.count > 5 & old_foecount-1 = foe.count
+    a.Add("One down,\n" + foe.count + " to go.")
+  ?foe.debuffs.string="debuff_chill" & old_foedebuffs ! "debuff_chill"
+    a.Add("Ice to meet you!")
+    a.Add("Get iced!")
+    a.Add("Chill out!")
+  ?foe.debuffs.string="debuff_dot" & old_foedebuffs ! "debuff_dot"
+    a.Add("Flame On!")
+  ?foe.debuffs.string="debuff_damage" & old_foedebuffs ! "debuff_damage"
+    a.Add("Oh sorry did\nI poison you?")
+    a.Add("Does this taste\nlike poison\nto you?")
+  ?foe.armor > old_foearmor & old_foearmor > -1
+    ?foe.armor-old_foearmor > 1000
+      a.Add(foe.armor + " armor, really?")
+    :
+      a.Add("Great, more armor\nto go through.")
+  ?foe.distance < 5 & foe.distance < old_foedistance
+    a.Add("IN YO FACE!")
+    a.Add("Thrust!")
+  ?foe ! bat & oldfoe = bat
+    a.Add("No bats in\nthis belfry!")
+      
+  //Qiups based on enemy and your status
+  ?foe="boss"
+    ?foe.hp < old_foehp & foe.hp*10<foe.maxhp & foe.hp < 500 & hp*10>maxhp*9
+      a.Add("Aren't boss fights\nsupposed to be\ndifficult or something?")
+      a.Add("Boss? More\nlike WUSS!")
+    ?old_foestate=33 & foe.state ! 33 & hp>=old_hp & armor>=old_armor
+      a.Add("Missed me!")
+      a.Add("Dodge! Parry! Fight!")
+  
+  //Random quips
+  
+
+  //In case there are no quips, needs to return the error.
+  ?a.Count() = 0
+    return "0_NO_QUIP"
+
+  //return 1 quip
+  c = rng % a.Count()
+  quiplen=string.Size(a[c])
+  ?quiplen > 10
+    quiplen = 10
+  ?quipexclstr = string.Sub(a[c],0,quiplen)
+    return "0_NO_QUIP"
+  :
+    quipexclstr = string.Sub(a[c],0,quiplen) + quipexclstr
+    ?string.Size(quipexclstr) > 100
+      quipexclstr=string.Sub(quipexclstr, 0, 100)
+    return a[c]

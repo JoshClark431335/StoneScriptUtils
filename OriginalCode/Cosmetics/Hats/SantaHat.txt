@@ -1,0 +1,63 @@
+//Santa Hat
+//by: link2_thepast, martosss
+//v2.0.1
+//A festive red-and-white hat for the Christmas season!
+
+// Instructions:
+//   import Cosmetics/Hats/SantaHat
+
+// List of optional parameters:
+
+var inputhatenable = true     // hat quick enable/disable
+var inputbighead              // checks for head size
+// this can be hardcoded with true/false
+// to force use only big/small head respectively 
+inputbighead = bighead        // system var "bighead" determines it
+var inputposx                 // used to detect movement
+inputposx = pos.x             // use custom var for performance
+var inputanimframelength = 20 // length of hat animation
+
+// === === === === === === === === === === ===
+var oldposx = inputposx
+var hatframecounter = 0       // counts when hat should move
+var hatframe1 = inputanimframelength/2 // frame switch condition
+//  ˏ.-.
+// *  ,^,
+//    `o´
+? inputhatenable
+  ? inputbighead = false // small head required
+    ? oldposx ! inputposx //update frame counter
+      hatframecounter++
+      ? hatframecounter = inputanimframelength
+        hatframecounter = 0 // reset frame counter
+    ? hatframecounter < hatframe1 // animate small hat
+      >h-4,-1,#008000,ascii
+#,--. 
+###,^,
+asciiend
+    :// 008000 - dark green
+      >h-4,-1,#008000,ascii
+##,-. 
+#'#,^,
+asciiend
+    >h-4,-1,#white,ascii
+#
+#
+###`#'
+asciiend
+    >h-4,-1,#red,ascii
+#
+°
+asciiend
+  : // in case of big head we use the original
+    >h-4,-2,#red,ascii
+###_##
+#,;###
+######
+asciiend
+
+    >h-4,-2,#white,ascii
+######
+###,´#
+°#´###
+asciiend

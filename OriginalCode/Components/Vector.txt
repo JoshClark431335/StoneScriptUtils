@@ -1,0 +1,27 @@
+
+// Vector
+// v0.2
+
+var x = 0
+var y = 0
+
+func Init(_x, _y)
+  x = _x
+  y = _y
+
+func ToString()
+  return "[" + x + ", " + y + "]"
+
+func Add(otherVect)
+  x = x + otherVect.x
+  y = y + otherVect.y
+
+func Subtract(otherVect)
+  x = x - otherVect.x
+  y = y - otherVect.y
+
+func GetDistance(otherVect)
+  var deltaX = x - otherVect.x
+  var deltaY = y - otherVect.y
+  var solution = math.Sqrt(math.Pow(deltaX, 2) + math.Pow(deltaY, 2))
+  return solution

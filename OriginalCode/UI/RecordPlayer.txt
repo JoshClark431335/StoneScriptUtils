@@ -1,0 +1,478 @@
+/*
+@Mind Stone Thief
+v2.0 new UI update
+You can click the button to conceal!
+import UI/RecordPlayer
+*/
+var RPconcealButton
+var RPpanel
+var PowerButton
+var PreviousButton
+var PlayStopButton
+var NextButton
+var Textbg
+var MusicAlbum
+var MusicName
+var RProll
+var RPswitch
+var CDframe = 0
+var album = ""
+var LocationList = [
+"Boiling Mine",
+"Caves of Fear",
+"Deadwood Canyon",
+"Haunted Halls",
+"Icy Ridge",
+"Mushroom Forest",
+"Rocky Plateau",
+"Temple",
+["Events",
+"Eventos",
+"活动",
+"活動",
+"Événements",
+"Evenementen",
+"События",
+"Eventos",
+"Eventos",
+"イベント",
+"이벤트",
+"Olaylar"],
+["Other",
+"De outros",
+"其他",
+"其他",
+"Autre",
+"Ander",
+"Другой",
+"Otro",
+"Otro",
+"他の",
+"다른",
+"Başka"]
+]
+var MusicList = [
+["bronze_guardian_3",
+"bronze_guardian_4",
+"bronze_guardian_5",
+"bronze_guardian_cyan",
+"bronze_mine_0",
+"bronze_mine_1",
+"bronze_mine_2",
+"bronze_mine_3",
+"bronze_mine_4",
+"bronze_mine_5",
+"bronze_mine_cyan",
+"slave_outro_climb",
+"slave_outro_loop"],
+["caustic_caves",
+"spider_boss"],
+["cross_deadwood_river",
+"cross_deadwood_wind",
+"deadwood_0",
+"deadwood_1",
+"deadwood_2",
+"deadwood_3",
+"deadwood_4",
+"deadwood_5",
+"deadwood_cyan",
+"tree_boss",
+"waterfall_descent"],
+["skeleton_boss",
+"undead_crypt_0",
+"undead_crypt_1",
+"undead_crypt_2",
+"undead_crypt_3",
+"undead_crypt_4",
+"undead_crypt_5",
+"undead_crypt_cyan",
+"undead_crypt_intro"],
+["bridge_broken",
+"bridge_crossing",
+"icy_ridge_0",
+"icy_ridge_1",
+"icy_ridge_2",
+"icy_ridge_3",
+"icy_ridge_4",
+"icy_ridge_5",
+"icy_ridge_cyan",
+"yeti"],
+["fire_loop",
+"fungus_forest_0",
+"fungus_forest_1",
+"fungus_forest_2",
+"fungus_forest_3",
+"fungus_forest_4",
+"fungus_forest_5",
+"fungus_forest_cyan",
+"mushroom_boss",
+"mushroom_boss_cyan",
+"shop"],
+["rocky_plateau_0",
+"rocky_plateau_1",
+"rocky_plateau_2",
+"rocky_plateau_3",
+"rocky_plateau_4",
+"rocky_plateau_5",
+"rocky_plateau_epilogue",
+"rocky_plateau_fight",
+"rocky_plateau_talk"],
+["nagaraja",
+"temple_0",
+"temple_1",
+"temple_2",
+"temple_3",
+"temple_4",
+"temple_5",
+"temple_cyan"],
+["event_fall",
+"event_hamartia",
+"event_spring",
+"event_stonejam",
+"event_summer",
+"event_winter"],
+["credits",
+"main_menu",
+"bone_factory",
+"osteophone",
+"uulaa"]
+]
+var LangArray = ["EN", "PT-BR", "ZH-CN", "ZH-TW", "FR", "DE", "RU", "ES-LA", "ES-EU", "JP", "KR", "TK"]
+var MusicListX = storage.Get("MusicIndexX", 0)
+var MusicListY = storage.Get("MusicIndexY", 0)
+storage.Set("MusicIndexX", MusicListX)
+storage.Set("MusicIndexY", MusicListY)
+var RP = false
+var RPStop = true
+?loc.begin
+	ambient.Stop()
+
+	RPconcealButton = ui.AddButton()
+	RPconcealButton.x = 0
+	RPconcealButton.y = -5
+	RPconcealButton.w = 3
+	RPconcealButton.h = 3
+	RPconcealButton.text = "♫"
+	RPconcealButton.anchor = center_left
+	RPconcealButton.dock = center_left
+	RPconcealButton.sound = logo_short
+	RPconcealButton.style = 1
+	RPconcealButton.SetPressed(Conceal)
+
+	RPpanel = ui.AddPanel()
+	RPpanel.x = 0
+	RPpanel.y = 0
+	RPpanel.w = 43
+	RPpanel.h = 12
+	RPpanel.anchor = center_center
+	RPpanel.dock = center_center
+	RPpanel.visible = false
+	RPpanel.clip = true
+	RPpanel.style = ui.AddStyle("#########")
+
+	PowerButton = ui.AddButton()
+	PowerButton.x = -18
+	PowerButton.y = 5
+	PowerButton.w = 3
+	PowerButton.h = 2
+	PowerButton.text = ""
+	PowerButton.anchor = center_center
+	PowerButton.dock = center_center
+	PowerButton.visible = false
+	PowerButton.sound = mindstone_on
+	PowerButton.style = 0
+	PowerButton.SetPressed(RPPower)
+	RPpanel.Add(PowerButton)
+	
+	PreviousButton = ui.AddButton()
+	PreviousButton.x = -9
+	PreviousButton.y = 5
+	PreviousButton.w = 3
+	PreviousButton.h = 2
+	PreviousButton.text = ""
+	PreviousButton.anchor = center_center
+	PreviousButton.dock = center_center
+	PreviousButton.visible = false
+	PreviousButton.sound = click
+	PreviousButton.style = 0
+	PreviousButton.SetPressed(PreviousMusic)
+	RPpanel.Add(PreviousButton)
+	
+	PlayStopButton = ui.AddButton()
+	PlayStopButton.x = 0
+	PlayStopButton.y = 5
+	PlayStopButton.w = 3
+	PlayStopButton.h = 2
+	PlayStopButton.text = ""
+	PlayStopButton.anchor = center_center
+	PlayStopButton.dock = center_center
+	PlayStopButton.visible = false
+	PlayStopButton.sound = click
+	PlayStopButton.style = 0
+	PlayStopButton.SetPressed(PlayStopMusic)
+	RPpanel.Add(PlayStopButton)
+
+	NextButton = ui.AddButton()
+	NextButton.x = 9
+	NextButton.y = 5
+	NextButton.w = 3
+	NextButton.h = 2
+	NextButton.text = ""
+	NextButton.anchor = center_center
+	NextButton.dock = center_center
+	NextButton.visible = false
+	NextButton.sound = click
+	NextButton.style = 0
+	NextButton.SetPressed(NextMusic)
+	RPpanel.Add(NextButton)
+
+	Textbg = ui.AddAnim(ascii
+        
+        
+asciiend)
+	Textbg.x = 14
+	Textbg.y = -4
+	Textbg.w = 8
+	Textbg.h = 2
+	Textbg.anchor = center_center
+	Textbg.dock = center_center
+	Textbg.visible = false
+	Textbg.color = #000000
+	RPpanel.Add(Textbg)
+
+	MusicAlbum = ui.AddText()
+	MusicAlbum.x = 11
+	MusicAlbum.y = -5
+	MusicAlbum.w = 7
+	MusicAlbum.h = 1
+	MusicAlbum.anchor = center_left
+	MusicAlbum.dock = center_center
+	MusicAlbum.visible = false
+	MusicAlbum.align = left
+	MusicAlbum.color = #028900
+	MusicAlbum.text = ""
+	RPpanel.Add(MusicAlbum)
+
+	MusicName = ui.AddText()
+	MusicName.x = 10
+	MusicName.y = -4
+	MusicName.w = 7
+	MusicName.h = 1
+	MusicName.anchor = center_left
+	MusicName.dock = center_center
+	MusicName.visible = false
+	MusicName.align = left
+	MusicName.color = #028900
+	MusicName.text = ""
+	RPpanel.Add(MusicName)
+
+	RProll = ui.AddAnim(ascii
+#########___________ _I-I__ ______________
+########/           "-|_|-.\   /#######/ /┊
+#######'       ____           /#######/ ' ┊
+######|  __,--'    `--.__     ‾‾‾‾‾‾‾‾ |  ┊
+#####/,-'      ,-"-.     ‾`-          /   '
+####/(        (  ^  )       )        '   /
+###/  `m.__    `-.-'      .m        /   /
+##|     `""mm.______,mm""'         |   .
+#/           `""""""'             /   /
+/________________________________/   /
+| /|\      ///      ||\      \\\ |  /
+\_\|/______\\\______||/______///_/.'
+%%
+#########___________ _I-I__ ______________
+########/           "-|_|-.\   /#######/ /┊
+#######'       ____           /#######/ ' ┊
+######|  __,--'    `--.__     ‾‾‾‾‾‾‾‾ |  ┊
+#####/,m´      ,-"-.     ‾`-          /   '
+####/(        (  ^  )       )        '   /
+###/  mm.__    `-.-'      .´        /   /
+##|     `""mm.______,m.""          |   .
+#/           `"""" '              /   /
+/________________________________/   /
+| /|\      ///      ||\      \\\ |  /
+\_\|/______\\\______||/______///_/.'
+%%
+#########___________ _I-I__ ______________
+########/           "-|_|-.\   /#######/ /┊
+#######'       ____           /#######/ ' ┊
+######|  __mm-'    `--m__     ‾‾‾‾‾‾‾‾ |  ┊
+#####/,-'      ,-"-.     ‾`-          /   '
+####/(        (  ^  )       )        '   /
+###/  mm._     `-.-'      .´        /   /
+##|      ""'m.______,..""          |   .
+#/           `"""""'              /   /
+/________________________________/   /
+| /|\      ///      ||\      \\\ |  /
+\_\|/______\\\______||/______///_/.'
+%%
+#########___________ _I-I__ ______________
+########/           "-|_|-.\   /#######/ /┊
+#######'       ____           /#######/ ' ┊
+######|  __mm-'    `-mm__     ‾‾‾‾‾‾‾‾ |  ┊
+#####/m-'      ,-"-.     ‾`m          /   '
+####/(        (  ^  )       )        '   /
+###/  ".._     `-.-'      .´        /   /
+##|      ""'..______,.m""          |   .
+#/           `"""""'              /   /
+/________________________________/   /
+| /|\      ///      ||\      \\\ |  /
+\_\|/______\\\______||/______///_/.'
+%%
+#########___________ _I-I__ ______________
+########/           "-|_|-.\   /#######/ /┊
+#######'       ____           /#######/ ' ┊
+######|  __,--'    `-m.__     ‾‾‾‾‾‾‾‾ |  ┊
+#####/,-'      ,-"-.     ‾mm          /   '
+####/(        (  ^  )       )        '   /
+###/  ".._     `-.-'      .´        /   /
+##|      ""'m.______,.mm"          |   .
+#/           `"""""'              /   /
+/________________________________/   /
+| /|\      ///      ||\      \\\ |  /
+\_\|/______\\\______||/______///_/.'
+asciiend)
+	RProll.x = 0
+	RProll.y = 0
+	RProll.anchor = center_center
+	RProll.dock = center_center
+	RProll.color = #EEEEEE
+	RProll.duration = 50
+	RProll.frame = 0
+	RProll.loop = true
+	RProll.flipX = false
+	RProll.flipY = false
+	RProll.playOnStart = false
+	RProll.pivotX = 0
+	RProll.pivotY = 0
+	RProll.visible = false
+	RProll.Stop()
+	RPpanel.Add(RProll)
+
+	RPswitch = ui.AddAnim(ascii
+#################### _I-I__ 
+####################"-|_|-.\
+###########################\\
+############################\\
+#############################\\
+#############################_))
+############################/_/-'
+############################`w
+%%
+#################### _I-I__ 
+####################"-|_|-.\
+##########################//
+#########################//
+#######################_//
+######################/_/-'
+######################`w
+asciiend)
+	RPswitch.x = -5
+	RPswitch.y = -2
+	RPswitch.anchor = center_center
+	RPswitch.dock = center_center
+	RPswitch.color = #EEEEEE
+	RPswitch.duration = 0
+	RPswitch.frame = 0
+	RPswitch.loop = false
+	RPswitch.flipX = false
+	RPswitch.flipY = false
+	RPswitch.playOnStart = false
+	RPswitch.pivotX = 0
+	RPswitch.pivotY = 0
+	RPswitch.visible = false
+	RPswitch.Stop()
+	RPpanel.Add(RPswitch)
+
+func Conceal()
+	PowerButton.visible = !PowerButton.visible
+	PreviousButton.visible = !PreviousButton.visible
+	PlayStopButton.visible = !PlayStopButton.visible
+	NextButton.visible = !NextButton.visible
+	Textbg.visible = !Textbg.visible
+	RProll.visible = !RProll.visible
+	RPswitch.visible = !RPswitch.visible
+	?MusicAlbum.visible
+		MusicAlbum.visible = !MusicAlbum.visible
+	?MusicName.visible
+		MusicName.visible = !MusicName.visible
+
+func RPPower()
+	RP = !RP
+	?!RP
+		music.Stop()
+		?!RPStop
+			RPStop = !RPStop
+
+func PreviousMusic()
+	?RP
+		MusicListY = MusicListY - 1
+		?MusicListY < 0
+			MusicListX = MusicListX - 1
+			?MusicListX < 0
+				MusicListX = LocationList.Count() - 1
+			MusicListY = MusicList[MusicListX].Count() - 1
+		music.Play(MusicList[MusicListX][MusicListY])
+		?RPStop
+			RPStop = !RPStop
+
+func PlayStopMusic()
+	?RP
+		RPStop = !RPStop
+		?RPStop
+			music.Stop()
+		:
+			music.Play(MusicList[MusicListX][MusicListY])
+
+func NextMusic()
+	?RP
+		MusicListY = MusicListY + 1
+		?MusicListY > MusicList[MusicListX].Count() - 1
+			MusicListX = MusicListX + 1
+			?MusicListX > LocationList.Count() - 1
+				MusicListX = 0
+			MusicListY = 0
+		music.Play(MusicList[MusicListX][MusicListY])
+		?RPStop
+			RPStop = !RPStop
+
+?!RP
+	PowerButton.sound = mindstone_on
+	PreviousButton.sound = click
+	PlayStopButton.sound = click
+	NextButton.sound = click
+	RPswitch.frame = 0
+	MusicAlbum.visible = false
+	MusicName.visible = false
+	RProll.Pause()
+:
+	PowerButton.sound = mindstone_off
+	PreviousButton.sound = confirm
+	PlayStopButton.sound = confirm
+	NextButton.sound = confirm
+	RPswitch.frame = 1
+	?!RPStop
+		?RProll.visible
+			MusicAlbum.visible = true
+			MusicName.visible = true
+		?MusicListX < 8
+			album = te.xt(LocationList[MusicListX])
+		:
+			album = LocationList[MusicListX][LangArray.IndexOf(te.language)]
+		MusicAlbum.text = album
+		MusicAlbum.w = string.Size(album)
+		?MusicAlbum.w > 7
+			MusicAlbum.x = 11 - (totaltime/20)%(MusicAlbum.w - 6)
+		:
+			MusicAlbum.x = 11
+		MusicName.text = music
+		MusicName.w = string.Size(music)
+		?MusicName.w > 7
+			MusicName.x = 10 - (totaltime/20)%(MusicName.w - 6)
+		:
+			MusicName.x = 10
+		RProll.Play()
+	:
+		MusicAlbum.visible = false
+		MusicName.visible = false
+		RProll.Pause()

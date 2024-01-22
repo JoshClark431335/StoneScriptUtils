@@ -1,0 +1,41 @@
+// Created by: LikesToast
+// V0.3
+// Draws the road for Getaway Driver
+
+var midLine = " - - - - - - - - - - - - - - - -"
+var line = "-----------------------------------"
+
+>`0,14,#white,@line@
+>`27,14,#white,@line@
+>`54,14,#white,@line@
+>`70,14,#white,@line@
+
+>`0,12,#yellow,@midLine@
+>`28,12,#yellow,@midLine@
+>`54,12,#yellow,@midLine@
+>`70,12,#yellow,@midLine@
+
+>`0,10,#white,@line@
+>`27,10,#white,@line@
+>`54,10,#white,@line@
+>`70,10,#white,@line@
+
+>`0,8,#yellow,@midLine@
+>`28,8,#yellow,@midLine@
+>`54,8,#yellow,@midLine@
+>`70,8,#yellow,@midLine@
+
+>`0,6,#white,@line@
+>`27,6,#white,@line@
+>`54,6,#white,@line@
+>`70,6,#white,@line@
+
+>`0,16,#yellow,@midLine@
+>`28,16,#yellow,@midLine@
+>`54,16,#yellow,@midLine@
+>`70,16,#yellow,@midLine@
+
+>`0,18,#white,@line@
+>`27,18,#white,@line@
+>`54,18,#white,@line@
+>`70,18,#white,@line@

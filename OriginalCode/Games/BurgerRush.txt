@@ -1,0 +1,600 @@
+// "Burger Rush" by Fyda
+// Version 1.2
+
+// CHANGELOG:
+// 1.0 - Initial release.
+// 1.1 - Change NewIngredient() to generate slightly less random results.
+// (The min and max for the RNG are now the lowest and highest ingredients
+// that can be validly placed. This makes the early game much smoother, but
+// can still generate invalid pieces later.)
+// 1.2 - Change drawing method to (hopefully) appear correctly at different
+// resolutions; add on-screen score display; add reminder text for controls;
+// decrease time limit; decrease helper travel distance (ingredients arrive
+// faster); revised art for helper's patty and plated bottom bun.
+
+// SETUP:
+// Place this file (BurgerRush.txt) in your "Stonescript/Games/" folder.
+// Then, in your Mind Stone, add this line (without the slashes in front):
+// import Games/BurgerRush
+
+// RUNNING THE SCRIPT:
+// From Locations, go to the Deadwood Waterfall.
+// To quit, you can pause and leave the level by by pressing P and then L.
+
+// GAME INSTRUCTIONS:
+
+// There are three plates on the right side of the screen.
+// The helper will deliver one ingredient to you at a time.
+
+// Press the Up and Down arrow keys to select a plate.
+// Press Z to place the current ingredient on the selected plate.
+// Press C to send away the current ingredient and get a new one.
+
+// A burger must contain all of the following ingredients:
+// 1. BOTTOM BUN
+// 2. PATTY
+// 3. CHEESE
+// 4. TOMATO
+// 5. LETTUCE
+// 6. TOP BUN
+// ... in that order.
+
+// TIPS:
+// The box on the boat shows the number corresponding to the current ingredient.
+// You can only place an ingredient with Z when the boat has reached you.
+// However, you can send the boat back with C at any time, even mid-trip.
+// Each completed burger adds more time to the counter.
+
+// Try to make as many burgers as you can before the timer runs out!
+
+// SCRIPT STARTS BELOW
+
+// positions for the plates and arrow
+var plate1X = screen.w - 57
+var plate1Y = -12
+var plate2X = screen.w - 57
+var plate2Y = -4
+var plate3X = screen.w - 57
+var plate3Y = 4
+var arrowX = screen.w - 65
+var arrowY = -10
+var arrowPos = 1
+
+// y positions for the arrow
+?arrowPos = 1
+ arrowY = -10
+?arrowPos = 2
+ arrowY = -2
+?arrowPos = 3
+ arrowY = 6
+
+// Track the top-most ingredient in each plate; use an array for RNG later
+var plate1State = 0
+var plate2State = 0
+var plate3State = 0
+var plateStateArray
+
+// Track what's in the hand
+var handState = 0
+
+// When animating the finished burger, track its X position
+var burger1AnimX = 0
+var burger2AnimX = 0
+var burger3AnimX = 0
+
+// When animating the helper, track their X position and state
+var helperAnimX = 0
+var helperState
+var helperHeldItem
+
+// Track game state
+var gameTimerTotal = 3000
+var gameTimer = 3000
+var timerReward = 300
+var gameState = 0
+var playerScore = 0
+var currentIngredientSprite
+
+// Define colours for timer countdown
+var timerColour = #ffffff
+var timerColourHigh = #00ff00
+var timerColourMed = #ffff00
+var timerColourLow = #ff0000
+
+// Set colours for ingredients
+var ingred0Color = #9f9f9f
+var ingred1Color = #f5d562
+var ingred2Color = #8f4a00
+var ingred3Color = #ffca00
+var ingred4Color = #ff0000
+var ingred5Color = #00ff00
+var ingred6Color = #f5d562
+var heldItemColor
+
+// function to spawn a random ingredient
+var rngMin = 1
+var rngMax = 6
+var rngN
+func NewIngredient()
+ plateStateArray = [plate1State, plate2State, plate3State]
+ plateStateArray.Sort()
+ rngMin = plateStateArray[0]+1
+ rngMax = plateStateArray[2]+1
+ rngN = rngMin + rng % (rngMax - rngMin + 1)
+ handState = rngN
+ 
+// ASCII art
+
+var plateSprite
+plateSprite = ascii
+#
+#
+#
+#
+##________
+.´ ------ `.
+: `------´ :
+#`--------´
+asciiend
+
+var arrowSprite
+arrowSprite = ascii
+ __|\
+|    \
+|__  /
+   |/
+asciiend
+
+var bottomBunSprite
+bottomBunSprite = ascii
+#
+#
+#
+#
+#
+#__________
+'.________.'
+asciiend
+
+var pattySprite
+pattySprite = ascii
+#
+#
+#
+#
+#
+#≡≡≡≡≡≡≡≡≡≡
+#
+asciiend
+
+var cheeseSprite
+cheeseSprite = ascii
+#
+#
+#
+#
+#╤════╤═══╤
+#γ####τ###!
+#
+asciiend
+
+var tomatoSprite
+tomatoSprite = ascii
+#
+#
+#
+#==========
+#
+#
+#
+asciiend
+
+var lettuceSprite
+lettuceSprite = ascii
+#
+#
+#εΩσραΩρεΩσ
+#
+#
+#
+#
+asciiend
+
+var topBunSprite
+topBunSprite = ascii
+###.·::·. 
+#/________\
+#
+#
+#
+#
+#
+asciiend
+
+var inboundHelper
+inboundHelper = ascii
+#
+#
+#######o/
+##___#/|
+##|X|#/#\
+\‾‾‾‾‾‾‾‾‾‾‾‾/
+#\__________/
+asciiend
+
+var readyHelper
+readyHelper = ascii
+#
+#
+#######o/
+##\###/|
+##|X|#/#\
+\‾‾‾‾‾‾‾‾‾‾‾‾/
+#\__________/
+asciiend
+
+
+var outboundHelper
+outboundHelper = ascii
+#
+#
+#######o
+##___#<|\
+##| |#/ \
+\‾‾‾‾‾‾‾‾‾‾‾‾/
+#\__________/
+asciiend
+
+// ingredient icons held by helper
+
+var heldItem0Sprite
+heldItem0Sprite = ascii
+#
+#
+#
+##___
+##| |
+asciiend
+
+var heldItem1Sprite
+heldItem1Sprite = ascii
+#########_______
+########'._____.'
+#
+#
+###1
+asciiend
+
+var heldItem2Sprite
+heldItem2Sprite = ascii
+#########____
+########(~~~~)
+#########‾‾‾‾
+#
+###2
+asciiend
+
+var heldItem3Sprite
+heldItem3Sprite = ascii
+#########____
+########/___/
+#
+#
+###3
+asciiend
+
+var heldItem4Sprite
+heldItem4Sprite = ascii
+########.-v-.
+########(___)
+#
+#
+###4
+asciiend
+
+var heldItem5Sprite
+heldItem5Sprite = ascii
+########':,:'
+########(/-\)
+#
+#
+###5
+asciiend
+
+var heldItem6Sprite
+heldItem6Sprite = ascii
+########## .---. 
+#########´'-----'`
+#
+#
+###6
+asciiend
+
+
+// DRAWING TO THE SCREEN
+
+// Initial splash screen
+?gameState = 0
+ >`10,10,#00ff00,ascii
+BURGER RUSH [version 1.2]
+by Fyda
+asciiend
+ >`55,15,#rainff,ascii
+- press Enter to begin -
+asciiend
+
+// Score display during game
+?gameState = 1
+ draw.Box(2, 5, 20, 5, #cacaca, 2)
+ >`4,6,#ffca00,SCORE:      @playerScore@
+ >`4,8,@timerColour@,TIME LEFT: @gameTimer@
+
+// Controls helper text during game
+var controlsBoxY = screen.h - 6
+?gameState < 2
+ draw.Box(2, controlsBoxY, 30, 5, #cacaca, 2)
+ >`4,@controlsBoxY@,#ffffff,ascii
+
+ ↑/↓  Select Plate
+  Z   Place Ingredient
+  C   Send Back Ingredient
+asciiend
+
+// Game over screen
+?gameState = 2
+ draw.Box(2, 5, 20, 5, #cacaca, 2)
+ >`7,6,#ff0000,GAME OVER
+ >`4,8,#ffca00,FINAL SCORE:  @playerScore@
+ >`44,15,#rainff,ascii
+- press Enter to restart -
+asciiend
+
+?gameState > 0
+ >c@plate1X@,@plate1Y@,#cacaca,@plateSprite@
+ >c@plate2X@,@plate2Y@,#cacaca,@plateSprite@
+ >c@plate3X@,@plate3Y@,#cacaca,@plateSprite@
+
+?gameState = 1
+ >c@arrowX@,@arrowY@,#rainFF,@arrowSprite@
+
+// Draw current state of each plate:
+
+// PLATE 1
+?gameState > 0
+ ?plate1State = 1
+  >c@plate1X@,@plate1Y@,@ingred1Color@,@bottomBunSprite@
+ ?plate1State = 2
+  >c@plate1X@,@plate1Y@,#f5d562,@bottomBunSprite@
+  >c@plate1X@,@plate1Y@,#8f4a00,@pattySprite@
+ ?plate1State = 3
+  >c@plate1X@,@plate1Y@,#f5d562,@bottomBunSprite@
+  >c@plate1X@,@plate1Y@,#8f4a00,@pattySprite@
+  >c@plate1X@,@plate1Y@,#ffca00,@cheeseSprite@
+ ?plate1State = 4
+  >c@plate1X@,@plate1Y@,#f5d562,@bottomBunSprite@
+  >c@plate1X@,@plate1Y@,#8f4a00,@pattySprite@
+  >c@plate1X@,@plate1Y@,#ffca00,@cheeseSprite@
+  >c@plate1X@,@plate1Y@,#ff0000,@tomatoSprite@
+ ?plate1State = 5
+  >c@plate1X@,@plate1Y@,#f5d562,@bottomBunSprite@
+  >c@plate1X@,@plate1Y@,#8f4a00,@pattySprite@
+  >c@plate1X@,@plate1Y@,#ffca00,@cheeseSprite@
+  >c@plate1X@,@plate1Y@,#ff0000,@tomatoSprite@
+  >c@plate1X@,@plate1Y@,#00ff00,@lettuceSprite@
+ ?plate1State = 6
+  burger1AnimX++
+  >c@burger1AnimX@,@plate1Y@,#f5d562,@bottomBunSprite@
+  >c@burger1AnimX@,@plate1Y@,#8f4a00,@pattySprite@
+  >c@burger1AnimX@,@plate1Y@,#ffca00,@cheeseSprite@
+  >c@burger1AnimX@,@plate1Y@,#ff0000,@tomatoSprite@
+  >c@burger1AnimX@,@plate1Y@,#00ff00,@lettuceSprite@
+  >c@burger1AnimX@,@plate1Y@,#f5d562,@topBunSprite@
+
+?gameState > 0
+ ?plate2State = 1
+  >c@plate2X@,@plate2Y@,#f5d562,@bottomBunSprite@
+ ?plate2State = 2
+  >c@plate2X@,@plate2Y@,#f5d562,@bottomBunSprite@
+  >c@plate2X@,@plate2Y@,#8f4a00,@pattySprite@
+ ?plate2State = 3
+  >c@plate2X@,@plate2Y@,#f5d562,@bottomBunSprite@
+  >c@plate2X@,@plate2Y@,#8f4a00,@pattySprite@
+  >c@plate2X@,@plate2Y@,#ffca00,@cheeseSprite@
+ ?plate2State = 4
+  >c@plate2X@,@plate2Y@,#f5d562,@bottomBunSprite@
+  >c@plate2X@,@plate2Y@,#8f4a00,@pattySprite@
+  >c@plate2X@,@plate2Y@,#ffca00,@cheeseSprite@
+  >c@plate2X@,@plate2Y@,#ff0000,@tomatoSprite@
+ ?plate2State = 5
+  >c@plate2X@,@plate2Y@,#f5d562,@bottomBunSprite@
+  >c@plate2X@,@plate2Y@,#8f4a00,@pattySprite@
+  >c@plate2X@,@plate2Y@,#ffca00,@cheeseSprite@
+  >c@plate2X@,@plate2Y@,#ff0000,@tomatoSprite@
+  >c@plate2X@,@plate2Y@,#00ff00,@lettuceSprite@
+ ?plate2State = 6
+  burger2AnimX++
+  >c@burger2AnimX@,@plate2Y@,#f5d562,@bottomBunSprite@
+  >c@burger2AnimX@,@plate2Y@,#8f4a00,@pattySprite@
+  >c@burger2AnimX@,@plate2Y@,#ffca00,@cheeseSprite@
+  >c@burger2AnimX@,@plate2Y@,#ff0000,@tomatoSprite@
+  >c@burger2AnimX@,@plate2Y@,#00ff00,@lettuceSprite@
+  >c@burger2AnimX@,@plate2Y@,#f5d562,@topBunSprite@
+ 
+ // PLATE 3
+?gameState > 0
+ ?plate3State = 1
+  >c@plate3X@,@plate3Y@,#f5d562,@bottomBunSprite@
+ ?plate3State = 2
+  >c@plate3X@,@plate3Y@,#f5d562,@bottomBunSprite@
+  >c@plate3X@,@plate3Y@,#8f4a00,@pattySprite@
+ ?plate3State = 3
+  >c@plate3X@,@plate3Y@,#f5d562,@bottomBunSprite@
+  >c@plate3X@,@plate3Y@,#8f4a00,@pattySprite@
+  >c@plate3X@,@plate3Y@,#ffca00,@cheeseSprite@
+ ?plate3State = 4
+  >c@plate3X@,@plate3Y@,#f5d562,@bottomBunSprite@
+  >c@plate3X@,@plate3Y@,#8f4a00,@pattySprite@
+  >c@plate3X@,@plate3Y@,#ffca00,@cheeseSprite@
+  >c@plate3X@,@plate3Y@,#ff0000,@tomatoSprite@
+ ?plate3State = 5
+  >c@plate3X@,@plate3Y@,#f5d562,@bottomBunSprite@
+  >c@plate3X@,@plate3Y@,#8f4a00,@pattySprite@
+  >c@plate3X@,@plate3Y@,#ffca00,@cheeseSprite@
+  >c@plate3X@,@plate3Y@,#ff0000,@tomatoSprite@
+  >c@plate3X@,@plate3Y@,#00ff00,@lettuceSprite@
+ ?plate3State = 6
+  burger3AnimX++
+  >c@burger3AnimX@,@plate3Y@,#f5d562,@bottomBunSprite@
+  >c@burger3AnimX@,@plate3Y@,#8f4a00,@pattySprite@
+  >c@burger3AnimX@,@plate3Y@,#ffca00,@cheeseSprite@
+  >c@burger3AnimX@,@plate3Y@,#ff0000,@tomatoSprite@
+  >c@burger3AnimX@,@plate3Y@,#00ff00,@lettuceSprite@
+  >c@burger3AnimX@,@plate3Y@,#f5d562,@topBunSprite@
+
+// Reset the burger animation position once it's off-screen.
+// Also reset the plate state.
+?burger1AnimX > 91
+ plate1State = 0
+ burger1AnimX = 0
+?burger2AnimX > 91
+ plate2State = 0
+ burger2AnimX = 0
+?burger3AnimX > 91
+ plate3State = 0
+ burger3AnimX = 0
+
+// Set the helper's currently held item sprite
+?handState = 0
+ helperHeldItem = heldItem0Sprite
+ heldItemColor = ingred0Color
+?handState = 1
+ helperHeldItem = heldItem1Sprite
+ heldItemColor = ingred1Color
+?handState = 2
+ helperHeldItem = heldItem2Sprite
+ heldItemColor = ingred2Color
+?handState = 3
+ helperHeldItem = heldItem3Sprite
+ heldItemColor = ingred3Color
+?handState = 4
+ helperHeldItem = heldItem4Sprite
+ heldItemColor = ingred4Color
+?handState = 5
+ helperHeldItem = heldItem5Sprite
+ heldItemColor = ingred5Color
+?handState = 6
+ helperHeldItem = heldItem6Sprite
+ heldItemColor = ingred6Color
+
+// Animate helper arriving; switch to ready state when arrived
+?helperState = 0
+ ?helperAnimX < 23
+  helperAnimX++
+  >`@helperAnimX@,11,#ffffff,@inboundHelper@
+  >`@helperAnimX@,11,@heldItemColor@,@helperHeldItem@
+ :
+  helperState = 1
+
+// Animate helper standing by
+?helperState = 1
+ >`@helperAnimX@,11,#ffffff,@readyHelper@
+ >`@helperAnimX@,11,@heldItemColor@,@helperHeldItem@
+
+// Animate helper leaving, clearing the hand; when off screen, switch back to arriving state
+?helperState = 2
+ ?helperAnimX > -14
+  helperAnimX--
+  >`@helperAnimX@,11,#ffffff,@outboundHelper@
+ :
+  ?gameState = 1
+   NewIngredient()
+   helperState = 0
+
+// BIND KEYS TO ACTIONS
+
+// Move the arrow when the player presses Up or Down (wraps around)
+?gameState = 1
+ ?key = downBegin
+  ?arrowPos < 3
+   arrowPos++
+  :
+   arrowPos = 1
+ ?key = upBegin
+  ?arrowPos > 1
+   arrowPos--
+  :
+   arrowPos = 3
+
+// When Z is pressed, check if ingredient is the next correct one. If so,
+// update plate and clear the hand. Otherwise, show an error.
+?gameState = 1
+ ?key = bumpLBegin
+  ?helperState = 1
+   ?arrowPos = 1
+    ?handState = plate1State+1
+     plate1State++
+     play treasure_item_pop
+     handState = 0
+     helperState = 2
+    :
+     play error
+    ?plate1State = 6
+     playerScore++
+     gameTimer = gameTimer + timerReward
+     play treasure_item_show
+     burger1AnimX = plate1X
+   ?arrowPos = 2
+    ?handState = plate2State+1
+     plate2State++
+     play treasure_item_pop
+     handState = 0
+     helperState = 2
+    :
+     play error
+    ?plate2State = 6
+     playerScore++
+     gameTimer = gameTimer + timerReward
+     play treasure_item_show
+     burger2AnimX = plate2X
+   ?arrowPos = 3
+    ?handState = plate3State+1
+     plate3State++
+     play treasure_item_pop
+     handState = 0
+     helperState = 2
+    :
+     play error
+    ?plate3State = 6
+     playerScore++
+     gameTimer = gameTimer + timerReward
+     play treasure_item_show
+     burger3AnimX = plate3X
+
+// When C is pressed, send helper away to replace ingredient
+?gameState = 1
+ ?key = bumpRBegin
+  helperState = 2
+
+// When Enter is pressed, start the game
+?key = primaryBegin & gameState ! 1
+ gameTimer = gameTimerTotal
+ gameState = 1
+ handState = 1
+ plate1State = 0
+ plate2State = 0
+ plate3State = 0
+ helperState = 0
+ playerScore = 0
+
+// Tick down game timer, and end game when it runs out
+?gameState = 1
+ gameTimer--
+ ?gameTimer > gameTimerTotal / 2
+  timerColour = timerColourHigh
+ ?gameTimer < gameTimerTotal / 2 & gameTimer > gameTimerTotal / 4
+  timerColour = timerColourMed
+ ?gameTimer < gameTimerTotal / 4
+  timerColour = timerColourLow
+ ?gameTimer <= 0
+  gameState = 2
+  helperState = 2

@@ -1,0 +1,21 @@
+// Author: mr doo doo fart (or Cem )
+// v1.0
+
+// Instruction:
+// import Cosmetics/SleepyStonehead
+
+// Hat
+>h-3,-2,#rainbow,ascii
+#____
+/____|
+o
+asciiend
+
+// Scarf
+>h-2,1,#blue,ascii
+#==:
+|
+asciiend
+
+// Eyes
+>h-2,0,#white,( --)

@@ -1,0 +1,1503 @@
+// SSRPG Idle By: xXAceShadowXx, Raeborga, and Fyda
+// v1.0
+// huge thanks to Ofek DarkLucifer69 and InfinitySamurai
+
+disable hud
+disable player
+
+var shortTermTimer = 0
+var resourceautotimer = 0
+var maxautotimer = 0
+var totalTicks = 0
+var dialogue = 1
+var resourceselected = 0
+var gameStage = 0
+var display = 0
+var abletomove = 0
+var resourcesunlocked = 0
+var maths=0
+var maths2 = 0
+var upgradesunlocked = 0
+var selectedsection = 2
+var itemnext=0
+var unlockeditems = 0
+var stonewoodconversionratio = 100
+var woodtarconversionratio = 100
+var tarbronzeconversionratio = 100
+var karma = 0
+var reward = 0
+//make cheat 1 if you want to cheat :p
+var cheat = 0
+var locationstarting = 0
+
+// get the bottom 2 lines of the screen so we can draw instructions there
+var instructionsLine1
+instructionsLine1 = screen.h - 2
+var instructionsLine2
+instructionsLine2 = screen.h - 1
+
+// Upgrade table positions and widths
+var columnWidth = 17
+var upgradeColumnStartPosX = 17
+var upgradeTableStartYPos = 5
+// Position of the cursor for upgrades
+var cursorPosX = 14
+var cursorPosY = 6
+var upgradeselectedX = 1
+var upgradeselectedY = 1
+var upgradeselectedMaxY = 1
+//totalmultiplier stuff
+var totalmultiplier = 1
+totalmultiplier = stonemultiplier + woodmultiplier + tarmultiplier + bronzemultiplier + 1
+
+//items
+
+
+
+var item1price = 2000
+var item2price = 4000
+var item3price = 8000
+
+
+//upgrade vars
+//cap
+var capupgradepriceincrease = 100
+var capupgrademultiplyer = 100
+//click amnt
+var clickupgradepriceincrease = 2
+var clickupgradeamountincrease = 1
+//auto
+var autoupgradepriceincrease = 100
+var autoupgradeamountincrease = 1
+//auto max
+var autostorageupgradepriceincrease = 1000
+var autostorageupgradeamountincrease = 1
+//multiplier
+var multiplierupgradepriceincrease = 2
+var multiplierupgradeamountincrease = 1
+
+//         stone vars
+
+var stones = 0
+var stoneupgradeunlocks = 0
+var stonecap = 50
+var stoneclick = 1
+var stoneauto = 0
+var stoneautostorage = 0
+var stonemultiplier = 0
+//stone prices
+var stonecapupgrade = 50
+var stoneclickupgrade = 100
+var stoneautoupgrade = 200
+var stoneautostorageupgrade = 500
+var stonemultiplierupgrade = 751
+
+//wood vars
+var wood = 0
+var woodupgradeunlocks = 0
+var woodcap = 50
+var woodclick = 1
+var woodauto = 0
+var woodautostorage = 0
+var woodmultiplier = 0
+//wood prices
+var woodcapupgrade = 50
+var woodclickupgrade = 100
+var woodautoupgrade = 100
+var woodautostorageupgrade = 1000
+var woodmultiplierupgrade = 1500
+
+//tar vars
+var tar = 0
+var tarupgradeunlocks = 0
+var tarcap = 50
+var tarclick = 1
+var tarauto = 0
+var tarautostorage = 0
+var tarmultiplier = 0
+//tar prices
+var tarcapupgrade = 50
+var tarclickupgrade = 100
+var tarautoupgrade = 100
+var tarautostorageupgrade = 1000
+var tarmultiplierupgrade = 1500
+
+//bronze vars
+var bronze = 0
+var bronzeupgradeunlocks = 0
+var bronzecap = 50
+var bronzeclick = 1
+var bronzeauto = 0
+var bronzeautostorage = 0
+var bronzemultiplier = 0
+//bronze prices
+var bronzecapupgrade = 50
+var bronzeclickupgrade = 100
+var bronzeautoupgrade = 100
+var bronzeautostorageupgrade = 1000
+var bronzemultiplierupgrade = 1500
+
+//                                               artwork
+
+// shopkeeper
+var shopkeeperArt ="\n
+^#######.-.###\n
+^######(==')##\n
+^#####[>`.´###\n
+^######\/|\o##\n
+^####<¯¯] \###\n
+^####´¯¯`#####"
+
+// shady guy
+var shadyGuyArt ="\n
+^######_####\n
+^#####{ )###\n
+^###┌┐_/`###\n
+^####│/ /\##\n
+^####│#(\_|_"
+
+
+// Stan
+var stanArt = "\n
+^######.-.####\n
+^####O(-- )###\n
+^####\_`.´_###\n
+^#######╤#O,\n
+^######/#\##"
+
+// Arvid
+var arvidArt = "\n
+^#######.-.#♣\n
+^######(~~ )├\n
+^#######`.´_,\n
+^####>8´#╤##┤\n
+^#######/#\#├"
+
+// Blakely
+var blakelyArt = "\n
+^##########_,~#\n
+^#####_,-.( )##\n
+^####(~) ∞.´\\#\n
+^#####¯#`-´##``"
+
+// black box
+var blackBoxArt = "\n
+^######_\`-´/##\n
+^#####|\ \_/ \#\n
+^#####| \_____\\n
+^####╔══|     |\n
+^####!| | ??? |\n
+^####:.\|_____|"
+
+var item1 = "\n\n\n
+^##### _o/¯\####\n
+^#####/.¯, /`O##\n
+^#####¯¯`¯¯¯¯¯"
+
+
+// hang-glider
+var item2 = "\n
+^########</|>######\n
+^###,####/ |######,\n
+^##,####/  |#####,#\n
+^#/¯¯¯¯¯¯¯¯¯¯¯¯¯¯/#\n
+^/______________/`#\n
+^/____|\O/|;____/##\n
+^#####\¯¯¯/########\n
+^####o´¯¯¯`o#######"
+
+
+var item3 = "
+^####|\#####\n
+^####| \####\n
+^####\  \###\n
+^#####\ |###\n
+^#####|\|###\n
+^/\___|___/\\n
+^\ \_______/\n
+^#`-------´###"
+
+// Walker
+var walkerArt = "\n
+^######♫#└O┘#####\n
+^#######./|)#####\n
+^######_|/ \\_###\n
+^#_###/\`¯¯¯'/###\n
+^::\-/ /`-|-'\###\n
+^.;/-'O###O###O##\n
+^.¯#..)###|###("
+
+
+?cheat = 1
+ karma ++
+ stoneclick = 1000
+ woodclick = 1000
+ tarclick = 1000
+ bronzeclick = 1000
+
+
+
+//                                                        Setup
+
+
+//clearing the screen
+>`0,0,#ffffff,  
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+^                                                                                                  \n
+shortTermTimer ++
+totalTicks ++
+resourceautotimer ++
+maxautotimer++
+
+
+//                 auto production
+?resourceautotimer >= 10 | reward = 2 & resourcetimer = 1
+ stones = stones + stoneauto
+ stones = stones - woodauto
+ wood = wood+ woodauto
+ wood = wood - tarauto
+ tar = tar + tarauto
+ tar = tar - bronzeauto
+ bronze = bronze + bronzeauto
+ resourceautotimer = 0
+
+?maxautotimer > 150
+ stonecap = stonecap + stoneautostorage
+ woodcap = woodcap+ woodautostorage
+ tarcap = tarcap + tarautostorage
+ bronzecap = bronzecap + bronzeautostorage
+ maxautotimer = 0
+
+//                                    upgrade names
+?upgradesunlocked > 0
+ var descriptionColumnStartPosX = 0
+ >`@descriptionColumnStartPosX@,@upgradeTableStartYPos@,#ffffff,\n
+ ^Storage Space\n
+ ?upgradesunlocked > 1
+  >`@descriptionColumnStartPosX@,@upgradeTableStartYPos@,#ffffff,\n\n
+^Tools\n
+  ?upgradesunlocked > 2
+   >`@descriptionColumnStartPosX@,@upgradeTableStartYPos@,#ffffff,\n\n\n
+^Workers\n
+   ?upgradesunlocked > 3
+    >`@descriptionColumnStartPosX@,@upgradeTableStartYPos@,#ffffff,\n\n\n\n
+^Expanding Storage\n
+    ?upgradesunlocked > 4
+     >`@descriptionColumnStartPosX@,@upgradeTableStartYPos@,#ffffff,\n\n\n\n\n
+^Multiplier
+
+//                                                                    code resources
+
+
+//                                           items 
+?itemnext = 1
+ >`15,14,#ffffff,
+ ^@item1@\n
+ ^Cost: @item1price@ Stones
+?itemnext = 2
+ >`35,13,#ffffff,
+ ^@item2@\n
+ ^Cost: @item2price@ Wood
+?itemnext = 3
+ >`45,15,#ffffff,
+ ^@item3@\n
+ ^Cost: @item3price@ Tar
+
+
+?unlockeditems > 0
+ >`15,17,#ffffff,
+ ^@item1@\n
+ ?unlockeditems > 1
+  >`35,13,#ffffff,
+  ^@item2@\n
+  ?unlockeditems > 2
+   >`45,15,#ffffff,
+   ^@item3@\n
+ 
+//                                          upgrade code
+
+
+
+var stoneColumnPos = upgradeColumnStartPosX
+?stoneupgradeunlocks > 0
+ >`@stoneColumnPos@,@upgradeTableStartYPos@,#888c8d,
+^ Stone Upgrades\n
+ >`@stoneColumnPos@,@upgradeTableStartYPos@,#ffffff,\n
+ ^ Cost: @stonecapupgrade@\n
+ ?stoneupgradeunlocks >1
+  >`@stoneColumnPos@,@upgradeTableStartYPos@,#ffffff,\n\n
+  ^ Cost: @stoneclickupgrade@\n
+  ?stoneupgradeunlocks >2
+   >`@stoneColumnPos@,@upgradeTableStartYPos@,#ffffff,\n\n\n
+   ^ Cost: @stoneautoupgrade@\n
+   ?stoneupgradeunlocks >3
+    >`@stoneColumnPos@,@upgradeTableStartYPos@,#ffffff,\n\n\n\n
+    ^ Cost: @stoneautostorageupgrade@\n
+    ?stoneupgradeunlocks >4
+     >`@stoneColumnPos@,@upgradeTableStartYPos@,#ffffff,\n\n\n\n\n
+     ^ Cost: @stonemultiplierupgrade@
+
+var woodColumnPos = upgradeColumnStartPosX + columnWidth
+?woodupgradeunlocks > 0
+ >`@woodColumnPos@,@upgradeTableStartYPos@,#caa472,
+^ Wood Upgrades\n
+ >`@woodColumnPos@,@upgradeTableStartYPos@,#ffffff,\n
+ ^ Cost: @woodcapupgrade@\n
+ ?woodupgradeunlocks >1
+  >`@woodColumnPos@,@upgradeTableStartYPos@,#ffffff,\n\n
+  ^ Cost: @woodclickupgrade@\n
+  ?woodupgradeunlocks >2
+   >`@woodColumnPos@,@upgradeTableStartYPos@,#ffffff,\n\n\n
+   ^ Cost: @woodautoupgrade@\n
+   ?woodupgradeunlocks >3
+    >`@woodColumnPos@,@upgradeTableStartYPos@,#ffffff,\n\n\n\n
+    ^ Cost: @woodautostorageupgrade@\n
+    ?woodupgradeunlocks >4
+     >`@woodColumnPos@,@upgradeTableStartYPos@,#ffffff,\n\n\n\n\n
+     ^ Cost: @woodmultiplierupgrade@
+
+var tarColumnPos = upgradeColumnStartPosX + columnWidth * 2
+?tarupgradeunlocks > 0
+ >`@tarColumnPos@,@upgradeTableStartYPos@,#4d4e4f,
+^ Tar Upgrades\n
+ >`@tarColumnPos@,@upgradeTableStartYPos@,#ffffff,\n
+ ^ Cost: @tarcapupgrade@\n
+ ?tarupgradeunlocks >1
+  >`@tarColumnPos@,@upgradeTableStartYPos@,#ffffff,\n\n
+  ^ Cost: @tarclickupgrade@\n
+  ?tarupgradeunlocks >2
+   >`@tarColumnPos@,@upgradeTableStartYPos@,#ffffff,\n\n\n
+   ^ Cost: @tarautoupgrade@\n
+   ?tarupgradeunlocks >3
+    >`@tarColumnPos@,@upgradeTableStartYPos@,#ffffff,\n\n\n\n
+    ^ Cost: @tarautostorageupgrade@\n
+    ?tarupgradeunlocks >4
+     >`@tarColumnPos@,@upgradeTableStartYPos@,#ffffff,\n\n\n\n\n
+     ^ Cost: @tarmultiplierupgrade@
+
+var bronzeColumnPos = upgradeColumnStartPosX + columnWidth * 3
+?bronzeupgradeunlocks > 0
+ >`@bronzeColumnPos@,@upgradeTableStartYPos@,#cd7f32,
+^ Bronze Upgrades\n
+ >`@bronzeColumnPos@,@upgradeTableStartYPos@,#ffffff,\n
+ ^ Cost: @bronzecapupgrade@\n
+ ?bronzeupgradeunlocks >1
+  >`@bronzeColumnPos@,@upgradeTableStartYPos@,#ffffff,\n\n
+  ^ Cost: @bronzeclickupgrade@\n
+  ?bronzeupgradeunlocks >2
+   >`@bronzeColumnPos@,@upgradeTableStartYPos@,#ffffff,\n\n\n
+   ^ Cost: @bronzeautoupgrade@\n
+   ?bronzeupgradeunlocks >3
+    >`@bronzeColumnPos@,@upgradeTableStartYPos@,#ffffff,\n\n\n\n
+    ^ Cost: @bronzeautostorageupgrade@\n
+    ?bronzeupgradeunlocks >4
+     >`@bronzeColumnPos@,@upgradeTableStartYPos@,#ffffff,\n\n\n\n\n
+     ^ Cost: @bronzemultiplierupgrade@
+
+
+//                                                                           top bar display
+//one more then you think it is :D
+?display = 1
+ >`@stoneColumnPos@,0,#ffffff, o @stones@
+?display >1
+ >`@stoneColumnPos@,0,#ffffff, o @stones@/@stonecap@
+ ?display > 2
+  >`@woodColumnPos@,0,#ffffff, _/`@wood@/@woodcap@
+  ?display > 3
+   >`@tarColumnPos@,0,#ffffff, ≈@tar@/@tarcap@
+   ?display > 4
+    >`@bronzeColumnPos@,0,#ffffff, :.@bronze@/@bronzecap@
+    
+    
+//                                                                             clicking
+?key = bumpREnd
+ ?resourceselected=1
+  stones = stones + stoneclick
+ ?resourceselected=2
+  ?stones >= stonewoodconversionratio
+   wood = wood + woodclick
+   stones = stones - stonewoodconversionratio
+ ?resourceselected=3
+  ?wood >= woodtarconversionratio
+   tar = tar + tarclick
+   wood = wood - woodtarconversionratio
+   ?dialogueonoff = 7
+    dialogueonoff = 1
+ ?resourceselected=4
+  ?tar >= tarbronzeconversionratio
+   bronze = bronze + bronzeclick
+   tar = tar - tarbronzeconversionratio
+   ?dialogueonoff = 10
+    dialogueonoff = 1
+//game sequence stuff
+ ?resourceselected=0
+  gameStage ++
+  resourceselected=1
+  shortTermTimer=0
+  
+//cap restriction on resources
+?stones > stonecap
+ stones = stonecap
+?wood > woodcap
+ wood = woodcap
+?tar > tarcap
+ tar = tarcap
+?bronze > bronzecap
+ bronze = bronzecap
+ 
+ 
+ //                                            cursor 
+?abletomove > 0
+ >`@cursorPosX@,@cursorPosY@,#ffffff,-->
+ 
+ 
+ 
+//                          area / resource selected
+?resourcesunlocked>1
+ ?resourceselected=1
+  >`3,2,#ffffff,
+^______________________\n
+^│<  Rocky Plateau   >│\n
+^¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+ ?resourceselected=2
+   >`3,2,#ffffff,
+^______________________\n
+^│< Deadwood Canyon  >│\n
+^¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+ ?resourceselected=3
+   >`3,2,#ffffff,
+^______________________\n
+^│<  Caves of Fear   >│\n
+^¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+ ?resourceselected=4
+  >`3,2,#ffffff,
+^______________________\n
+^│<   Boiling Mine   >│\n
+^¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+
+
+
+
+//                                             moving 
+
+
+
+//shift key stuff
+selectedsection=2
+?key = ability1
+ selectedsection=1
+ 
+ 
+ 
+//general moving
+?abletomove > 0
+
+
+//left
+ ?key = leftBegin
+ //area
+  ?selectedsection = 1
+   resourceselected --
+   ?resourceselected < 1
+    resourceselected = 1
+
+//upgrades
+  ? selectedsection = 2
+   upgradeselectedX--
+   cursorPosX--
+   cursorPosX=cursorPosX-columnWidth+1
+   maths = upgradeColumnStartPosX-3
+   ?cursorPosX < maths
+    cursorPosX = maths
+   ?upgradeselectedX<1
+    upgradeselectedX=1
+
+//right
+ ?key = rightBegin
+ //area
+  ?selectedsection = 1
+   resourceselected ++
+   ?resourceselected > resourcesunlocked
+    resourceselected = resourcesunlocked 
+//upgrades
+  ? selectedsection = 2
+   cursorPosX++
+   upgradeselectedX++
+   cursorPosX=columnWidth+cursorPosX-1
+   maths = resourcesunlocked*columnWidth+14
+   ?cursorPosX > maths
+    cursorPosX = maths
+   ?upgradeselectedX>resourcesunlocked
+    upgradeselectedX=resourcesunlocked
+//up
+ ?key=upBegin
+  ? selectedsection = 2
+   cursorPosY--
+   upgradeselectedY--
+   ?cursorPosY < 6
+    cursorPosY=6
+   ?upgradeselectedY<1
+    upgradeselectedY=1
+   
+//down
+ ?key=downBegin
+  ? selectedsection = 2
+   cursorPosY++
+   upgradeselectedY++
+   maths = cursorposy//
+   ?cursorPosY > 10
+    cursorPosY=10
+   ?upgradeselectedX = 1
+    ?upgradeselectedY > stoneupgradeunlocks
+     upgradeselectedY = stoneupgradeunlocks
+
+   ?upgradeselectedX = 2
+    ?upgradeselectedY > woodupgradeunlocks
+     upgradeselectedY = woodupgradeunlocks
+
+   ?upgradeselectedX = 3
+    ?upgradeselectedY > tarupgradeunlocks
+     upgradeselectedY = tarupgradeunlocks
+
+   ?upgradeselectedX = 4
+    ?upgradeselectedY > bronzeupgradeunlocks
+     upgradeselectedY = bronzeupgradeunlocks
+
+   ?upgradeselectedMaxY>5
+    upgradeselectedMaxY=5
+    //TODO - resourceselected 3
+
+//fixes because this code is bad
+
+?cursorPosY < 6
+ cursorPosY=6
+?upgradeselectedY< 1
+ upgradeselectedY = 1
+
+
+//                                                                          actually upgrading hopefully
+?key = backEnd
+ //                       items
+ ?selectedsection = 1
+  ?itemnext = 1 & stones >= item1price
+   stones = stones - item1price
+   resourcesunlocked = 2
+   woodupgradeunlocks ++
+   display = 3
+   itemnext = 0
+   unlockeditems = 1
+   dialogueonoff = 1
+  ?itemnext = 2
+   ?wood >= item2price
+    wood = wood - item2price
+    resourcesunlocked = 3
+    tarupgradeunlocks ++
+    display = 4
+    itemnext = 0
+    dialogueonoff = 1
+    unlockeditems = 2
+  ?itemnext = 3
+   ?tar >= item3price
+    tar = tar - item3price
+    resourcesunlocked =4
+    bronzeupgradeunlocks ++
+    display = 5
+    itemnext = 0
+    dialogueonoff = 1
+    unlockeditems = 3
+ //stones
+ ?selectedsection = 2
+  ?upgradeselectedX = 1
+ //cap
+   ?upgradeselectedY = 1 & stones >= stonecapupgrade
+    stones = stones - stonecapupgrade
+    stonecapupgrade = stonecapupgrade+capupgradepriceincrease
+    stonecap=stonecap+capupgrademultiplyer*totalmultiplier
+ //click amnt
+   ?upgradeselectedY = 2 & stones >= stoneclickupgrade
+    stones = stones - stoneclickupgrade
+    ?reward = 1 
+     stoneclickupgrade = stoneclickupgrade+100
+    :
+     stoneclickupgrade = stoneclickupgrade*clickupgradepriceincrease
+    stoneclick=stoneclick+clickupgradeamountincrease*totalmultiplier
+ //auto
+   ?upgradeselectedY = 3 & stones >= stoneautoupgrade
+    stones = stones - stoneautoupgrade
+    stoneautoupgrade = stoneautoupgrade+autoupgradepriceincrease
+    stoneauto=stoneauto+autoupgradeamountincrease*totalmultiplier
+    karma++
+ //auto max
+   ?upgradeselectedY = 4 & stones >= stoneautostorageupgrade
+    stones = stones - stoneautostorageupgrade
+    stoneautostorageupgrade = stoneautostorageupgrade+autostorageupgradepriceincrease
+    stoneautostorage=stoneautostorage+autostorageupgradeamountincrease*totalmultiplier
+ //multiplier
+   ?upgradeselectedY = 5 & stones >= stonemultiplierupgrade
+    stones = stones - stonemultiplierupgrade
+    stonemultiplierupgrade = (stonemultiplierupgrade*multiplierupgradepriceincrease)+3000
+    stonemultiplier=stonemultiplier+multiplierupgradeamountincrease
+//wood
+  ?upgradeselectedX = 2
+ //cap
+   ?upgradeselectedY = 1 & wood >= woodcapupgrade
+    wood = wood - woodcapupgrade
+    woodcapupgrade = woodcapupgrade+capupgradepriceincrease
+    woodcap=woodcap+capupgrademultiplyer*totalmultiplier
+ //click amnt
+   ?upgradeselectedY = 2 & wood >= woodclickupgrade
+    wood = wood - woodclickupgrade
+    ?reward = 1 
+     woodclickupgrade = woodclickupgrade+100
+    :
+     woodclickupgrade = woodclickupgrade*clickupgradepriceincrease
+    woodclick=woodclick+clickupgradeamountincrease*totalmultiplier
+ //auto
+   ?upgradeselectedY = 3 & wood >= woodautoupgrade
+    wood = wood - woodautoupgrade
+    woodautoupgrade = woodautoupgrade+autoupgradepriceincrease
+    woodauto=woodauto+autoupgradeamountincrease*totalmultiplier
+    karma++
+ //auto max
+   ?upgradeselectedY = 4 & wood >= woodautostorageupgrade
+    wood = wood - woodautostorageupgrade
+    woodautostorageupgrade = woodautostorageupgrade+autostorageupgradepriceincrease
+    woodautostorage=woodautostorage+autostorageupgradeamountincrease*totalmultiplier
+ //multiplier
+   ?upgradeselectedY = 5 & wood >= woodmultiplierupgrade
+    wood = wood - woodmultiplierupgrade
+    woodmultiplierupgrade = (woodmultiplierupgrade*multiplierupgradepriceincrease)+3000
+    woodmultiplier=woodmultiplier+multiplierupgradeamountincrease
+//tar
+  ?upgradeselectedX = 3
+ //cap
+   ?upgradeselectedY = 1 & tar >= tarcapupgrade
+    tar = tar - tarcapupgrade
+    tarcapupgrade = tarcapupgrade+capupgradepriceincrease
+    tarcap=tarcap+capupgrademultiplyer*totalmultiplier
+ //click amnt
+   ?upgradeselectedY = 2 & tar >= tarclickupgrade
+    tar = tar - tarclickupgrade
+    ?reward = 1 
+     tarclickupgrade = tarclickupgrade+100
+    :
+     tarclickupgrade = tarclickupgrade*clickupgradepriceincrease
+    tarclick=tarclick+clickupgradeamountincrease*totalmultiplier
+ //auto
+   ?upgradeselectedY = 3 & tar >= tarautoupgrade
+    tar = tar - tarautoupgrade
+    tarautoupgrade = tarautoupgrade+autoupgradepriceincrease
+    tarauto=tarauto+autoupgradeamountincrease*totalmultiplier
+    karma++
+ //auto max
+   ?upgradeselectedY = 4 & tar >= tarautostorageupgrade
+    tar = tar - tarautostorageupgrade
+    tarautostorageupgrade = tarautostorageupgrade+autostorageupgradepriceincrease
+    tarautostorage=tarautostorage+autostorageupgradeamountincrease*totalmultiplier
+ //multiplier
+   ?upgradeselectedY = 5 & tar >= tarmultiplierupgrade
+    tar = tar - tarmultiplierupgrade
+    tarmultiplierupgrade = (tarmultiplierupgrade*multiplierupgradepriceincrease)+3000
+    tarmultiplier=tarmultiplier+multiplierupgradeamountincrease
+//bronze
+  ?upgradeselectedX = 4
+ //cap
+   ?upgradeselectedY = 1 & bronze >= bronzecapupgrade
+    bronze = bronze - bronzecapupgrade
+    bronzecapupgrade = bronzecapupgrade+capupgradepriceincrease
+    bronzecap=bronzecap+capupgrademultiplyer*totalmultiplier
+ //click amnt
+   ?upgradeselectedY = 2 & bronze >= bronzeclickupgrade
+    bronze = bronze - bronzeclickupgrade
+    ?reward = 1 
+     bronzeclickupgrade = bronzeclickupgrade+100
+    :
+     bronzeclickupgrade = bronzeclickupgrade*clickupgradepriceincrease
+    bronzeclick=bronzeclick+clickupgradeamountincrease*totalmultiplier
+ //auto
+   ?upgradeselectedY = 3 & bronze >= bronzeautoupgrade
+    bronze = bronze - bronzeautoupgrade
+    bronzeautoupgrade = bronzeautoupgrade+autoupgradepriceincrease
+    bronzeauto=bronzeauto+autoupgradeamountincrease*totalmultiplier
+    karma++
+ //auto max
+   ?upgradeselectedY = 4 & bronze >= bronzeautostorageupgrade
+    bronze = bronze - bronzeautostorageupgrade
+    bronzeautostorageupgrade = bronzeautostorageupgrade+autostorageupgradepriceincrease
+    bronzeautostorage=bronzeautostorage+autostorageupgradeamountincrease*totalmultiplier
+ //multiplier
+   ?upgradeselectedY = 5 & bronze >= bronzemultiplierupgrade
+    bronze = bronze - bronzemultiplierupgrade
+    bronzemultiplierupgrade = (bronzemultiplierupgrade*multiplierupgradepriceincrease)+3000
+    bronzemultiplier=bronzemultiplier+multiplierupgradeamountincrease
+   
+
+
+
+//getting the menu to work fully 
+
+?upgradeselectedX = 1
+ maths2 = cursorPosY - 5
+ ?stoneupgradeunlocks < maths2
+  cursorPosY = stoneupgradeunlocks + 5
+  upgradeselectedY = stoneupgradeunlocks
+?upgradeselectedX = 2
+ maths2 = cursorPosY - 5
+ ?woodupgradeunlocks < maths2
+  cursorPosY = woodupgradeunlocks + 5
+  upgradeselectedY = woodupgradeunlocks
+?upgradeselectedX = 3
+ maths2 = cursorPosY - 5
+ ?tarupgradeunlocks < maths2
+  cursorPosY = tarupgradeunlocks + 5
+  upgradeselectedY = tarupgradeunlocks
+?upgradeselectedX = 4
+ maths2 = cursorPosY - 5
+ ?bronzeupgradeunlocks < maths2
+  cursorPosY = bronzeupgradeunlocks + 5
+  upgradeselectedY = bronzeupgradeunlocks
+  
+  
+
+
+
+//                                                   dialog
+
+// Dialogue strings for intro sequence
+//                    =======================================================
+var dialogueIntro9 = "                            o"
+var dialogueIntro0 = "                    PRESS C TO BEGIN"
+var dialogueIntro1 = "                    You see nothing."
+var dialogueIntro2 = "                    You hear nothing."
+var dialogueIntro3 = "                          Wait --"
+var dialogueIntro4 = "                 Didn't we just do this?"
+var dialogueIntro5 = "                  Let me put this back."
+var dialogueIntro6 = "      Now you can get to collecting those stones."
+
+//                                                                       start sequence
+?gameStage = 0
+ ?shortTermTimer >=100 & gameStage = 0 & shortTermTimer <= 130
+  >`15,15,#ffffff,@dialogueIntro9@
+ ?shortTermTimer >= 160 
+  shortTermTimer = 99
+ ?totalTicks > 200 & gameStage = 0
+   >`15,17,#ffffff,@dialogueIntro0@
+  
+//intro
+?shortTermTimer >= 0 & gameStage = 1 
+ >`15,17,#ffffff,@dialogueIntro1@
+ ?shortTermTimer >= 50
+  shortTermTimer=0
+  gameStage=2
+ 
+?shortTermTimer >= 0 & gameStage = 2
+ >`15,17,#ffffff,@dialogueIntro2@
+ ?shortTermTimer = 90
+  shortTermTimer=0
+  gameStage=3
+ 
+ 
+ var helpnumber = 0
+?shortTermTimer >= 30 & gameStage = 3
+ >`15,17,#ffffff,@dialogueIntro3@
+ ?shortTermTimer > 50 & shortTermTimer < 100
+  >`15,17,#ffffff,@dialogueIntro4@
+ ?shortTermTimer >= 100 & shortTermTimer < 150
+  >`15,17,#ffffff,@dialogueIntro5@
+ ?shortTermTimer >= 150
+  display = 1
+ ?shortTermTimer >= 150
+//playing the game
+  >`15,17,#ffffff,@dialogueIntro6@
+  helpnumber = 1
+  ?stones >= 10
+   gameStage = 4
+   shortTermTimer = 0
+   
+   
+?stones >= 30 & stoneupgradeunlocks = 0
+ stoneupgradeunlocks = 1
+ gameStage = 5
+ shortTermTimer = 0
+ display = 2
+ 
+// introducing upgrades
+var dialogueUpgrades0 = "Looks like you're having trouble carrying all those stones."
+var dialogueUpgrades1 = "Why don't you put them down?"
+var dialogueUpgrades2 = "Are you afraid someone will steal them?"
+var dialogueUpgrades3 = "Don't worry, I'll keep an eye on them."
+var dialogueUpgrades4 = "You want to collect more stones?"
+var dialogueUpgrades5 = "You can make a bigger pile, but it'll be messy..."
+var dialogueUpgrades6 = "I can sell you some tarps to hold it together."
+
+// trigger at 90 stones: introduce shadowy dude who will bring in "workers" for a price
+
+var sequence1number1 = "Well hello there."
+var sequence1number2 = "This is a cute operation you've got going on."
+var sequence1number3 = "You won't get very far here all alone, though."
+var sequence1number4 = "But don't worry, I can help. I know a guy."
+var sequence1number5 = "And he knows a guy."
+var sequence1number6 = "Long story short, I can get you some good workers... for a price."
+var sequence1number7 = "They're not easy to find... or convince. But they do like resources."
+var sequence1number8 = "So how about it? I get you workers, you pay me a finder's fee."
+var sequence1number9 = "My guys always love new customers."
+var sequence1number10 = "Bring me 200 stones and I might be able to set something up."
+var sequence1number11 = "Oh, they call you Pusher, eh? Good to know."
+var sequence1number12 = "Be seeing you, Pusher..."
+
+// introduce upgrades
+var sequence2number1 = "Oh, are these upgrades too slow for you?"
+var sequence2number2 = "Tsk. I'm running a business here."
+var sequence2number3 = "But, hey... I'm always looking for new investors."
+var sequence2number4 = "Invest some capital upfront, and I'll reward you..."
+var sequence2number5 = "... by applying a multiplier to the upgrades you buy."
+var sequence2number6 = "The more you invest, the more you get from future upgrades."
+
+// introduce stan at ??? stones
+var sequence3number1 =  "I found you a resource. This here is Stan."
+var sequence3number2 =  "Stan will get you wood."
+var sequence3number3 =  "He's... really, really, really into collecting stones."
+var sequence3number4 =  "Just let him do his thing."
+var sequence3number5 =  ""
+// load stanArt
+var sequence3number6 =  "Hi."
+//different color
+var sequence3number7 = "You see him softly petting a rock in his hand."
+// stan offers to trade you 1 click of wood for 100 stones
+var sequence3number8 = "I need a lot of stones."
+var sequence3number9 = "No, you don't need to know why."
+var sequence3number10 = "You see those trees down there? I'll get you one trip's worth of wood for 100 stones."
+var sequence3number11 = "You need to find a way down, though."
+
+// unlock Deadwood
+var sequence4number1 =  "  Why did you throw all those stones off that cliff?"
+var sequence4number2 =  "                  ... Never mind."
+var sequence4number3 =  "    Anyway, you've made a nice slope to walk down."
+var sequence4number4 =  "         Now you can go into Deadwood Canyon."
+
+// introduce arvid at ??? wood
+var sequence5number1 = "Here's another one you can use. Arvid's... alright."
+var sequence5number2 = "Arvid barely glances at you before staring into the trees."
+var sequence5number2 = "Don't let him dawdle. Last boss caught him staring at birds all the time."
+var sequence5number3 = "He can probably build you a kiln without messing it up."
+var sequence5number4 = "It'll cost you, though."
+
+// unlock Caves
+var sequence6number1 = "While collecting wood, you spot a sinkhole leading into the Caves of Fear."
+var sequence6number2 = "Back at camp, you mention it to Arvid, who stares into the distance for a while."
+var sequence6number3 = "Then, he fetches his knife and starts whittling."
+var sequence6number4 = "You wake up the next day and see a... hang-glider next to you."
+var sequence6number5a = "That scoundrel took "
+var sequence6number5b = " wood to do it, too."
+
+// convert wood to tar
+var sequence7number1 = "You go to one of Arvid's kilns and put some chopped wood into it."
+var sequence7number2 = "A few hours later, tar pours out of it. It makes a mess."
+var sequence7number3 = "This seems really inefficient. Maybe you can improve it?"
+
+// introducing tar worker Blakely
+var sequence8number1 = "You hear the skittering approach of a large spider."
+var sequence8number2 = "Clicking and hissing, she deftly pushes together a clump of tar and flings it at you."
+var sequence8number3 = "You decide to call her Blakely. She doesn't seem aggressive, yet."
+
+// unlock Mine
+var sequence9number1 = "You haven't used your canoe in a while, so you apply some tar to its hull for waterproofing."
+var sequence9number2 = "There! Good as new. You find some canvas and add a sail."
+var sequence9number3 = "Taking it out to the river to try it out, you spot the familiar Bronze Gate."
+var sequence9number4 = "With all the workers gone, you can probably find lots of bronze for the taking."
+
+// convert tar to bronze
+var sequence10number1 = "You find a black box with a funnel at the top and an opening in the side."
+var sequence10number2 = "The funnel, box, and opening are labelled 'TAR', '???', and 'PROFIT!'"
+var sequence10number3 = "You pour in some tar. The machine whirs and chugs, then spits out some bronze."
+var sequence10number4 = "That was only mildly profitable."
+
+// if auto upgrades
+var sequence11number1 = "You find a Mine Walker. It is heavily dented, but it still works."
+var sequence11number2 = "After using the Mind Stone on it, you manage to get the Walker up and running."
+var sequence11number3 = "Maybe you can use it to keep your 'workers' in line."
+
+// good ending - if no auto upgrades, then shopkeep gives you a large boost to clicking and thanks you, you never see @shadyguyname@ again
+// price of click upgrades stops doubling, and instead increases by @number@ per upgrade
+var sequence12anumber1 = "Hey, I don't usually like to interrupt, but..."
+var sequence12anumber2 = "Good call on not making any deals with that guy in the robe."
+var sequence12anumber3 = "Some say he's a genius who invented new ways of harvesting and producing resources, but..."
+var sequence12anumber4 = "Just between you and me, I'm pretty sure he uses slave labour to work all those 'miracles'."
+var sequence12anumber5 = "I prefer to deal with people who keep their hands clean."
+var sequence12anumber6 = "So, as a gesture of my appreciation, I'll lower the price of my tools."
+var sequence12anumber7 = "Consider it a discount for good conduct." // here I disable auto upgrades permanently
+
+// bad ending - if you bought any auto upgrades
+var sequence12bnumber1 = "Well hello there. Again."
+var sequence12bnumber2 = "I see you're getting decent use out of these resources."
+var sequence12bnumber3 = "Did you know that you are the one who made my business possible?"
+var sequence12bnumber4 = "Acropolis had total control of the slave market until you let them out of the Boiling Mines."
+var sequence12bnumber5 = "Because you are such a loyal customer and made this possible, I will give you my best Dominotaur."
+var sequence12bnumber6 = "Your production should increase tenfold."
+var sequence12bnumber7 = "Again, you have my thanks."
+var sequence12bnumber8 = "Be seeing you..."
+
+// =======================================================
+
+
+
+
+
+
+
+//start of upgrades
+?gameStage = 5
+ ?shortTermTimer > 30 & shortTermTimer < 120
+  >`15,17,#ffffff,@dialogueUpgrades0@
+ ?shortTermTimer > 120 & shortTermTimer < 210
+  >`15,17,#ffffff,@dialogueUpgrades1@
+ ?shortTermTimer > 210 & shortTermTimer < 300
+  >`15,17,#ffffff,@dialogueUpgrades2@
+ ?shortTermTimer > 300 & shortTermTimer < 390
+  >`15,17,#ffffff,@dialogueUpgrades3@
+ ?shortTermTimer > 570
+  gameStage = 6
+  shortTermTimer = 0
+?stones = 50 & gameStage < 6
+ gameStage = 6
+ shortTermTimer = 0
+
+?gameStage = 6
+ ?shortTermTimer > 0 & shortTermTimer <90
+  >`15,17,#ffffff,@dialogueUpgrades4@
+ ?shortTermTimer > 90 & shortTermTimer < 180
+  >`15,17,#ffffff,@dialogueUpgrades5@
+ ?shortTermTimer > 180 & shortTermTimer < 270
+  >`15,17,#ffffff,@dialogueUpgrades6@
+  stoneupgradeunlocks = 1
+  abletomove= 1
+ ?stonecap > 60
+  shortTermTimer = 0
+  stoneupgradeunlocks = 2 
+  gameStage =  7
+  abletomove = 1
+  upgradesunlocked = 2
+
+
+//                              UNLOCKS
+
+
+
+?stones >= 90 & stoneupgradeunlocks < 3
+ stoneupgradeunlocks=3
+ upgradesunlocked = 3
+ dialogueonoff = 1
+ 
+   //once you get 90 stones auto click shows up
+?stoneupgradeunlocks <4 & stones >= 300
+ stoneupgradeunlocks = 4
+ upgradesunlocked = 4
+  //once you get 300 stones auto cap shows up
+?stoneupgradeunlocks <5 & stones > 650
+ stoneupgradeunlocks = 5
+ upgradesunlocked = 5
+ dialogueonoff = 1
+ //once you get 650 stones the multiplier shows up
+?stones >= 1200 & itemnext < 1
+ ?resourcesunlocked = 0
+  itemnext = 1
+  dialogueonoff = 1
+  
+?wood >= 40 & woodupgradeunlocks < 2
+ woodupgradeunlocks=2
+?wood >= 90 & woodupgradeunlocks < 3
+ woodupgradeunlocks=3
+?woodupgradeunlocks <4 & wood > 700
+ woodupgradeunlocks = 4
+?woodupgradeunlocks <5 & wood > 1200
+ woodupgradeunlocks = 5
+?wood >= 2000 & itemnext < 2
+ ?resourcesunlocked = 2
+  itemnext = 2
+  dialogueonoff = 1
+  
+?tar >= 40 & tarupgradeunlocks < 2
+ tarupgradeunlocks=2
+?tar >= 90 & tarupgradeunlocks < 3
+ tarupgradeunlocks=3
+?tarupgradeunlocks <4 & tar > 700
+ tarupgradeunlocks = 4
+ dialogueonoff = 1
+?tarupgradeunlocks <5 & tar > 1200
+ tarupgradeunlocks = 5
+?tar >= 3000 & itemnext < 3
+ ? resourcesunlocked = 3
+  itemnext = 3
+?bronze >= 40 & bronzeupgradeunlocks < 2
+ bronzeupgradeunlocks=2
+?bronze >= 90 & bronzeupgradeunlocks < 3
+ bronzeupgradeunlocks=3
+?bronzeupgradeunlocks <4 & bronze > 700
+ bronzeupgradeunlocks = 4
+?bronzeupgradeunlocks <5 & bronze > 1200
+ bronzeupgradeunlocks = 5
+ dialogueonoff = 1
+
+var boxPosX = 0
+var boxPosY = 0
+?locationstarting = 0
+ boxPosX = screen.w - 16
+ boxPosY = 0
+ locationstarting=1
+
+
+var dialogueinsequence = 12
+var dialogueonoff = 0
+var dialogueboxPosX = 0
+var dialogueboxPosY = 0
+var dialoguenumber = 1
+var sequence = 1
+
+ func SetVarstoZero()
+  dialogueonoff = 0
+  dialoguenumber = 1
+  sequence ++
+
+
+?dialogueonoff = 1
+ >`@dialogueboxPosX@,@dialogueboxPosY@,#ffffff,
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+^                                                                                                                                     \n
+
+ >`@boxPosX@,@boxPosY@,#ffffff,
+^┌──────────────┐\n
+^│              │\n
+^│              │\n
+^│              │\n
+^│              │\n
+^│              │\n
+^│              │\n
+^└──────────────┘
+// if Enter is pressed
+ ?key = bumpLEnd
+  dialoguenumber++
+
+ ?sequence = 1
+  >`@boxPosX@,@boxPosY@,#ffffff,@shadyGuyArt@
+  ?dialoguenumber = 1
+   >`1,1,#ffffff,
+   ^@sequence1number1@
+  :?dialoguenumber = 2
+   >`1,1,#ffffff,\n
+   ^@sequence1number2@
+  :?dialoguenumber = 3
+   >`1,1,#ffffff,\n\n
+   ^@sequence1number3@
+  :?dialoguenumber = 4
+   >`1,1,#ffffff,\n\n\n
+   ^@sequence1number4@
+  :?dialoguenumber = 5
+   >`1,1,#ffffff,\n\n\n\n
+   ^@sequence1number5@
+  :?dialoguenumber = 6
+   >`1,1,#ffffff,\n\n\n\n\n
+   ^@sequence1number6@
+  :?dialoguenumber = 7
+   >`1,1,#ffffff,\n\n\n\n\n\n
+   ^@sequence1number7@
+  :?dialoguenumber = 8
+   >`1,1,#ffffff,\n\n\n\n\n\n\n
+   ^@sequence1number8@
+  :?dialoguenumber = 9
+   >`1,1,#ffffff,\n\n\n\n\n\n\n\n
+   ^@sequence1number9@
+  :?dialoguenumber = 10
+   >`1,1,#ffffff,\n\n\n\n\n\n\n\n\n
+   ^@sequence1number10@
+  :?dialoguenumber = 11
+   >`1,1,#ffffff,\n\n\n\n\n\n\n\n\n\n
+   ^@sequence1number11@ 
+  :?dialoguenumber = 12
+   >`1,1,#ffffff,\n\n\n\n\n\n\n\n\n\n\n
+   ^@sequence1number12@
+  :?dialoguenumber = 13
+   SetVarstoZero()
+   
+   
+ ?sequence = 2
+  >`@boxPosX@,@boxPosY@,#ffffff,@shopkeeperArt@
+  ?dialoguenumber = 1
+   >`1,1,#ffffff,
+   ^@sequence2number1@
+  ?dialoguenumber = 2
+   >`1,1,#ffffff,\n
+   ^@sequence2number2@
+  ?dialoguenumber = 3
+   >`1,1,#ffffff,\n\n
+   ^@sequence2number3@
+  ?dialoguenumber = 4
+   >`1,1,#ffffff,\n\n\n
+   ^@sequence2number4@
+  ?dialoguenumber = 5
+   >`1,1,#ffffff,\n\n\n\n
+   ^@sequence2number5@
+  ?dialoguenumber = 6
+   >`1,1,#ffffff,\n\n\n\n\n
+   ^@sequence2number6@
+  ?dialoguenumber = 7
+   SetVarstoZero()
+    
+ ?sequence = 3
+  ?dialoguenumber = 1
+   >`@boxPosX@,@boxPosY@,#ffffff,@shadyGuyArt@
+   >`1,1,#ffffff,
+   ^@sequence3number1@
+  ?dialoguenumber = 2
+   >`@boxPosX@,@boxPosY@,#ffffff,@shadyGuyArt@
+   >`1,1,#ffffff,\n
+   ^@sequence3number2@
+  ?dialoguenumber = 3
+   >`@boxPosX@,@boxPosY@,#ffffff,@shadyGuyArt@
+   >`1,1,#ffffff,\n\n
+   ^@sequence3number3@
+  ?dialoguenumber = 4
+   >`@boxPosX@,@boxPosY@,#ffffff,@shadyGuyArt@
+   >`1,1,#ffffff,\n\n\n
+   ^@sequence3number4@
+  ?dialoguenumber = 5
+   >`@boxPosX@,@boxPosY@,#ffffff,@stanArt@
+   >`1,1,#afafaf,\n\n\n\n
+   ^@sequence3number5@
+  ?dialoguenumber = 6
+   >`@boxPosX@,@boxPosY@,#ffffff,@stanArt@
+   >`1,1,#ffffff,\n\n\n\n\n
+   ^@sequence3number6@
+  ?dialoguenumber = 7
+   >`@boxPosX@,@boxPosY@,#ffffff,@stanArt@  
+   >`1,1,#afafaf,\n\n\n\n\n\n
+   ^@sequence3number7@
+  ?dialoguenumber = 8
+   >`@boxPosX@,@boxPosY@,#ffffff,@stanArt@
+   >`1,1,#ffffff,\n\n\n\n\n\n\n
+   ^@sequence3number8@
+  ?dialoguenumber = 9
+   >`@boxPosX@,@boxPosY@,#ffffff,@stanArt@
+   >`1,1,#ffffff,\n\n\n\n\n\n\n\n
+   ^@sequence3number9@
+  ?dialoguenumber = 10
+   >`@boxPosX@,@boxPosY@,#ffffff,@stanArt@
+   >`1,1,#ffffff,\n\n\n\n\n\n\n\n\n
+   ^@sequence3number10@
+  ?dialoguenumber = 11
+   >`@boxPosX@,@boxPosY@,#ffffff,@stanArt@
+   >`1,1,#ffffff,\n\n\n\n\n\n\n\n\n\n
+   ^@sequence3number11@
+  ?dialoguenumber = 12
+   SetVarstoZero()
+   
+   
+ ?sequence = 4
+  >`@boxPosX@,@boxPosY@,#ffffff,@item1@
+  ?dialoguenumber = 1
+   >`1,1,#ffffff,
+   ^@sequence4number1@
+  ?dialoguenumber = 2
+   >`1,1,#ffffff,\n
+   ^@sequence4number2@
+  ?dialoguenumber = 3
+   >`1,1,#ffffff,\n\n
+   ^@sequence4number3@
+  ?dialoguenumber = 4
+   >`1,1,#ffffff,\n\n\n
+   ^@sequence4number4@
+  ?dialoguenumber = 5
+   SetVarstoZero()
+   
+ ?sequence = 5
+  ?dialoguenumber = 1
+   >`@boxPosX@,@boxPosY@,#ffffff,@shadyGuyArt@
+   >`1,1,#ffffff,
+   ^@sequence5number1@
+  ?dialoguenumber = 2
+   >`@boxPosX@,@boxPosY@,#ffffff,@arvidArt@
+   >`1,1,#afafaf,\n
+   ^@sequence5number2@
+  ?dialoguenumber = 3
+   >`@boxPosX@,@boxPosY@,#ffffff,@shadyGuyArt@
+   >`1,1,#ffffff,\n\n
+   ^@sequence5number3@
+  ?dialoguenumber = 4
+   >`@boxPosX@,@boxPosY@,#ffffff,@shadyGuyArt@
+   >`1,1,#ffffff,\n\n\n
+   ^@sequence5number4@
+  ?dialoguenumber = 5
+   SetVarstoZero()
+   
+   
+   
+ ?sequence = 6
+  ?dialoguenumber = 1
+   >`1,1,#afafaf,
+   ^@sequence6number1@
+  ?dialoguenumber = 2
+   >`@boxPosX@,@boxPosY@,#ffffff,@arvidArt@
+   >`1,1,#afafaf,\n
+   ^@sequence6number2@
+  ?dialoguenumber = 3
+   >`@boxPosX@,@boxPosY@,#ffffff,@arvidArt@
+   >`1,1,#afafaf,\n\n
+   ^@sequence6number3@
+  ?dialoguenumber = 4
+   >`@boxPosX@,@boxPosY@,#ffffff,@item2@
+   >`1,1,#afafaf,\n\n\n
+   ^@sequence6number4@
+  ?dialoguenumber = 5
+   >`1,1,#afafaf,\n\n\n\n
+   ^@sequence6number5a@
+   ^@item2price@
+   ^@sequence6number5b@
+  ?dialoguenumber = 6
+   SetVarstoZero()
+   
+   
+ ?sequence = 7
+  ?dialoguenumber = 1
+   >`1,1,#ffffff,
+   ^@sequence7number1@
+  ?dialoguenumber = 2
+   >`1,1,#ffffff,\n
+   ^@sequence7number2@
+  ?dialoguenumber = 3
+   >`1,1,#ffffff,\n\n
+   ^@sequence7number3@
+  ?dialoguenumber = 4
+   SetVarstoZero()
+
+
+
+ ?sequence = 8
+  >`@boxPosX@,@boxPosY@,#ffffff,@blakelyArt@
+  ?dialoguenumber = 1
+   >`1,1,#afafaf,
+   ^@sequence8number1@
+  ?dialoguenumber = 2
+   >`1,1,#afafaf,\n
+   ^@sequence8number2@
+  ?dialoguenumber = 3
+   >`1,1,#afafaf,\n\n
+   ^@sequence8number3@
+  ?dialoguenumber = 4
+   SetVarstoZero()
+
+
+
+ ?sequence = 9
+  >`@boxPosX@,@boxPosY@,#ffffff,@item3@
+  ?dialoguenumber = 1
+   >`1,1,#afafaf,
+   ^@sequence9number1@
+  ?dialoguenumber = 2
+   >`1,1,#afafaf,\n
+   ^@sequence9number2@
+  ?dialoguenumber = 3
+   >`1,1,#afafaf,\n\n
+   ^@sequence9number3@
+  ?dialoguenumber = 4
+   >`1,1,#afafaf,\n\n\n
+   ^@sequence9number4@
+  ?dialoguenumber = 5
+   SetVarstoZero()
+
+
+
+ ?sequence = 10
+  >`@boxPosX@,@boxPosY@,#ffffff,@blackBoxArt@
+  ?dialoguenumber = 1
+   >`1,1,#afafaf,
+   ^@sequence10number1@
+  ?dialoguenumber = 2
+   >`1,1,#afafaf,\n
+   ^@sequence10number2@
+  ?dialoguenumber = 3
+   >`1,1,#afafaf,\n\n
+   ^@sequence10number3@
+  ?dialoguenumber = 4
+   dialoguenumber = 1
+   sequence++
+   dialogueonoff = 0
+   ?karma = 0
+    sequence = 12
+   ?karma > 0
+    sequence = 11
+
+ ?sequence = 11
+  >`@boxPosX@,@boxPosY@,#ffffff,@walkerArt@
+  ?dialoguenumber = 1
+   >`1,1,#afafaf,
+   ^@sequence11number1@
+  ?dialoguenumber = 2
+   >`1,1,#afafaf,\n
+   ^@sequence11number2@
+  ?dialoguenumber = 3
+   >`1,1,#afafaf,\n\n
+   ^@sequence11number3@
+  ?dialoguenumber = 4
+   dialoguenumber = 1
+   dialogueonoff = 0
+   sequence = 13
+   
+ ?sequence = 12
+  >`@boxPosX@,@boxPosY@,#ffffff,@shopkeeperArt@
+  ?dialoguenumber = 1
+   >`1,1,#ffffff,
+   ^@sequence12anumber1@
+  ?dialoguenumber = 2
+   >`1,1,#ffffff,\n
+   ^@sequence12anumber2@
+  ?dialoguenumber = 3
+   >`1,1,#ffffff,\n\n
+   ^@sequence12anumber3@
+  ?dialoguenumber = 4
+   >`1,1,#ffffff,\n\n\n
+   ^@sequence12anumber4@
+  ?dialoguenumber = 5
+   >`1,1,#ffffff,\n\n\n\n
+   ^@sequence1number5@
+  ?dialoguenumber = 6
+   >`1,1,#ffffff,\n\n\n\n\n
+   ^@sequence1number6@
+  ?dialoguenumber = 7
+   >`1,1,#ffffff,\n\n\n\n\n\n
+   ^@sequence1number7@
+   dialogueonoff = 0
+   reward = 1
+
+ ?sequence = 13
+  >`@boxPosX@,@boxPosY@,#ffffff,@shadyGuyArt@
+  ?dialoguenumber = 1
+   >`1,1,#ffffff,
+   ^@sequence12bnumber1@
+  ?dialoguenumber = 2
+   >`1,1,#ffffff,\n
+   ^@sequence12bnumber2@
+  ?dialoguenumber = 3
+   >`1,1,#ffffff,\n\n
+   ^@sequence12bnumber3@
+  ?dialoguenumber = 4
+   >`1,1,#ffffff,\n\n\n
+   ^@sequence12bnumber4@
+  ?dialoguenumber = 5
+   >`1,1,#ffffff,\n\n\n\n
+   ^@sequence12bnumber5@
+  ?dialoguenumber = 6
+   >`1,1,#ffffff,\n\n\n\n\n
+   ^@sequence12bnumber6@
+  ?dialoguenumber = 7
+   >`1,1,#ffffff,\n\n\n\n\n\n
+   ^@sequence12bnumber7@
+  ?dialoguenumber = 8
+   >`1,1,#ffffff,\n\n\n\n\n\n\n
+   ^@sequence12bnumber8@
+   dialogueonoff = 0
+   reward = 2
+
+//                                                   help / instructions
+// first line
+var keyControlReferenceC = "[C] Collect Resource"
+var keyControlReferenceCHighlight = "#C"
+var keyControlReferenceX = "######################[X] Buy Item"
+var keyControlReferenceXHighlight = "#######################X"
+var keyControlReferenceZ = "####################################[Z] Advance Dialogue"
+var keyControlReferenceZHighlight = "#####################################Z"
+
+// second line
+var keyControlReferenceShiftX = "      [Shift+X] Build"
+var keyControlReferenceShiftXHighlight = "#######Shift#X"
+var keyControlReferenceMove = "#######################[Shift+←/→] Change Location"
+var keyControlReferenceMoveHighlight = "########################Shift#←#→"
+
+// only show C after it's mentioned
+?helpnumber > 0
+ >`15,@instructionsLine1@,#ffffff,@keyControlReferenceC@
+ >`15,@instructionsLine1@,#ffff00,@keyControlReferenceCHighlight@
+
+// only show X after it's mentioned
+?gameStage >= 6
+ >`15,@instructionsLine1@,#ffffff,@keyControlReferenceX@
+ >`15,@instructionsLine1@,#ffff00,@keyControlReferenceXHighlight@
+ 
+ // only show Z when dialogue pops up
+?dialogueonoff = 1
+ >`15,@instructionsLine1@,#ffffff,@keyControlReferenceZ@
+ >`15,@instructionsLine1@,#ffff00,@keyControlReferenceZHighlight@
+ 
+ // only show Shift+X after buildable becomes available
+?itemnext > 0
+ >`15,@instructionsLine2@,#ffffff,@keyControlReferenceShiftX@
+ >`15,@instructionsLine2@,#ffff00,@keyControlReferenceShiftXHighlight@
+ 
+ // only show Shift Arrows after Deadwood is unlocked
+?resourcesunlocked > 0
+ >`15,@instructionsLine2@,#ffffff,@keyControlReferenceMove@
+ >`15,@instructionsLine2@,#ffff00,@keyControlReferenceMoveHighlight@
+ 
+ var notificationLine = screen.h - 4
+ 
+ ?resourcesunlocked = 1 & stones > item1price
+  ?shortTermTimer >= 60
+   >`10,@notificationLine@,#ffffff,
+   ^"[Shift+X] to use the stones"
+   ?shortTermTimer > 120
+    shortTermTimer = 0

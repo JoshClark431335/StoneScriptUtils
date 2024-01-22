@@ -1,0 +1,189 @@
+//Blackjack - Hand by link2_thepast
+//
+//Container to handle player/dealer cards and simplify value calculation
+
+// Status variables
+var cards = []
+var size = 0
+
+// Constants
+var MAX_CARDS = 6
+var BUST_LIMIT = 21
+
+// UI/graphics variables
+var pnlMain
+var pnlCards
+var txtName
+var txtTotal
+var txtTotalNum
+
+// Constructor, init Hand object
+func Init(name, style, color, colorAccent)
+  pnlMain = ui.AddPanel()
+  pnlMain.style = style
+  pnlMain.color = color
+  pnlMain.anchor = top_left
+  pnlMain.dock = top_left
+  pnlMain.clip = false
+  pnlMain.w = 25
+  pnlMain.h = 5
+  
+  pnlCards = ui.AddPanel()
+  pnlCards.style = 0
+  pnlCards.anchor = top_left
+  pnlCards.dock = top_left
+  pnlCards.clip = false
+  pnlCards.x = 1
+  pnlCards.y = 1
+  pnlCards.w = pnlMain.w-1
+  pnlCards.h = pnlMain.h-1
+  
+  txtName = ui.AddText(name)
+  txtName.anchor = top_left
+  txtName.dock = top_left
+  txtName.w = string.Size(name)
+  txtName.h = 1
+  txtName.x = 1
+  
+  txtTotal = ui.AddText()
+  txtTotal.anchor = top_right
+  txtTotal.dock = top_right
+  txtTotal.color = color
+  txtTotal.h = 1
+  txtTotal.x = -2
+  
+  txtTotalNum = ui.AddText()
+  txtTotalNum.anchor = top_right
+  txtTotalNum.dock = top_right
+  txtTotalNum.color = colorAccent
+  txtTotalNum.h = 1
+  txtTotalNum.x = -3
+  
+  pnlMain.Add(pnlCards)
+  pnlMain.Add(txtName)
+  pnlMain.Add(txtTotal)
+  pnlMain.Add(txtTotalNum)
+  
+  UpdateValueDisp()
+  
+  return this
+
+// Update the displayed value
+func UpdateValueDisp()
+  var tot = "" + GetBestTotal()
+  
+  //show both soft/hard values if applicable
+  ?CanSoften() & IsSoft()
+    tot = tot + "(" + GetTotal(false) + ")"
+  
+  var t_w = string.Size(tot)
+  
+  txtTotal.text = "[" + tot + "]"
+  txtTotal.w = t_w + 2
+  txtTotalNum.text = tot
+  txtTotalNum.w = t_w
+
+// Update frame x,y pos
+func MoveTo(x,y)
+  pnlMain.x = x
+  pnlMain.y = y
+
+// Update frame size
+func Size(w,h)
+  pnlMain.w = w
+  pnlMain.h = h
+  pnlCards.w = w-1
+  pnlCards.h = h-1
+
+// Update visiblity
+func Visible(v)
+  pnlMain.visible = v
+
+//- CARD INTERACTION FUNCTIONS -
+// Add a card
+func Add(value, suit)
+  var card = new Games/Blackjack/Card
+  card.Init(value, suit)
+  card.MoveTo(size*4, 0)
+  
+  cards.Add(card)
+  pnlCards.Add(card.pnlMain)
+  size++
+
+// Get a particular card
+func GetAt(index)
+  ?size = 0
+    return
+  
+  ?index < 0
+    index = index + size
+  
+  return cards[index]
+
+// Remove a particular card
+func RemoveAt(index)
+  ?size = 0
+    return
+  
+  cards.RemoveAt(index)
+  pnlCards.Remove(index)
+  size--
+
+// Remove all cards
+func Clear()
+  pnlCards.Clear()
+  cards.Clear()
+  size = 0
+
+//- HAND VALUE INTERACTION FUNCTIONS -
+// Get soft/hard total value of hand
+func GetTotal(soft)
+  var hasAce = false
+  var total = 0
+  
+  ?cards.Count() < 1
+    return 0
+  
+  for i = 0..cards.Count()-1
+    var v = cards[i].value
+    
+    ?v = 1
+      hasAce = true
+    
+    ?v > 10
+      total = total + 10
+    :
+      total = total + v
+
+  ?soft & hasAce
+    total = total + 10
+  return total
+
+// Get total value of hand, automatically choosing hard if soft would bust
+func GetBestTotal()
+  var softTotal = GetTotal(true)
+  
+  ?softTotal <= BUST_LIMIT
+    return softTotal
+  
+  return GetTotal(false)
+
+// Check if hand is using soft total
+func IsSoft()
+  return ( GetBestTotal() = GetTotal(true) )
+
+// Check if soft total would be less than hard total
+func CanSoften()
+  return ( GetTotal(false) < GetTotal(true) )
+
+// Check if hand can be doubled down
+func CanDoubleDown()
+  return ( cards.Count() = 2 )
+
+// Check if 21 was dealt as starting hand
+func HasBlackjack()
+  return ( CanDoubleDown() & ( GetBestTotal() = BUST_LIMIT ))
+
+// Check if 21 has been exceeded
+func HasBusted()
+  return ( GetBestTotal() > BUST_LIMIT )

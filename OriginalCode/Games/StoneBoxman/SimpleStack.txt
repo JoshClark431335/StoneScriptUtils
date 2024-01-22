@@ -1,0 +1,35 @@
+//StoneBoxMan - Games/SimpleStack
+//Version: v1.0
+//Author: Okamiroy
+
+// A simple stack implemented by array. Here I use it to save every move for the function of undoing.
+
+var DataArray = []
+
+func Push(trace)
+  DataArray.Add(trace)
+
+// Get the top element and delete it in stack
+func Pop()
+  var resultTrace = null
+  ?DataArray.Count() > 0
+    resultTrace = DataArray[DataArray.Count() - 1]
+    DataArray.RemoveAt(DataArray.Count() - 1)
+  :
+    resultTrace = null
+  return resultTrace
+
+// Get the top element
+func GetTop()
+  var resultTrace = null
+  ?DataArray.Count() > 0
+    resultTrace = DataArray[DataArray.Count() - 1]
+  :
+    resultTrace = null
+  return resultTrace
+
+func Count()
+  return DataArray.Count()
+
+func Clear()
+  DataArray.Clear()

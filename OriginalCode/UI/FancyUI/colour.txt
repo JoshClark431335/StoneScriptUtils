@@ -1,0 +1,50 @@
+/*
+	Colour v1.0
+	
+	Written By: Cancerorus Potatoes (Discord: 10100111001)
+	
+	To Use (individually, dont import this directly unless you intend to use it directly in your own scripts!):
+	var whatever = new FancyUI/colour
+	
+	Depends On:
+	print - my library of print functions
+	
+	What it does:
+	Provides a class based way of managing colours
+	Has a few useful functions for manipulating colours and converting back to a colour string
+*/
+
+/*
+	Changelog
+	v1.0	Colour class and manipulation
+*/
+
+var Print = import FancyUI/print
+
+var r = 0
+var g = 0
+var b = 0
+
+//init the class with your desired colour
+func Init(rr, gg, bb)
+	r = math.Clamp(rr, 0, 255)
+	g = math.Clamp(gg, 0, 255)
+	b = math.Clamp(bb, 0, 255)
+	
+//scales the colour (towards black), 0-255 with 0 being black, 255 the original colour
+//technically you could also give values >255 to scale towards white, but beware oversaturation
+func Scale(d)
+	var c = new FancyUI/colour
+	c.Init(r*d/255, g*d/255, b*d/255)
+	return c
+	
+//colour = the colour to add
+//n = number of times to add the colour
+func Add(colour, n)
+	var c = new FancyUI/colour
+	c.Init(r+colour.r*n, g+colour.g*n, b+colour.b*n)
+	return c
+	
+//do this before using in a print statement
+func ToString()
+	return Print.IntToHex(r, 2) + Print.IntToHex(g, 2) + Print.IntToHex(b, 2)

@@ -1,0 +1,211 @@
+/*
+PefWindow
+Author: Pef619
+Version: 0.0.2
+
+Uses: 
+In the mind stone add the following line:
+var window = new UI/PefWindow
+window.init(Test, 10, 6)
+window.update_offset(4, 6)
+window.update_bg("#650012")
+window.update_tab("#002275")
+window.update_min_mode("Full")
+window.update_expand_mode("Expand")
+window.update_content(["Full", "Content"])
+window.update_line(0, "Partial Content")
+window.draw()
+
+
+Log:
+v0.0.2
+- Added Minimize mode
+- Added Expand mode
+
+v0.0.1
+- Initial Release
+*/
+
+var initialized = 0
+var visible = 1
+var min_mode = "Button"
+var expand_mode = "Static"
+var title = Title
+var width = 10
+var content_width = 0
+var height = 10
+var tb_color = "#464444"
+var bg_color = "#363535"
+var trigger = primaryEnd
+var inputs = [leftEnd, rightEnd, upEnd, downEnd, primaryEnd, backEnd, ability1End, ability2End, bumpLEnd, bumpREnd]
+
+var content = []
+
+// Top Left orientation of window, (0,6) places it right below the Potion
+var offX = 0
+var offY = 6
+
+// Optimization that only updates the box spacing when information changes
+var needs_update = 1
+var draw_line = ""
+
+////////////
+// Public //
+////////////
+
+// Initialize title width and height
+func init(title, w, h)
+  ?this.initialized = 0
+    this.title = title
+    this.width = w
+    this.content_width = w - 2
+    this.height = h
+    this.initialized = 1
+
+//
+func update_title(title)
+  this.title = title
+
+// Update bottom background color
+func update_bg(color)
+  this.bg_color = color
+
+// Update title bar background color
+func update_tab(color)
+  this.tb_color = color
+
+// Update minimize condition to be button or full tab
+func update_min_mode(val)
+  ?val = "Button" | val = "Full"
+    this.min_mode = val
+
+// Update expand condition to be static or expand 
+// the right when content is larger than the window
+func update_expand_mode(val)
+  ?val = "Static" | val = "Expand"
+    this.expand_mode = val
+
+// Update the input to trigger minimize
+func update_trigger(input)
+  ?inputs.Contains(input)
+    this.trigger = input
+
+// Update the window size
+func update_size(x, y)
+  this.width = x
+  this.height = y
+  this.needs_update = 1
+
+// Update the window offset from (0,0)
+func update_offset(x, y)
+  this.offX = x
+  this.offY = y
+  this.needs_update = 1
+
+// Get X offset
+func get_offX()
+  return this.offX
+
+// Get Y offset
+func get_offY()
+  return this.offY
+
+// Return minimized state
+func is_visible()
+  return this.visible
+
+func is_initialized()
+  return this.initialized
+
+// Replaces the content array with a new array
+func update_content(arr)
+  this.content = arr
+  for c = 0..content.Count() - 1
+    ?string.Size(arr[c]) > this.content_width
+      this.content_width = string.Size(arr[c])
+      this.width = this.content_width + 2
+  this.needs_update = 1
+
+
+// Add a line to the window
+// Note: This can't be used without a queue-like system to add items only once
+func add_line(cont)
+  this.content.Add(cont)
+  this.needs_update = 1
+
+// Update a line in the window
+func update_line(line, cont)
+  ?line < this.content.Count()
+    this.content[line] = cont
+  this.needs_update = 1
+
+// Draw window
+func draw()
+  var inner
+  ?this.expand_mode = "Expand"
+    inner = this.content_width + 2
+  :
+    inner = this.width
+  
+  // DRAW WINDOW
+  draw.BG(this.offX, this.offY, this.tb_color, inner, 1)
+  ?this.visible = 1
+    // Maximized
+    draw.BG(this.offX, this.offY+1, this.bg_color, inner, this.height)
+    >`@this.offX@,@this.offY@,#white,▲ @this.title@
+
+    var top = this.offY + 1
+    var bottom = this.offY + this.height
+    var left = this.offX
+    var right = this.offX + inner - 1
+
+    // Only redraw if a change to the window occurs
+    ?this.needs_update = 1
+      draw_line = ""
+      for bw = 1..this.width - 2
+        draw_line = draw_line + "═"
+        this.needs_update = 0
+    >`@left@,@top@,╔@draw_line@╗
+    >`@left@,@bottom@,╚@draw_line@╝
+    var itr
+    itr = 0
+    for h = this.offY + 2..this.offY + this.height - 1
+      ?itr < this.content.Count()
+        >`@left@,@h@,║@this.content[itr]@
+        >`@right@,@h@,║
+      :        
+        >`@left@,@h@,║
+        >`@right@,@h@,║
+      itr += 1
+  :
+    // Minimized
+    >`@this.offX@,@this.offY@,#white,▼ @this.title@
+
+  input()
+
+/////////////
+// private //
+/////////////
+
+// User input dropdown trigger
+func input()
+  var inner
+  ?this.expand_mode = "Expand"
+    inner = this.content_width + 2
+  :
+    inner = this.width
+
+  ?min_mode = "Full"
+    ?key = this.trigger & input.x >= this.offX & input.x < this.offX + inner &
+    ^input.y = this.offY
+      ?this.visible = 1
+        this.visible = 0
+      :?this.visible = 0
+        this.visible = 1
+  :?min_mode = "Button"
+    ?key = this.trigger & input.x = this.offX &
+    ^input.y = this.offY
+      ?this.visible = 1
+       this.visible = 0
+     :?this.visible = 0
+       this.visible = 1

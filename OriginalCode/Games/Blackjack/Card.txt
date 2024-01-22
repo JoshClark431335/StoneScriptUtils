@@ -1,0 +1,140 @@
+//Blackjack - Card by link2_thepast
+//
+//UI Component-based card object, designed for use with the Blackjack minigame
+
+
+// Status variables
+var initialized = false
+var face_up = true
+var value = 0
+var suit = 0
+
+// UI/graphics variables
+var pnlMain
+var txtFront
+var txtBack
+
+var stlCard = ui.AddStyle("#_#│ │#‾#")
+var strFront = ""
+var strBack = ascii
+::
+::
+asciiend
+
+var clrRed =   #FF0000
+var clrBlack = #FFFFFF
+var clrFront = #999999
+var clrBack =  #666666
+
+// Constructor, init Card object
+func Init(value, suit)
+  ?!initialized
+    initialized = true
+    this.value = value
+    this.suit = suit
+    
+    pnlMain = ui.AddPanel()
+    pnlMain.style = stlCard
+    pnlMain.color = clrFront
+    pnlMain.anchor = top_left
+    pnlMain.dock = top_left
+    pnlMain.clip = true
+    pnlMain.w = 4
+    pnlMain.h = 4
+  
+    strFront = strFront + GetValStr(value) + "\n"
+    strFront = strFront + " " + GetSuitStr(suit)
+  
+    txtFront = ui.AddText(strFront)
+    txtFront.color = GetSuitColor(suit)
+    txtFront.anchor = top_left
+    txtFront.dock = top_left
+    txtFront.x = 1
+    txtFront.y = 1
+    
+    txtBack = ui.AddText(strBack)
+    txtBack.color = clrBack
+    txtBack.anchor = top_left
+    txtBack.dock = top_left
+    txtBack.x = 1
+    txtBack.y = 1
+    
+    pnlMain.Add(txtFront)
+    pnlMain.Add(txtBack)
+    SetFaceUp(true)
+    
+    return this
+
+
+
+// Show/hide components to flip card face up or face down
+func SetFaceUp(f)
+  face_up = f
+  ?f
+    txtFront.visible = inherit
+    txtBack.visible = false
+    pnlMain.color = clrFront
+  :
+    txtFront.visible = false
+    txtBack.visible = inherit
+    pnlMain.color = clrBack
+
+// Invert faceup state
+func Flip()
+  face_up = !face_up
+  SetFaceUp(face_up)
+
+// Update card x,y pos
+func MoveTo(x,y)
+  pnlMain.x = math.RoundToInt(x)
+  pnlMain.y = math.RoundToInt(y)
+
+// Show/hide
+func SetVisible(v)
+  pnlMain.visible = v
+
+
+
+// Convert value specifier to value
+//   accepts suit values (1-10,J,Q,K,A), or an integer from 1-14
+func GetValStr(v)
+  ?Type(v) = int
+    ?v = 11
+      return "J"
+    :?v = 12
+      return "Q"
+    :?v = 13
+      return "K"
+    :?v = 14 | v = 1
+      return "A"
+    
+    return v
+  return v
+
+// Convert suit specifier to suit character
+//   accepts suit names, suit characters, or an integer from 0-3
+func GetSuitStr(s)
+  ?s = heart | s = 0
+    return "♥"
+  :?s = diamond | s = 1
+    return "♦"
+  :?s = club | s = 2
+    return "♣"
+  :?s = spade | s = 3
+    return "♠"
+  :
+    return s
+
+// Convert suit specifier to suit color
+//   accepts suit names, suit characters, or an integer from 0-3
+func GetSuitColor(s)
+  ?s = heart | s = diamond | s = ♥ | s = ♦ | s = 0 | s = 1
+    return clrRed
+  :
+    return clrBlack
+
+func GetValue()
+  return value
+
+func GetSuit()
+  return suit

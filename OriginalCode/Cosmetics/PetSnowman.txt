@@ -1,0 +1,330 @@
+
+// Pet Snowman
+// by: micahel.g.g.
+// v1.0
+// needs big head mode for eye expressions
+
+var coalColor
+var noseColor
+var armsColor
+
+//change colors of the snowman by changing the hex values below. can by from #000000 to #FFFFFF
+//red if the first 2 digits, green is the middle two and blue are the last two. 
+//you can also use words like #red and #white for basic colors.
+coalColor = #808080 //eyes, buttons and hat
+noseColor = #CC9020 //carrot nose
+armsColor = #706020 //stick arms
+
+var keepDistance = -25 // distance at which the movement animation will play (stateMoving)
+var maxX = -24         // closest offset pet will get to character.  Closer to 0, closer to character
+var maxDistance = -35  // if the pet exceeds this distance, it will teleport to this distance (cannot be further away than this)
+var targetZ = 2       //start the drawing 1 unit above the player
+
+?loc.loop
+  keepDistance = -25
+  maxX = -12
+  maxDistance = -35
+  targetZ = 2
+
+var x = 0
+var y = 0
+var myX = 0
+var myZ = 0
+var lastPlayerX = 0
+var lastPlayerZ = 0
+
+var stateNone = 0
+var stateIdle = 1
+var stateMoving = 2
+var currentState = stateNone
+var stateTime = 0
+
+func SetState(newState)
+  ?newState = stateMoving
+    play haunted_gate_shuffle //play sound when moving
+  
+  currentState = newState
+  stateTime = 0
+
+?currentState = stateNone | time = 1
+  lastPlayerX = pos.x
+  lastPlayerZ = pos.z
+  myX = keepDistance
+  myZ = targetZ
+
+// Start further away if snowman is summoned while the location is already running
+  ?time > 1
+    myX = maxDistance
+
+  SetState(stateIdle)
+
+myX = myX - (pos.x - lastPlayerX) // If player has moved, increment myX (distance from player)
+
+stateTime++
+
+?currentState = stateIdle 
+  ?myX < maxDistance | myX > -maxDistance
+    myX = maxDistance
+  myZ = myZ - (pos.z - lastPlayerZ)
+
+  ?myX < keepDistance
+    SetState(stateMoving)
+	
+:?currentState = stateMoving
+  ?myX < maxX
+    myX++
+	
+  ?stateTime >= 6
+    ?myZ > targetZ
+      myZ--
+    :?myZ < targetZ
+      myZ++
+
+  ?stateTime >= 12
+    SetState(stateIdle)
+	
+lastPlayerX = pos.x
+lastPlayerZ = pos.z
+
+//draw snowman-----------------------------
+?currentState = stateIdle 
+  >o@myX@,@myZ-3@,@#white@,ascii
+####__
+##_|__|_
+.#( •,•)#,.
+'`(  : )'
+#(    : )
+##`----´
+asciiend
+  >o@myX@,@myZ-3@,@coalColor@,ascii
+####__
+##_|__|_
+####•#•
+#####:
+######:
+asciiend
+  >o@myX@,@myZ-3@,@noseColor@,ascii
+#
+#
+#####,
+asciiend
+  >o@myX@,@myZ-3@,@armsColor@,ascii
+#
+#
+.########,.
+'`######'
+asciiend
+
+//eye expressions
+  ?face = "°°"
+    >o@myX@,@myZ-3@,@coalColor@,ascii
+#
+#
+####ʘ#ʘ
+asciiend
+
+  ?face = "^^"
+    >o@myX@,@myZ-3@,@coalColor@,ascii
+#
+#
+####^#^
+asciiend
+    >o@myX@,@myZ-3@,@#white@,ascii
+#
+##❄####❄
+❄########❄
+########❄
+asciiend
+
+//Blink
+?currentState = stateIdle
+  ?face ! "^^"
+    ?face ! "°°"
+      ?stateTime % 50 >= 48
+        >o@myX@,@myZ-3@,@coalColor@,ascii
+#
+#
+####-#-
+asciiend
+      :?stateTime % 50 >= 46
+        >o@myX@,@myZ-3@,@coalColor@,ascii
+#
+#
+####-#-
+asciiend
+      :?stateTime % 50 >= 44
+        >o@myX@,@myZ-3@,@coalColor@,ascii
+#
+#
+####-#-
+asciiend
+
+//draw moving----------------------------
+?currentState = stateMoving
+  ?stateTime/3 = 0
+    >o@myX@,@myZ-3@,@#white@,ascii
+####__
+##_|__|_
+.#( •,•)#,.
+'`(  : )'
+#(    : )
+##`----´
+asciiend
+    >o@myX@,@myZ-3@,@coalColor@,ascii
+####__
+##_|__|_
+####•#•
+#####:
+######:
+asciiend
+    >o@myX@,@myZ-3@,@noseColor@,ascii
+#
+#
+#####,
+asciiend
+    >o@myX@,@myZ-3@,@armsColor@,ascii
+#
+#
+.########,.
+'`######'
+asciiend
+
+  ?stateTime/3 = 1
+    >o@myX@,@myZ-3@,@#white@,ascii
+####__
+##_|__|_
+##.  •,).
+##`   :)
+#(     :)
+##`----´
+asciiend
+    >o@myX@,@myZ-3@,@coalColor@,ascii
+####__
+##_|__|_
+#####•#
+######:
+#######:
+asciiend
+    >o@myX@,@myZ-3@,@noseColor@,ascii
+#
+#
+######,
+asciiend
+    >o@myX@,@myZ-3@,@armsColor@,ascii
+#
+#
+##.#####.
+##`
+asciiend
+
+  ?stateTime/3 = 2
+    >o@myX@,@myZ-3@,@#white@,ascii
+####__
+##_|__|_
+##('  •-
+##( `  ;
+#(      ;
+##`----´
+asciiend
+    >o@myX@,@myZ-3@,@coalColor@,ascii
+####__
+##_|__|_
+######•
+#######;
+########;
+asciiend
+    >o@myX@,@myZ-3@,@noseColor@,ascii
+#
+#
+#######-
+asciiend
+    >o@myX@,@myZ-3@,@armsColor@,ascii
+#
+#
+###'
+####`
+asciiend
+
+  ?stateTime/3 = 3
+    >o@myX@,@myZ-3@,@#white@,ascii
+####__
+##_|__|_
+#.( •,•).
+#`(   ;)
+#(     :)
+##`----´
+asciiend
+    >o@myX@,@myZ-3@,@coalColor@,ascii
+####__
+##_|__|_
+####•#•
+######:
+#######:
+asciiend
+    >o@myX@,@myZ-3@,@noseColor@,ascii
+#
+#
+#####,
+asciiend
+    >o@myX@,@myZ-3@,@armsColor@,ascii
+#
+#
+#.######.
+#`######
+asciiend
+
+  ?stateTime/3 = 4
+    >o@myX@,@myZ-3@,@#white@,ascii
+####__
+##_|__|_
+.#( •,•)#,.
+'`(  : )'
+#(    : )
+##`----´
+asciiend
+    >o@myX@,@myZ-3@,@coalColor@,ascii
+####__
+##_|__|_
+####•#•
+#####:
+######:
+asciiend
+    >o@myX@,@myZ-3@,@noseColor@,ascii
+#
+#
+#####,
+asciiend
+    >o@myX@,@myZ-3@,@armsColor@,ascii
+#
+#
+.#######,.
+'`######'
+asciiend
+
+  ?stateTime/3 = 5
+    >o@myX@,@myZ-3@,@#white@,ascii
+####__
+##_|__|_
+#.( •,•,
+##( :  '
+#(   :  )
+##`----´
+asciiend
+    >o@myX@,@myZ-3@,@coalColor@,ascii
+####__
+##_|__|_
+####•#•
+####:
+#####:
+asciiend
+    >o@myX@,@myZ-3@,@noseColor@,ascii
+#
+#
+#####,
+asciiend
+    >o@myX@,@myZ-3@,@armsColor@,ascii
+#
+#
+#.#####,
+#######'
+asciiend

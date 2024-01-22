@@ -1,0 +1,802 @@
+//TrainAdventure
+//by: link2_thepast
+//
+//v1.0
+//Add "import TrainAdventure" to the Mind Stone, then visit Deadwood Waterfall.
+
+//An animated train ride through the Dark World. Press X to bring up controls.
+
+
+
+//- VARIABLE DEFINITIONS -
+// master pos variables
+var x = 80 //-160 //-250
+var y = 0
+
+var train_x = 25 //-30 //25
+var train_y = 10
+var color = #DDDDDD
+
+var star_state = 0
+var train_bridge_state = 0
+var train_cliff_state = 0
+
+var moon_x = 40
+var moon_y = 0
+
+var star_x = 0
+var star_y = 0
+
+var water_x = 36
+var wide_water_x = 0
+var water_y = screen.h - 9
+
+var cloud_x = 0
+var cloud_y = 11 //end up at 17
+var cloud_spread = 3
+
+var x_c1 = 0
+var x_c2 = 0
+var x_c3 = 0
+var x_c4 = 0
+var x_c5 = 0
+
+var w_c1 = 44
+var w_c2 = 54
+var w_c34 = 79
+var w_c5  = 49
+
+// scenery objects and variables
+var peak = new Cosmetics/TrainAdventure/Peak
+var mtn = new Cosmetics/TrainAdventure/Mountain
+var snow = new Cosmetics/TrainAdventure/Snow
+var bridge = new Cosmetics/TrainAdventure/Bridge
+var mushrooms = new Cosmetics/TrainAdventure/Mushrooms
+var deadwood = new Cosmetics/TrainAdventure/Deadwood
+var start = new Cosmetics/TrainAdventure/DeadwoodStart
+
+var start_dx = -80
+var deadwood_dx = 0
+var mushrooms_dx = deadwood_dx + 77
+var bridge_dx = mushrooms_dx + 77
+var snow_dx = bridge_dx + 69
+
+var mtn_dx = snow_dx
+var mtn_dy = -27
+
+var peak_dx = snow_dx
+var peak_dy = mtn_dy - 5
+
+// snow particle variables
+var p_snow = []
+var p_snowBig = []
+var p_x = 0
+var p_y = 0
+var snowBig = False
+
+var btnLeaveX = 2
+var btnLeaveY = screen.h-4
+var btnLeaveH = 3
+var btnLeaveW = 11
+var txtLeave = te.xt("Leave")
+var txtLeaveX = btnLeaveX + btnLeaveW/2 - string.Size(txtLeave)/2
+var txtLeaveY = btnLeaveY+1
+var colorBtn = #808080
+
+
+
+//- SETUP -
+?loc.begin
+  // set music
+  ambient.Stop()
+  music.Play(fire_loop)   //force music to switch by playing another track first
+  music.Stop()
+  music.Play(credits)
+  
+  // register leave button
+  var pnlMain = ui.AddPanel()
+  pnlMain.visible = false
+  pnlMain.anchor = top_left
+  pnlMain.dock = top_left
+  
+  var btnLeave = ui.AddButton()
+  btnLeave.h = btnLeaveH
+  btnLeave.w = btnLeaveW
+  btnLeave.x = btnLeaveX+1
+  btnLeave.y = btnLeaveY-1
+  btnLeave.text = te.xt("Leave")
+  btnLeave.visible = true
+  btnLeave.SetPressed(loc.Leave)
+  pnlMain.Add(btnLeave)
+
+
+
+//- TIMING CONTROLS -
+// counter variables
+var gt_1t = 0
+var gt_1s = 0
+
+var f_wheels = 0
+var f_r_wheels = 24
+
+var f_smoke = 0
+var f_r_smoke = 16
+
+var tlogo_1t = 0
+
+// state variables
+var t_trainIn = true
+var t_wave = false
+var f_wave = 0
+var f_waveDone = false
+var t_scrollUp = false
+var f_scrollUp = 0
+var t_trainWrap = false
+var t_animDone = false
+var pressed_x = false
+
+
+
+// advance counters
+gt_1t++
+
+?(gt_1t % 30) = 0
+  gt_1s++
+
+f_wheels--
+?f_wheels <= 0
+  f_wheels = f_r_wheels
+
+f_smoke--
+?f_smoke <= 0
+  f_smoke = f_r_smoke
+
+// timer for logo display
+?t_animDone & tlogo_1t < 1000
+  tlogo_1t++
+
+// engineer wave
+?t_wave
+  ?(gt_1t % 5) = 0
+    ?!f_waveDone
+      f_waveDone = true
+      f_wave++
+      
+      ?f_wave > 17
+        t_wave = false
+  :
+    f_waveDone = false
+
+
+// advance coords
+// stop and scroll upwards at x = -275
+?(gt_1t % 3) = 0
+
+  //train arrives
+  ?t_trainIn
+    ?train_x = 25
+      t_trainIn = false
+    
+    train_x++
+  
+  //horizontal scroll
+  :?x > -275
+    x--
+  
+  //pause and allow train to move
+  :?(!t_scrollUp) & (train_x > 55)
+    t_scrollUp = true
+    train_x++
+  
+  //wrap train to tunnel
+  :?(!t_trainWrap) & (train_x > 111)
+    t_trainWrap = true
+    train_x = 6
+    train_y -= 26
+  :? train_x < 128
+    train_x++
+  
+  //vertical scroll
+  ?t_scrollUp
+    ?y < 46
+      f_scrollUp++
+      ?f_scrollUp % 3 = 0
+        y++
+        train_y++
+    :?!t_animDone
+      t_animDone = true
+
+
+
+//trigger engineer wave
+?x = 60
+  t_wave = true
+
+
+
+// generate snow particles
+?x < -198
+  snowBig = false
+  
+  //select top/side
+  ?rng % 2 = 0
+    p_x = rng % screen.w
+    p_y = 0
+  :
+    snowBig = (rng%5 = 0)
+    p_x = screen.w-1
+    p_y = rng % screen.h
+  
+  // add particle
+  ?snowBig
+    p_snowBig.Add( [p_x,p_y] )
+  :
+    p_snow.Add( [p_x,p_y] )
+  
+  // remove excess snow
+  ?p_snow.Count() > 20
+    p_snow.RemoveAt(0)
+  
+  ?p_snowBig.Count() > 5
+    p_snowBig.RemoveAt(0)
+
+//scroll clouds
+?(gt_1t % 30) = 0
+  x_c5--
+  ?x_c5 < -w_c5
+    x_c5 = x_c5 + w_c5
+
+?(gt_1t % 10) = 0
+  x_c4--
+  ?x_c4 < -w_c34
+    x_c4 = x_c4 + w_c34
+
+?(gt_1t % 5) = 0
+  x_c3--
+  ?x_c3 < -w_c34
+    x_c3 = x_c3 + w_c34
+
+?(gt_1t % 4) = 0
+  x_c2--
+  ?x_c2 < -w_c2
+    x_c2 = x_c2 + w_c2
+
+?(gt_1t % 2) = 0
+  x_c1--
+  ?x_c1 < -w_c1
+    x_c1 = x_c1 + w_c1
+
+//perspective scroll up
+var ss = false
+?t_scrollUp & (y > 15 & y < 46)
+  ?y%10 = 0
+    ?ss
+      ss = false
+      cloud_y = cloud_y + 2
+      cloud_spread--
+  :
+    ss = true
+
+
+
+//- MAIN LOOP -
+draw.Clear()
+Update()
+Draw()
+
+
+
+//- HELPER FUNCTIONS -
+func Update()
+  ?DeadwoodOnScreen()
+    start.Update(x+start_dx, y)
+    deadwood.Update(x+deadwood_dx, y)
+  ?MushroomsOnScreen()
+    mushrooms.Update(x+mushrooms_dx, y)
+  ?BridgeOnScreen()
+    bridge.Update(x+bridge_dx, y)
+  ?SnowOnScreen()
+    snow.Update(x+snow_dx, y)
+  ?MtnOnScreen()
+    mtn.Update(x+mtn_dx, y+mtn_dy)
+  ?PeakOnScreen()
+    peak.Update(x+peak_dx, y+peak_dy)
+  
+  ?x < -150 & star_state < 15
+    ?x%3 = 0
+      star_state++
+  
+  ?x = -108
+    train_bridge_state = 1
+  :?x = -116
+    train_bridge_state = 2
+  :?x = -126
+    train_bridge_state = 3
+  :?x = -136
+    train_bridge_state = 4
+  :?x = -216
+    train_bridge_state = 5
+  :?x = -224
+    train_bridge_state = 6
+  :?x = -234
+    train_bridge_state = 7
+  :?x = -244
+    train_bridge_state = 8
+  
+  ?t_trainWrap
+    ?train_x = 14
+      train_cliff_state = 1
+    :?train_x = 22
+      train_cliff_state = 2
+    :?train_x = 33
+      train_cliff_state = 3
+    :?train_x = 42
+      train_cliff_state = 4
+    :?train_x = 51
+      train_cliff_state = 5
+    :?train_x = 62
+      train_cliff_state = 6
+
+func PeakOnScreen()
+  return ( (x+peak_dx < screen.w+5) )
+
+func MtnOnScreen()
+  return ( (x+mtn_dx < screen.w+5) )
+
+func SnowOnScreen()
+  return ( (x+snow_dx < screen.w+5) & (y+mtn_dy < screen.h+5) )
+
+func BridgeOnScreen()
+  return ( (x+bridge_dx < screen.w+5) & (x+snow_dx+5 > 0) )
+
+func MushroomsOnScreen()
+  return ( (x+mushrooms_dx < screen.w+5) & (x+bridge_dx > 0) )
+
+func DeadwoodOnScreen()
+  return ( (x+deadwood_dx < screen.w+5) & (x+mushrooms_dx > 0) )
+
+func BridgeStateHit(idx)
+  return (train_bridge_state = idx) | (train_bridge_state = idx+4)
+
+func CliffStateHit(idx)
+  return (train_cliff_state = idx)
+
+func AdjustCliffY(y, down, down2, up)
+  ?train_cliff_state <= up
+    ?train_cliff_state >= down2
+      return (y+2)
+    :?train_cliff_state >= down
+      return (y+1)
+    :
+      return y
+  
+  return (y+1)
+
+func AdjustBridgeY(y, up, down)
+  ?train_bridge_state >= up & train_bridge_state <= down
+    return (y-1)
+  return y
+
+func GetStarColor(state)
+  ?  state = 0
+    return #000000
+  :? state = 15
+    return #FFFFFF
+  :? state = 1
+    return #111111
+  :? state = 2
+    return #222222
+  :? state = 3
+    return #333333
+  :? state = 4
+    return #444444
+  :? state = 5
+    return #555555
+  :? state = 6
+    return #666666
+  :? state = 7
+    return #777777
+  :? state = 8
+    return #888888
+  :? state = 9
+    return #999999
+  :? state = 10
+    return #AAAAAA
+  :? state = 11
+    return #BBBBBB
+  :? state = 12
+    return #CCCCCC
+  :? state = 13
+    return #DDDDDD
+  :? state = 14
+    return #EEEEEE
+  :
+    return #FFFFFF
+
+func Draw()
+  //draw sky elements
+  DrawStars(star_x, star_y, GetStarColor(star_state))
+  DrawMoon(moon_x, moon_y)
+  DrawWater(water_x, wide_water_x, water_y)
+  DrawClouds(cloud_x, cloud_y, cloud_spread)
+
+  //draw BG and terrain
+  ?MushroomsOnScreen()
+    mushrooms.Draw(x+mushrooms_dx, y)
+  ?DeadwoodOnScreen()
+    start.Draw(x+start_dx, y)
+    deadwood.Draw(x+deadwood_dx, y)
+  ?BridgeOnScreen()
+    bridge.Draw(x+bridge_dx, y)
+  ?SnowOnScreen()
+    snow.Draw(x+snow_dx, y)
+  ?MtnOnScreen()
+    mtn.Draw(x+mtn_dx, y+mtn_dy)
+    peak.Draw(x+peak_dx, y+peak_dy)
+
+  //draw train
+  ?t_trainWrap
+    DrawTrainCliff(train_x, train_y)
+  :
+    DrawTrain(train_x, train_y)
+
+  //draw FG
+  ?MushroomsOnScreen()
+    mushrooms.DrawFG(x+mushrooms_dx, y)
+  ?DeadwoodOnScreen()
+    start.DrawFG(x+start_dx, y)
+    deadwood.DrawFG(x+deadwood_dx, y)
+  ?BridgeOnScreen()
+    bridge.DrawFG(x+bridge_dx, y)
+  ?SnowOnScreen()
+    snow.DrawFG(x+snow_dx, y)
+  ?MtnOnScreen()
+    mtn.DrawFG(x+mtn_dx, y+mtn_dy)
+    peak.DrawFG(x+peak_dx, y+peak_dy)
+  
+  //draw UI
+  DrawTitle(3,0)
+  DrawLeaveButton()
+  
+  //draw particles
+  DrawUpdateSnow()
+
+
+
+func DrawTrain(tx, ty)
+  DrawCaboose(tx,   AdjustBridgeY(ty+2, 4,7) )
+  DrawBoxcar(tx+11, AdjustBridgeY(ty+2, 3,6) )
+  DrawTinder(tx+21, AdjustBridgeY(ty+3, 2,5) )
+  DrawEngine(tx+29, AdjustBridgeY(ty+2, 1,4) )
+  
+  DrawChain(tx+9,  AdjustBridgeY(ty+4, 4,7), 3)
+  DrawChain(tx+19, AdjustBridgeY(ty+4, 3,6), 2)
+  DrawChain(tx+27, AdjustBridgeY(ty+4, 2,5), 1)
+  
+  DrawSmoke(tx, AdjustBridgeY(ty, 1,4) )
+  
+  DrawEngineer(tx+28, AdjustBridgeY(ty+2, 1,4) )
+
+func DrawTrainCliff(tx, ty)
+  ?tx > 32
+    DrawCaboose(tx,   AdjustCliffY(ty+2, 4,5,6) )
+  ?tx > 22
+    DrawBoxcar(tx+11, AdjustCliffY(ty+2, 3,4,5) )
+  ?tx > 12
+    DrawTinder(tx+21, AdjustCliffY(ty+3, 2,3,4) )
+  DrawEngine(tx+29, AdjustCliffY(ty+2, 1,2,3) )
+  
+  ?tx > 30
+    DrawChainCliff(tx+9,  AdjustCliffY(ty+4, 3,4,6), 3,4,6)
+  ?tx > 20
+    DrawChainCliff(tx+19, AdjustCliffY(ty+4, 2,3,5), 2,3,5)
+  ?tx > 12
+    DrawChainCliff(tx+27, AdjustCliffY(ty+4, 1,2,4), 1,2,4)
+  
+  DrawSmoke(tx, AdjustCliffY(ty, 1,2,3) )
+  
+  DrawEngineer(tx+28, AdjustCliffY(ty+2, 1,2,3) )
+
+func DrawEngine(x, y)
+  >`@x@,@y@,@color@,ascii
+#_
+| |#_|
+|-─-.()
+'o‾oo`\\
+asciiend
+  ?f_wheels > 20
+    >`@x@,@y@,@color@,ascii
+#
+#
+#
+#O#OO
+asciiend
+
+func DrawTinder(x, y)
+  >`@x@,@y@,@color@,ascii
+#,:;.
+|‾‾‾‾|
+'o‾‾o'
+asciiend
+  ?f_wheels > 16 & f_wheels <= 20
+    >`@x@,@y@,@color@,ascii
+#
+#
+#O##O
+asciiend
+
+func DrawBoxcar(x, y)
+  >`@x@,@y@,@color@,ascii
+#______
+|\|‾‾|´|
+|,|''|\|
+'oo‾‾oo'
+asciiend
+  ?f_wheels > 12 & f_wheels <= 16
+    >`@x@,@y@,@color@,ascii
+#
+#
+#
+#OO##OO
+asciiend
+
+func DrawCaboose(x, y)
+  >`@x@,@y@,@color@,ascii
+___┬──┬__
+`|╓┐╓┐╓┐|
+||╙┘╙┘╙┘|
+‾'oo‾‾oo'
+asciiend
+  ?f_wheels > 8 & f_wheels <= 12
+    >`@x@,@y@,@color@,ascii
+#
+#
+#
+##OO##OO
+asciiend
+
+func DrawChain(cx, cy, idx)
+  ?BridgeStateHit(idx)
+    ?train_bridge_state = idx+4
+      >`@cx@,@cy@,@color@,ascii
+`.
+asciiend
+    :
+      >`@cx@,@cy@,@color@,ascii
+,´
+asciiend
+  :
+    >`@cx@,@cy@,@color@,ascii
+……
+asciiend
+
+func DrawChainCliff(cx, cy, down, down2, up)
+  ?CliffStateHit(up)
+    >`@cx@,@cy@,@color@,ascii
+.´
+asciiend
+  :?CliffStateHit(down) | CliffStateHit(down2)
+    >`@cx@,@cy@,@color@,ascii
+`.
+asciiend
+  :
+    >`@cx@,@cy@,@color@,ascii
+……
+asciiend
+
+func DrawEngineer(x, y)
+  ?f_wave = 0| f_wave > 17
+    >`@x@,@y@,@color@,ascii
+#
+##O
+asciiend
+  :?f_wave = 1| f_wave = 17
+    >`@x@,@y@,@color@,ascii
+#
+#O,
+asciiend
+  :?f_wave = 2| f_wave = 16
+    >`@x@,@y@,@color@,ascii
+O
+#\
+asciiend
+  :?f_wave = 3| f_wave = 15
+    >`@x@,@y@,@color@,ascii
+O
+`\
+asciiend
+  :?f_wave = 4| f_wave = 14
+    >`@x@,@y@,@color@,ascii
+O
+(\
+asciiend
+  :?f_wave = 5 | f_wave = 13
+    >`@x@,@y@,@color@,ascii
+O'
+(\
+asciiend
+  :?f_wave = 6 | f_wave = 8 | f_wave = 10 | f_wave = 12
+    >`@x@,@y@,@color@,ascii
+O)
+(\
+asciiend
+  :?f_wave = 7 | f_wave = 9 | f_wave = 11
+    >`@x@,@y@,@color@,ascii
+O/
+(\
+asciiend
+
+func DrawUpdateSnow()
+  for p : p_snow
+    p[0] = p[0]-3
+    p[1] = p[1]+1
+    
+    p_x = p[0]
+    p_y = p[1]
+    >`@p_x@,@p_y@,#DDDDDD,.
+    //·
+  
+  for p : p_snowBig
+    p[0] = p[0]-4
+    p[1] = p[1]+1
+    
+    p_x = p[0]
+    p_y = p[1]
+    >`@p_x@,@p_y@,#DDDDDD,❄
+
+func DrawSmoke(sx, sy)
+  ?f_smoke > 12
+    >`@sx+34@,@sy+2@,@color@,.
+  :?f_smoke > 8
+    >`@sx+33@,@sy+2@,@color@,°
+  :?f_smoke > 4
+    >`@sx+32@,@sy+1@,#AAAAAA,o
+  :
+    >`@sx+31@,@sy@,#888888,O
+
+func DrawMoon(mx, my)
+  >`@mx@,@my@,#white,ascii
+###_,._######_
+#,´ ,´ `####((
+/  /#########‾
+|  '
+\   `.__,/
+#`._  _,´
+####‾‾
+asciiend
+
+func DrawStars(sx, sy, s_color)
+  >`@sx@,@sy@,@s_color@,ascii
+#################################.###########################·###############
+#·###################################################################################.
+#
+######################·#################################·###################·
+#############################·####################################.
+#
+##########.
+##################·##############################################################.
+#######################################·####################·
+#############·##################################.######################·
+####·
+#########################·###########################·
+asciiend
+
+func DrawWater(wx, wide_wx, wy)
+  ?x <= -275
+    return
+  
+  >`@wide_wx@,@wy@,#444444,ascii
+         _       -       _     ~    #################       _                  _         
+_                                   ################# -          ~                  -    
+  _  ~               _            _ #################                   _                
+                _            _      #################      _                             
+           _           -            #################  _           _           ~        _
+     _                            _ #################                                    
+                     ~              #################        ~         _         _       
+      _                   _         #################                                 ~  
+ _           _                   -  #################    _                 -        _    
+asciiend
+
+  >`@wx@,@wy@,@color@,ascii
+  _    -      -  
+-    _   _  -  _ 
+  _    ~         
+ -  _      -  ~  
+      -     _    
+  _  _     _    -
+-       ~     _  
+  ~   _    _     
+ _  -   _   ~   _
+asciiend
+
+func DrawClouds(cx, cy, cs)
+  ?x > -275
+    return
+  
+  DrawClouds5(cx+x_c5,         cy, #444444)
+  DrawClouds5(cx+x_c5+ w_c5,   cy, #444444)
+  DrawClouds5(cx+x_c5+ 2*w_c5, cy, #444444)
+  
+  DrawClouds34(cx+x_c4,          cy+cs+1, #444444)
+  DrawClouds34(cx+x_c4+ w_c34,   cy+cs+1, #444444)
+  DrawClouds34(cx+x_c4+ 2*w_c34, cy+cs+1, #444444)
+  
+  DrawClouds34(cx+x_c3,          cy+2*cs+3, #444444)
+  DrawClouds34(cx+x_c3+ w_c34,   cy+2*cs+3, #444444)
+  DrawClouds34(cx+x_c3+ 2*w_c34, cy+2*cs+3, #444444)
+  
+  DrawClouds2(cx+x_c2,         cy+3*cs+4, #444444)
+  DrawClouds2(cx+x_c2+ w_c2,   cy+3*cs+4, #444444)
+  DrawClouds2(cx+x_c2+ 2*w_c2, cy+3*cs+4, #444444)
+  
+  DrawClouds1(cx+x_c1,         cy+4*cs+7, #444444)
+  DrawClouds1(cx+x_c1+ w_c1,   cy+4*cs+7, #444444)
+  DrawClouds1(cx+x_c1+ 2*w_c1, cy+4*cs+7, #444444)
+
+func DrawClouds5(cx, cy, color)
+  >`@cx@,@cy@,@color@,ascii
+ -- __ - -- _ -- __ -- _ -- - _ -- __ - __ _ - __
+asciiend
+
+func DrawClouds34(cx, cy, color)
+  >`@cx@,@cy@,@color@,ascii
+  -.-.  ,-,- ──.  ,- ── -.  ,-,──. ,─,─  -──.-.  ,──,── -.-.  ,-,- ──. ,─ ── ─.
+asciiend
+
+func DrawClouds2(cx, cy, color)
+  >`@cx@,@cy@,@color@,ascii
+   _,-.__    _,--._    _,-.    _ ,-,--._    _,-._,-._ 
+  ( (‾   )  (  ‾‾  )  ( (‾‾)  ( (‾ ‾‾‾) )  ( ‾(‾  ‾) )
+asciiend
+
+func DrawClouds1(cx, cy, color)
+  >`@cx@,@cy@,@color@,ascii
+   ,( ‾)_    (‾),     ,-(‾ )      _,(‾‾)‾)
+  (‾  ‾) )  (‾( ‾)  (‾(‾   ‾)‾)  (  (   ‾)‾)
+asciiend
+
+func DrawTitle(x, y)
+  ?t_animDone
+    ?tlogo_1t > 75
+      DrawTitleStone(x, y, #white)
+    ?tlogo_1t > 125
+      DrawTitleStory(x, y+6, #white)
+    ?tlogo_1t > 178
+      DrawTitleRPG(x+12,y+15,#white)
+
+func DrawTitleStone(x, y, color)
+  >`@x@,@y@,@color@,ascii
+########################_
+#############,--._#####'-\-´
+#######,----/-.,_#`-.___.'
+#####,(-,#_/____#`'---´
+#_##(\#‾##//##_###)-,###,-.
+/#`,#\)##//##(_)#/#//##((-'
+'.__.´###`‾#####´##`-´##`-´
+asciiend
+
+func DrawTitleStory(x, y, color)
+  >`@x@,@y@,@color@,ascii
+############,
+#####,--,#_/____
+#_##(\#´##//##_###/-,#,##(
+/#`.#\)##//##(_)#/###//#//
+'.__\´###`-´#########'-//
+#####`,-"-.,_###,-.###//
+####,'#`._###`'----)-´´
+##,-\-.###`'-.,,.-´
+#####‾
+asciiend
+
+func DrawTitleRPG(x, y, color)
+  >`@x@,@y@,@color@,RPG
+
+func DrawLeaveButton()
+  // draw leave button after animation completes
+  ?t_animDone & tlogo_1t > 240
+    >`@btnLeaveX@,@btnLeaveY@,@colorBtn@,ascii
+┌─────────┐
+│         │
+└─────────┘
+asciiend
+    >`@txtLeaveX@,@txtLeaveY@,@te.xt("Leave")@

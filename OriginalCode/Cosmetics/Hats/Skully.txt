@@ -1,0 +1,69 @@
+
+// Skully Hat
+// by: Newominus
+// v1.1
+// Requires big head mode enabled.
+
+var x = 0
+var y = 0
+var myX = 0
+var myZ = 0
+var stateTime = 0
+stateTime++
+
+var ribcage = 0 //set to 1 if you want the alt body// 0 = OFF // 1 = ON
+var boneColor = #808080 //grey
+
+x = myX + 0
+y = myZ + 0
+
+//DRAW---------------------------------------------<
+
+>h-2,-1,@boneColor@,ascii
+#,--.
+(_o,o)
+# `"´
+#
+asciiend
+
+?ribcage = 1
+  >h-2,-1,@boneColor@,ascii
+#
+#
+#
+##╪
+asciiend
+
+//BOSS ENTRY---------------------------------------<
+
+?face = "°°"
+  >h0,0,@boneColor@,ascii
+ò,ó
+asciiend
+
+//BOSS KILL----------------------------------------<
+
+?face = "^^"
+  ?time % 4 <= 1
+    >h0,0,@boneColor@,ascii
+O,o
+asciiend
+  ?time % 4 > 1
+    >h0,0,@boneColor@,ascii
+o,O
+asciiend
+
+//BLINKING-----------------------------------------<
+
+?stateTime % 50 >= 48
+  >h0,0,@boneColor@,ascii
+=,=
+asciiend
+:?stateTime % 50 >= 46
+  >h0,0,@boneColor@,ascii
+-,-
+asciiend
+:?stateTime % 50 >= 44
+  >h0,0,@boneColor@,ascii
+=,=
+asciiend

@@ -1,0 +1,175 @@
+/*
+CatHotAirBalloon
+Version 1.0.0
+A friendly catto to float along.
+
+written by bitty45
+hot air balloon art by tomatobulb
+cat art by sun(  UωU)
+
+to use: import Cosmetics/CatHotAirBalloon
+*/
+
+//EDITABLE VALUES============
+var X_MOVE_SPEED = 1
+var X_MOVE_RATE = 3
+var MIN_X = -20
+var MAX_X = screen.w + 20
+var MIN_HEIGHT = 2
+var MAX_HEIGHT = 4
+var LOOP_TIME = 300
+
+var X_OFFSET = 0
+var Y_OFFSET = 0
+var ART2_X_OFFSET = 4
+var ART2_Y_OFFSET = 8
+var PET_COLOR1 = #ffffff
+var PET_COLOR2 = #FFBFFF
+var ANIM_LOOP_TIME = 80
+
+//ART========================
+var petArt = ui.AddAnim(ascii
+######__
+##•´‾(  )‾`•
+#´   /‾‾\   `
+|   •    •   |
+.   |    |   .
+#\  .    .  /
+##\  \  /  /
+###'. •• .'
+#####│##│
+#####│##│
+####.│──┴──.
+###¡‾‾‾‾‾‾¡│
+###│______│,
+asciiend)
+
+var petArt2 = ui.AddAnim(ascii
+#####,
+#-.-´'\
+#\ oω°)
+%%
+#####,
+#-.-´'\
+#\ oω°)
+%%
+#####,
+#-.-´'\
+#\ oω°)
+%%
+#####,
+#-.-´'\
+#\ oω°)
+%%
+#####,
+#-.-´'\
+#\ oω°)
+%%
+#####,
+#-.-´'\
+#\ oω°)
+%%
+#####,
+#-.-´'\
+#\ oω°)
+%%
+#####,
+#-.-´'\
+#\ oω°)
+%%
+######,
+__.-~´|
+`. -ω´)
+%%
+#####,
+#-.-´'\
+#\ -ω´)
+asciiend)
+
+//========================
+var halfLoopTime
+var petX
+var petHeight
+var movingUp = true
+var pos_x
+var screen_w = screen.w
+var offScreen_behind = false
+var offScreen_ahead = false
+var petScreenX
+
+var petPnl
+
+petMain()
+
+func initPet()
+  var addAndInitAnim = func(anim, x, y, dur, loop, color)
+    petPnl.Add(anim)
+    anim.anchor = top_left
+    anim.dock = top_left
+    anim.x = x
+    anim.y = y
+    anim.duration = dur
+    anim.loop = loop
+    anim.color = color
+    anim.Play()
+  
+  var style = ui.AddStyle("
+^###
+^###
+^###")
+  petPnl = ui.AddPanel()
+  petPnl.h = 1
+  petPnl.w = 1
+  petPnl.style = style
+  petPnl.anchor = top_left
+  petPnl.dock = top_left
+  addAndInitAnim(petArt, X_OFFSET, Y_OFFSET, ANIM_LOOP_TIME, true, PET_COLOR1)
+  addAndInitAnim(petArt2, X_OFFSET+ART2_X_OFFSET, Y_OFFSET+ART2_Y_OFFSET, ANIM_LOOP_TIME, true, PET_COLOR2)
+  resetPet()
+
+func resetPet()
+  petX = pos_x - screen_w
+  petHeight = MIN_HEIGHT
+  movingUp = true
+  
+func petMain()
+  pos_x = pos.x
+  ?!petPnl
+    initPet()
+  petScreenX = screen.FromWorldX(petX + X_OFFSET)
+  offScreen_behind = petScreenX < MIN_X
+  offScreen_ahead = petScreenX > MAX_X
+  ?(time%X_MOVE_RATE = 0 | offScreen_behind) & !offScreen_ahead
+    ?offScreen_behind
+      petX += X_MOVE_SPEED*2
+    :
+      petX += X_MOVE_SPEED
+  :?petScreenX > MAX_X
+    resetPet()
+  ?movingUp
+    petHeight = getHeightArch() - MIN_HEIGHT
+  :
+    petHeight = -1*getHeightArch() - MIN_HEIGHT
+  ?getPercentHalfLoop() = 1
+    movingUp = !movingUp
+  var printX = screen.FromWorldX(petX + X_OFFSET)
+  var printY = screen.FromWorldZ(petHeight + Y_OFFSET)
+  petPnl.x = printX
+  petPnl.y = printY
+  
+func getHeightArch()
+  //creates a parabola between start and end points, with max height
+  //a = -jumpheight / (( mid - start )( mid - end ))
+  //(y(x) = ( x - start )( x - end )a
+  var multi = getHeightDiff()/0.125
+  var XMinusStart = getPercentHalfLoop()
+  var XMinusEnd = getPercentHalfLoop()-1
+  var result = XMinusStart*XMinusEnd*multi
+  return math.RoundToInt(result)
+
+func getHeightDiff()
+  return MAX_HEIGHT - MIN_HEIGHT
+  
+func getPercentHalfLoop()
+  var halfLoopTime = LOOP_TIME/2.0
+  return (time%halfLoopTime)/halfLoopTime

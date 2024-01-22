@@ -1,0 +1,1245 @@
+/*A basic calculator V1 by Bl
+Add the file to your stonescript folder and type import calculator.
+*WARNING* As of release of this script it will break when entering boss rooms
+or on location loop, due to how buttons created with ui.AddButton() works. *WARNING*
+It's a basic calculator, so you can check and plan your game without leaving it.
+It also has a bunch of personalization options for its looks!
+May extend into cientific calculator.
+*/
+
+//Sprites
+var calculatorBig = ascii
+╔══════════════════════════╗
+║ ☼ Options         _ ◘ X  ║
+║ ╒══════════════════════╕ ║
+║ │                      │ ║
+║ │                      │ ║
+║ ╘══════════════════════╛ ║
+║                          ║
+║       ┌───┐ ┌───┐  ┌───┐ ║
+║       │ ^ │ │ % │  │ C │ ║
+║       └───┘ └───┘  └───┘ ║
+║ ┌───┐ ┌───┐ ┌───┐  ┌───┐ ║
+║ │ 7 │ │ 8 │ │ 9 │  │ + │ ║
+║ └───┘ └───┘ └───┘  └───┘ ║
+║ ┌───┐ ┌───┐ ┌───┐  ┌───┐ ║
+║ │ 4 │ │ 5 │ │ 6 │  │ - │ ║
+║ └───┘ └───┘ └───┘  └───┘ ║
+║ ┌───┐ ┌───┐ ┌───┐  ┌───┐ ║
+║ │ 1 │ │ 2 │ │ 3 │  │ x │ ║
+║ └───┘ └───┘ └───┘  └───┘ ║
+║ ┌───┐ ┌───┐ ┌───┐  ┌───┐ ║
+║ │ . │ │ 0 │ │ = │  │ / │ ║
+║ └───┘ └───┘ └───┘  └───┘ ║
+╚══════════════════════════╝
+asciiend
+var calculatorBigScreen = ascii
+#
+#
+##╒══════════════════════╕
+##│                      │
+##│                      │
+##╘══════════════════════╛
+asciiend
+var calculatorBigButton = ascii
+#
+#
+#
+#
+#
+#
+#
+########┌───┐#┌───┐##┌───┐
+########│ ^ │#│ % │##│ C │
+########└───┘#└───┘##└───┘
+##┌───┐#┌───┐#┌───┐##┌───┐
+##│ 7 │#│ 8 │#│ 9 │##│ + │
+##└───┘#└───┘#└───┘##└───┘
+##┌───┐#┌───┐#┌───┐##┌───┐
+##│ 4 │#│ 5 │#│ 6 │##│ - │
+##└───┘#└───┘#└───┘##└───┘
+##┌───┐#┌───┐#┌───┐##┌───┐
+##│ 1 │#│ 2 │#│ 3 │##│ x │
+##└───┘#└───┘#└───┘##└───┘
+##┌───┐#┌───┐#┌───┐##┌───┐
+##│ . │#│ 0 │#│ = │##│ / │
+##└───┘#└───┘#└───┘##└───┘
+asciiend
+var calculatorBigNumbers = ascii
+#
+#
+#
+#
+#
+#
+#
+#
+##########^#####%######C
+#
+#
+####7#####8#####9######+
+#
+#
+####4#####5#####6######-
+#
+#
+####1#####2#####3######x
+#
+#
+####.#####0#####=######/
+asciiend
+var calculatorMedium = ascii
+╔════════════════════╗
+║ ☼ Options   _ ◘ X  ║
+║ ╒════════════════╕ ║
+║ │                │ ║
+║ │                │ ║
+║ ╘════════════════╛ ║
+║     ┌─┐ ┌─┐  ┌───┐ ║
+║     │%│ │^│  │ C │ ║
+║     └─┘ └─┘  └───┘ ║
+║ ┌─┐ ┌─┐ ┌─┐  ┌───┐ ║
+║ │7│ │8│ │9│  │ + │ ║
+║ └─┘ └─┘ └─┘  └───┘ ║
+║ ┌─┐ ┌─┐ ┌─┐  ┌───┐ ║
+║ │4│ │5│ │6│  │ - │ ║
+║ └─┘ └─┘ └─┘  └───┘ ║
+║ ┌─┐ ┌─┐ ┌─┐  ┌───┐ ║
+║ │1│ │2│ │3│  │ x │ ║
+║ └─┘ └─┘ └─┘  └───┘ ║
+║ ┌─┐ ┌─┐ ┌─┐  ┌───┐ ║
+║ │.│ │0│ │=│  │ / │ ║
+║ └─┘ └─┘ └─┘  └───┘ ║
+╚════════════════════╝
+asciiend
+var calculatorMediumScreen = ascii
+#
+#
+##╒════════════════╕
+##│                │
+##│                │
+##╘════════════════╛
+asciiend
+var calculatorMediumButton = ascii
+#
+#
+#
+#
+#
+#
+######┌─┐#┌─┐##┌───┐
+######│%│#│^│##│ C │
+######└─┘#└─┘##└───┘
+##┌─┐#┌─┐#┌─┐##┌───┐
+##│7│#│8│#│9│##│ + │
+##└─┘#└─┘#└─┘##└───┘
+##┌─┐#┌─┐#┌─┐##┌───┐
+##│4│#│5│#│6│##│ - │
+##└─┘#└─┘#└─┘##└───┘
+##┌─┐#┌─┐#┌─┐##┌───┐
+##│1│#│2│#│3│##│ x │
+##└─┘#└─┘#└─┘##└───┘
+##┌─┐#┌─┐#┌─┐##┌───┐
+##│.│#│0│#│=│##│ / │
+##└─┘#└─┘#└─┘##└───┘
+asciiend
+var calculatorMediumNumbers = ascii
+#
+#
+#
+#
+#
+#
+#
+#######%###^#####C
+#
+#
+###7###8###9#####+
+#
+#
+###4###5###6#####-
+#
+#
+###1###2###3#####x
+#
+#
+###.###0###=#####/##
+#
+asciiend
+var calculatorSmall = ascii
+╔═════════════════╗
+║ ☼Options _ ◘ X  ║
+║ ╒═════════════╕ ║
+║ │             │ ║
+║ │             │ ║
+║ ╘═════════════╛ ║
+║    ┌─┐┌─┐ ┌───┐ ║
+║    │^││%│ │ C │ ║
+║    └─┘└─┘ └───┘ ║
+║ ┌─┐┌─┐┌─┐ ┌───┐ ║
+║ │7││8││9│ │ + │ ║
+║ └─┘└─┘└─┘ └───┘ ║
+║ ┌─┐┌─┐┌─┐ ┌───┐ ║
+║ │4││5││6│ │ - │ ║
+║ └─┘└─┘└─┘ └───┘ ║
+║ ┌─┐┌─┐┌─┐ ┌───┐ ║
+║ │1││2││3│ │ x │ ║
+║ └─┘└─┘└─┘ └───┘ ║
+║ ┌─┐┌─┐┌─┐ ┌───┐ ║
+║ │.││0││=│ │ / │ ║
+║ └─┘└─┘└─┘ └───┘ ║
+╚═════════════════╝
+asciiend
+var calculatorSmallScreen = ascii
+#
+#
+##╒═════════════╕
+##│             │
+##│             │
+##╘═════════════╛
+asciiend
+var calculatorSmallButton = ascii
+#
+#
+#
+#
+#
+#
+#####┌─┐┌─┐#┌───┐
+#####│^││%│#│ C │
+#####└─┘└─┘#└───┘
+##┌─┐┌─┐┌─┐#┌───┐
+##│7││8││9│#│ + │
+##└─┘└─┘└─┘#└───┘
+##┌─┐┌─┐┌─┐#┌───┐
+##│4││5││6│#│ - │
+##└─┘└─┘└─┘#└───┘
+##┌─┐┌─┐┌─┐#┌───┐
+##│1││2││3│#│ x │
+##└─┘└─┘└─┘#└───┘
+##┌─┐┌─┐┌─┐#┌───┐
+##│.││0││=│#│ / │
+##└─┘└─┘└─┘#└───┘
+asciiend
+var calculatorSmallNumbers = ascii
+#
+#
+#
+#
+#
+#
+#
+######^##%####C
+#
+#
+###7##8##9####+
+#
+#
+###4##5##6####-
+#
+#
+###1##2##3####x
+#
+#
+###.##0##=####/
+#
+asciiend
+
+
+
+var minimizedIcon = ascii
+┌───┐
+│ ∑ │
+└───┘
+asciiend
+
+var options = ascii
+╔══════════════════════╗
+║ •                  X ║
+║ ◘                    ║
+║ Border color         ║
+║ Screen color         ║
+║ Background color     ║
+║ Screen text color    ║
+║ Button color         ║
+║ Button text color    ║
+║ Calculator placement ║
+║ Minimized placement  ║
+║ Minimized color      ║
+║ Minimized icon color ║
+║ Change size          ║
+║                      ║
+╚══════════════════════╝
+asciiend
+
+var optionsColor = ascii
+╔══════════════════════╗
+║ •                  X ║
+║ ◘                    ║
+║ X color              ║
+║                      ║
+║ Chose a color:       ║
+║                      ║
+║ █  █  █  █  █  █  █  ║
+║                      ║
+║ Use hex:             ║
+║ Code:                ║
+║ 0 1 2 3 4 5 6 7 8 9  ║
+║ A B C D E F          ║
+║                      ║
+╚══════════════════════╝
+asciiend
+var optionsPlace = ascii
+╔══════════════════════╗
+║ •                  X ║
+║ ◘                    ║
+║ X placement          ║
+║                      ║
+║ X = 0    Y = 0       ║
+║ Clear                ║
+║ ← → ↓ ↑              ║
+║                      ║
+║ Write coordinates:   ║
+║ X = 0                ║
+║ 0 1 2 3 4 5 6 7 8 9  ║
+║ Clear                ║
+║ Y = 0                ║
+║ 0 1 2 3 4 5 6 7 8 9  ║
+║ Clear                ║
+║                      ║
+╚══════════════════════╝
+asciiend
+
+//Calculator variables and elements
+var calculatorColor = storage.Get("CalculatorColor", #ffffff)
+var calculatorScreenColor = storage.Get("CalculatorScreenColor", #087a00)
+var calculatorScreenBgColor = storage.Get("CalculatorScreenBgColor", #244222)
+var calculatorButtonColor = storage.Get("CalculatorButtonColor", #001845)
+var calculatorTextColor = storage.Get("CalculatorTextColor", #ab8e00)
+var calculatorKeyboardColor = storage.Get("CalculatorKeyboardColor", #ab8e12)
+var calculatorX = storage.Get("CalculatorX", 0)
+var calculatorY = storage.Get("CalculatorY", 0)
+var calculatorScreenOffsetTop = 0
+var calculatorScreenOffsetBottom = 0
+var minimizedX = storage.Get("MinimizedX", screen.w/2)
+var minimizedY = storage.Get("MinimizedY", 23)
+var sizeFlag = storage.Get("SizeFlag", 0)
+var optionsX = math.Clamp(calculatorX-24, 0, screen.w)
+var optionsY = math.Clamp(calculatorY-14, 0, screen.h)
+var minimizedColor = storage.Get("MinimizedColor", #white)
+var minimizedIconColor = storage.Get("MinimizedIconColor", #white)
+
+//Buttons
+var buttonX = createButton(99,99,1,1,"X")
+buttonX.SetPressed(calculatorClose)
+var buttonOptionsX = createButton(99,99,1,1,"X")
+buttonOptionsX.SetPressed(optionsClose)
+var buttonMinimized = createButton(minimizedX,minimizedY,5,3,"∑")
+buttonMinimized.SetPressed(calculatorOpen)
+var buttonClose = createButton(99,99,1,1,"-")
+buttonClose.SetPressed(calculatorMinimize)
+var buttonSize = createButton(99,99,1,1,"◘")
+buttonSize.SetPressed(calculatorChangeSize)
+var buttonOptions = createButton(99,99,9,1,"Options")
+buttonOptions.SetPressed(calculatorOptions)
+var buttonSum = createButton(99,99,3,3,"+")
+buttonSum.SetPressed(calculatorOperation)
+var buttonSub = createButton(99,99,3,3,"-")
+buttonSub.SetPressed(calculatorOperation)
+var buttonDiv = createButton(99,99,3,3,"/")
+buttonDiv.SetPressed(calculatorOperation)
+var buttonMult = createButton(99,99,3,3,"X")
+buttonMult.SetPressed(calculatorOperation)
+var buttonPow = createButton(99,99,3,3,"^")
+buttonPow.SetPressed(calculatorOperation)
+var buttonPercent = createButton(99,99,3,3,"%")
+buttonPercent.SetPressed(calculatorPercent)
+var buttonIgual = createButton(99,99,3,3,"=")
+buttonIgual.SetPressed(calculatorEqual)
+var buttonDecimal = createButton(99,99,3,3,".")
+buttonDecimal.SetPressed(calculatorDecimal)
+var buttonZero = createButton(99,99,3,3,"0")
+buttonZero.SetPressed(calculatorNumber)
+var buttonOne = createButton(99,99,3,3,"1")
+buttonOne.SetPressed(calculatorNumber)
+var buttonTwo = createButton(99,99,3,3,"2")
+buttonTwo.SetPressed(calculatorNumber)
+var buttonThree = createButton(99,99,3,3,"3")
+buttonThree.SetPressed(calculatorNumber)
+var buttonFour = createButton(99,99,3,3,"4")
+buttonFour.SetPressed(calculatorNumber)
+var buttonFive = createButton(99,99,3,3,"5")
+buttonFive.SetPressed(calculatorNumber)
+var buttonSix = createButton(99,99,3,3,"6")
+buttonSix.SetPressed(calculatorNumber)
+var buttonSeven = createButton(99,99,3,3,"7")
+buttonSeven.SetPressed(calculatorNumber)
+var buttonEight = createButton(99,99,3,3,"8")
+buttonEight.SetPressed(calculatorNumber)
+var buttonNine = createButton(99,99,3,3,"9")
+buttonNine.SetPressed(calculatorNumber)
+var buttonClear = createButton(99,99,3,3,"C")
+buttonClear.SetPressed(calculatorClear)
+var buttonBorderColor = createButton(99,99,22,1,"Border color")
+buttonBorderColor.SetPressed(optionsColorMenu)
+var buttonBackgroundColor = createButton(99,99,22,1,"Background color")
+buttonBackgroundColor.SetPressed(optionsColorMenu)
+var buttonScreenColor = createButton(99,99,22,1,"Screen color")
+buttonScreenColor.SetPressed(optionsColorMenu)
+var buttonScreenTextColor = createButton(99,99,22,1,"Screen text color")
+buttonScreenTextColor.SetPressed(optionsColorMenu)
+var buttonButtonColor = createButton(99,99,22,1,"Button color")
+buttonButtonColor.SetPressed(optionsColorMenu)
+var buttonButtonTextColor = createButton(99,99,22,1,"Button text color")
+buttonButtonTextColor.SetPressed(optionsColorMenu)
+var buttonMinimizedColor = createButton(99,99,22,1,"Minimized color")
+buttonMinimizedColor.SetPressed(optionsColorMenu)
+var buttonMinimizedIconColor = createButton(99,99,22,1,"Minimized icon color")
+buttonMinimizedIconColor.SetPressed(optionsColorMenu)
+var buttonCalculatorPlacement = createButton(99,99,22,1,"Calculator placement")
+buttonCalculatorPlacement.SetPressed(optionsPlaceMenu)
+var buttonMinimizedPlacement = createButton(99,99,22,1,"Minimized placement")
+buttonMinimizedPlacement.SetPressed(optionsPlaceMenu)
+var buttonChangeSize = createButton(99,99,22,1,"Change size")
+buttonChangeSize.SetPressed(calculatorChangeSize)
+var buttonOptionsColorX = createButton(99,99,1,1,"X")
+buttonOptionsColorX.SetPressed(optionsCloseColor)
+var buttonOptionsColorWhite = createButton(99,99,1,1,"w")
+buttonOptionsColorWhite.SetPressed(optionsColorButton)
+var buttonOptionsColorCyan = createButton(99,99,1,1,"c")
+buttonOptionsColorCyan.SetPressed(optionsColorButton)
+var buttonOptionsColorYellow = createButton(99,99,1,1,"y")
+buttonOptionsColorYellow.SetPressed(optionsColorButton)
+var buttonOptionsColorGreen = createButton(99,99,1,1,"g")
+buttonOptionsColorGreen.SetPressed(optionsColorButton)
+var buttonOptionsColorBlue = createButton(99,99,1,1,"b")
+buttonOptionsColorBlue.SetPressed(optionsColorButton)
+var buttonOptionsColorRed = createButton(99,99,1,1,"r")
+buttonOptionsColorRed.SetPressed(optionsColorButton)
+var buttonOptionsColorGrey = createButton(99,99,1,1,"m")
+buttonOptionsColorGrey.SetPressed(optionsColorButton)
+var buttonOptionsColorZero = createButton(99,99,1,1,"0")
+buttonOptionsColorZero.SetPressed(optionsHex)
+var buttonOptionsColorOne = createButton(99,99,1,1,"1")
+buttonOptionsColorOne.SetPressed(optionsHex)
+var buttonOptionsColorTwo = createButton(99,99,1,1,"2")
+buttonOptionsColorTwo.SetPressed(optionsHex)
+var buttonOptionsColorThree = createButton(99,99,1,1,"3")
+buttonOptionsColorThree.SetPressed(optionsHex)
+var buttonOptionsColorFour = createButton(99,99,1,1,"4")
+buttonOptionsColorFour.SetPressed(optionsHex)
+var buttonOptionsColorFive = createButton(99,99,1,1,"5")
+buttonOptionsColorFive.SetPressed(optionsHex)
+var buttonOptionsColorSix = createButton(99,99,1,1,"6")
+buttonOptionsColorSix.SetPressed(optionsHex)
+var buttonOptionsColorSeven = createButton(99,99,1,1,"7")
+buttonOptionsColorSeven.SetPressed(optionsHex)
+var buttonOptionsColorEight = createButton(99,99,1,1,"8")
+buttonOptionsColorEight.SetPressed(optionsHex)
+var buttonOptionsColorNine = createButton(99,99,1,1,"9")
+buttonOptionsColorNine.SetPressed(optionsHex)
+var buttonOptionsColorA = createButton(99,99,1,1,"a")
+buttonOptionsColorA.SetPressed(optionsHex)
+var buttonOptionsColorB = createButton(99,99,1,1,"b")
+buttonOptionsColorB.SetPressed(optionsHex)
+var buttonOptionsColorC = createButton(99,99,1,1,"c")
+buttonOptionsColorC.SetPressed(optionsHex)
+var buttonOptionsColorD = createButton(99,99,1,1,"d")
+buttonOptionsColorD.SetPressed(optionsHex)
+var buttonOptionsColorE = createButton(99,99,1,1,"e")
+buttonOptionsColorE.SetPressed(optionsHex)
+var buttonOptionsColorF = createButton(99,99,1,1,"f")
+buttonOptionsColorF.SetPressed(optionsHex)
+var buttonOptionsPlaceX = createButton(99,99,1,1,"X")
+buttonOptionsPlaceX.SetPressed(optionsPlaceClose)
+var buttonOptionsPlaceClear = createButton(99,99,1,1,"Clear")
+buttonOptionsPlaceClear.SetPressed(clearPlacement)
+var buttonOptionsPlaceClearX = createButton(99,99,1,1,"ClearX")
+buttonOptionsPlaceClearX.SetPressed(clearPlacement)
+var buttonOptionsPlaceClearY = createButton(99,99,1,1,"ClearY")
+buttonOptionsPlaceClearY.SetPressed(clearPlacement)
+var buttonPlaceLeft = createButton(99,99,1,1,"←")
+buttonPlaceLeft.SetPressed(placementMovemente)
+var buttonPlaceRight = createButton(99,99,1,1,"→")
+buttonPlaceRight.SetPressed(placementMovemente)
+var buttonPlaceDown = createButton(99,99,1,1,"↓")
+buttonPlaceDown.SetPressed(placementMovemente)
+var buttonPlaceUp = createButton(99,99,1,1,"↑")
+buttonPlaceUp.SetPressed(placementMovemente)
+var buttonOptionsPlaceXZero = createButton(99,99,1,1,"0")
+buttonOptionsPlaceXZero.SetPressed(placementX)
+var buttonOptionsPlaceXOne = createButton(99,99,1,1,"1")
+buttonOptionsPlaceXOne.SetPressed(placementX)
+var buttonOptionsPlaceXTwo = createButton(99,99,1,1,"2")
+buttonOptionsPlaceXTwo.SetPressed(placementX)
+var buttonOptionsPlaceXThree = createButton(99,99,1,1,"3")
+buttonOptionsPlaceXThree.SetPressed(placementX)
+var buttonOptionsPlaceXFour = createButton(99,99,1,1,"4")
+buttonOptionsPlaceXFour.SetPressed(placementX)
+var buttonOptionsPlaceXFive = createButton(99,99,1,1,"5")
+buttonOptionsPlaceXFive.SetPressed(placementX)
+var buttonOptionsPlaceXSix = createButton(99,99,1,1,"6")
+buttonOptionsPlaceXSix.SetPressed(placementX)
+var buttonOptionsPlaceXSeven = createButton(99,99,1,1,"7")
+buttonOptionsPlaceXSeven.SetPressed(placementX)
+var buttonOptionsPlaceXEight = createButton(99,99,1,1,"8")
+buttonOptionsPlaceXEight.SetPressed(placementX)
+var buttonOptionsPlaceXNine = createButton(99,99,1,1,"9")
+buttonOptionsPlaceXNine.SetPressed(placementX)
+var buttonOptionsPlaceYZero = createButton(99,99,1,1,"0")
+buttonOptionsPlaceYZero.SetPressed(placementY)
+var buttonOptionsPlaceYOne = createButton(99,99,1,1,"1")
+buttonOptionsPlaceYOne.SetPressed(placementY)
+var buttonOptionsPlaceYTwo = createButton(99,99,1,1,"2")
+buttonOptionsPlaceYTwo.SetPressed(placementY)
+var buttonOptionsPlaceYThree = createButton(99,99,1,1,"3")
+buttonOptionsPlaceYThree.SetPressed(placementY)
+var buttonOptionsPlaceYFour = createButton(99,99,1,1,"4")
+buttonOptionsPlaceYFour.SetPressed(placementY)
+var buttonOptionsPlaceYFive = createButton(99,99,1,1,"5")
+buttonOptionsPlaceYFive.SetPressed(placementY)
+var buttonOptionsPlaceYSix = createButton(99,99,1,1,"6")
+buttonOptionsPlaceYSix.SetPressed(placementY)
+var buttonOptionsPlaceYSeven = createButton(99,99,1,1,"7")
+buttonOptionsPlaceYSeven.SetPressed(placementY)
+var buttonOptionsPlaceYEight = createButton(99,99,1,1,"8")
+buttonOptionsPlaceYEight.SetPressed(placementY)
+var buttonOptionsPlaceYNine = createButton(99,99,1,1,"9")
+buttonOptionsPlaceYNine.SetPressed(placementY)
+
+
+//Calculator workings
+var elementFirst = 0.0
+var elementSecond = 0.0
+var elementOutput = "0"
+var elementOperation = ""
+var elementShown=null
+var minimizedFlag = true
+var optionsFlag = false
+var elementDecimal = 10.0
+var elementDecimalFlag = false
+var elementFlag = true
+var selectedColor = "#white"
+var optionsColorFlag = false
+var optionsPlaceFlag = false
+var colorChanged = false
+var menuName = ""
+var hexFlag = false
+
+?elementFlag
+ elementShown = elementFirst+elementOperation
+:
+ elementShown = elementFirst+elementOperation+elementSecond
+//Functions
+func createButton(x,y,w,h,text)
+ var aux = ui.AddButton()
+ aux.x = x
+ aux.y = y
+ aux.w = w
+ aux.h = h
+ aux.text = text
+ return aux
+
+func printCalculatorBig()
+ hideButton(buttonMinimized)
+ calculatorScreenOffsetTop = string.Size(elementShown)
+ calculatorScreenOffsetBottom = string.Size(elementOutput+"")
+ >`@calculatorX@,@calculatorY@,@calculatorColor@,@calculatorBig@
+ >`@calculatorX@,@calculatorY@,@calculatorScreenColor@,@calculatorBigScreen@
+ ?!optionsFlag
+  draw.Bg(calculatorX+3,calculatorY+3,calculatorScreenBgColor,22,2)
+ >`@calculatorX@,@calculatorY@,@calculatorButtonColor@,@calculatorBigButton@
+ >`@calculatorX@,@calculatorY@,@calculatorKeyboardColor@,@calculatorBigNumbers@
+ >`@calculatorX+25-calculatorScreenOffsetTop@,@calculatorY+3@,@calculatorTextColor@,@elementShown@
+ >`@calculatorX+25-calculatorScreenOffsetBottom@,@calculatorY+4@,@calculatorTextColor@,@elementOutput@
+
+func printCalculatorMedium()
+ hideButton(buttonMinimized)
+ calculatorScreenOffsetTop = string.Size(elementShown)
+ calculatorScreenOffsetBottom = string.Size(elementOutput+"")
+ >`@calculatorX@,@calculatorY@,@calculatorColor@,@calculatorMedium@
+ >`@calculatorX@,@calculatorY@,@calculatorScreenColor@,@calculatorMediumScreen@
+ ?!optionsFlag
+  draw.Bg(calculatorX+3,calculatorY+3,calculatorScreenBgColor,16,2)
+ >`@calculatorX@,@calculatorY@,@calculatorButtonColor@,@calculatorMediumButton@
+ >`@calculatorX@,@calculatorY@,@calculatorKeyboardColor@,@calculatorMediumNumbers@
+ >`@calculatorX+19-calculatorScreenOffsetTop@,@calculatorY+3@,@calculatorTextColor@,@elementShown@
+ >`@calculatorX+19-calculatorScreenOffsetBottom@,@calculatorY+4@,@calculatorTextColor@,@elementOutput@
+
+func printCalculatorSmall()
+ hideButton(buttonMinimized)
+ calculatorScreenOffsetTop = string.Size(elementShown)
+ calculatorScreenOffsetBottom = string.Size(elementOutput+"")
+ >`@calculatorX@,@calculatorY@,@calculatorColor@,@calculatorSmall@
+ >`@calculatorX@,@calculatorY@,@calculatorScreenColor@,@calculatorSmallScreen@
+ ?!optionsFlag
+  draw.Bg(calculatorX+3,calculatorY+3,calculatorScreenBgColor,13,2)
+ >`@calculatorX@,@calculatorY@,@calculatorButtonColor@,@calculatorSmallButton@
+ >`@calculatorX@,@calculatorY@,@calculatorKeyboardColor@,@calculatorSmallNumbers@
+ >`@calculatorX+16-calculatorScreenOffsetTop@,@calculatorY+3@,@calculatorTextColor@,@elementShown@
+ >`@calculatorX+16-calculatorScreenOffsetBottom@,@calculatorY+4@,@calculatorTextColor@,@elementOutput@
+
+func printMinimizedIcon()
+ buttonMinimized.x = minimizedX
+ buttonMinimized.y = minimizedY
+ >`@minimizedX@,@minimizedY@,@minimizedColor@,@minimizedIcon@
+ >`@minimizedX+2@,@minimizedY+1@,@minimizedIconColor@,∑
+
+func calculatorClose()
+ elementFirst = 0.0
+ elementSecond = 0.0
+ elementShown = null
+ elementOutput = 0
+ hideButton(buttonX)
+ hideButton(buttonSize)
+ hideButton(buttonClose)
+ hideButton(buttonOptions)
+ hideButton(buttonMult)
+ hideButton(buttonDiv)
+ hideButton(buttonSub)
+ hideButton(buttonSum)
+ hideButton(buttonPow)
+ hideButton(buttonPercent)
+ hideButton(buttonZero)
+ hideButton(buttonOne)
+ hideButton(buttonTwo)
+ hideButton(buttonThree)
+ hideButton(buttonFour)
+ hideButton(buttonFive)
+ hideButton(buttonSix)
+ hideButton(buttonSeven)
+ hideButton(buttonEight)
+ hideButton(buttonNine)
+ hideButton(buttonDecimal)
+ hideButton(buttonIgual)
+ hideButton(buttonClear)
+ minimizedFlag = true
+
+func calculatorOpen()
+ ?sizeFlag = 0
+  showButton(buttonX,calculatorX+24,calculatorY+1,1,1)
+  showButton(buttonSize,calculatorX+22,calculatorY+1,1,1)
+  showButton(buttonClose,calculatorX+20,calculatorY+1,1,1)
+  showButton(buttonOptions,calculatorX+2,calculatorY+1,9,1)
+  showButton(buttonDecimal,calculatorX+2,calculatorY+19,5,3)
+  showButton(buttonIgual,calculatorX+14,calculatorY+19,5,3)
+  showButton(buttonSum,calculatorX+21,calculatorY+10,5,3)
+  showButton(buttonSub,calculatorX+21,calculatorY+13,5,3)
+  showButton(buttonMult,calculatorX+21,calculatorY+16,5,3)
+  showButton(buttonDiv,calculatorX+21,calculatorY+19,5,3)
+  showButton(buttonPow,calculatorX+8,calculatorY+7,5,3)
+  showButton(buttonPercent,calculatorX+14,calculatorY+7,5,3)
+  showButton(buttonZero,calculatorX+8,calculatorY+19,5,3)
+  showButton(buttonOne,calculatorX+2,calculatorY+16,5,3)
+  showButton(buttonTwo,calculatorX+8,calculatorY+16,5,3)
+  showButton(buttonThree,calculatorX+14,calculatorY+16,5,3)
+  showButton(buttonFour,calculatorX+2,calculatorY+13,5,3)
+  showButton(buttonFive,calculatorX+8,calculatorY+13,5,3)
+  showButton(buttonSix,calculatorX+14,calculatorY+13,5,3)
+  showButton(buttonSeven,calculatorX+2,calculatorY+10,5,3)
+  showButton(buttonEight,calculatorX+8,calculatorY+10,5,3)
+  showButton(buttonNine,calculatorX+14,calculatorY+10,5,3)
+  showButton(buttonClear,calculatorX+21,calculatorY+7,5,3)
+ :?sizeFlag = 1
+  showButton(buttonX,calculatorX+18,calculatorY+1,1,1)
+  showButton(buttonSize,calculatorX+16,calculatorY+1,1,1)
+  showButton(buttonClose,calculatorX+14,calculatorY+1,1,1)
+  showButton(buttonOptions,calculatorX+2,calculatorY+1,9,1)
+  showButton(buttonDecimal,calculatorX+2,calculatorY+18,3,3)
+  showButton(buttonIgual,calculatorX+10,calculatorY+18,3,3)
+  showButton(buttonSum,calculatorX+15,calculatorY+9,5,3)
+  showButton(buttonSub,calculatorX+15,calculatorY+12,5,3)
+  showButton(buttonMult,calculatorX+15,calculatorY+15,5,3)
+  showButton(buttonDiv,calculatorX+15,calculatorY+18,5,3)
+  showButton(buttonPow,calculatorX+10,calculatorY+6,3,3)
+  showButton(buttonPercent,calculatorX+6,calculatorY+6,3,3)
+  showButton(buttonZero,calculatorX+6,calculatorY+18,3,3)
+  showButton(buttonOne,calculatorX+2,calculatorY+15,3,3)
+  showButton(buttonTwo,calculatorX+6,calculatorY+15,3,3)
+  showButton(buttonThree,calculatorX+10,calculatorY+15,3,3)
+  showButton(buttonFour,calculatorX+2,calculatorY+12,3,3)
+  showButton(buttonFive,calculatorX+6,calculatorY+12,3,3)
+  showButton(buttonSix,calculatorX+10,calculatorY+12,3,3)
+  showButton(buttonSeven,calculatorX+2,calculatorY+9,3,3)
+  showButton(buttonEight,calculatorX+6,calculatorY+9,3,3)
+  showButton(buttonNine,calculatorX+10,calculatorY+9,3,3)
+  showButton(buttonClear,calculatorX+15,calculatorY+6,5,3)
+ :?sizeFlag = 2
+  showButton(buttonX,calculatorX+15,calculatorY+1,1,1)
+  showButton(buttonSize,calculatorX+13,calculatorY+1,1,1)
+  showButton(buttonClose,calculatorX+11,calculatorY+1,1,1)
+  showButton(buttonOptions,calculatorX+2,calculatorY+1,8,1)
+  showButton(buttonDecimal,calculatorX+2,calculatorY+18,3,3)
+  showButton(buttonIgual,calculatorX+8,calculatorY+18,3,3)
+  showButton(buttonSum,calculatorX+12,calculatorY+9,5,3)
+  showButton(buttonSub,calculatorX+12,calculatorY+12,5,3)
+  showButton(buttonMult,calculatorX+12,calculatorY+15,5,3)
+  showButton(buttonDiv,calculatorX+12,calculatorY+18,5,3)
+  showButton(buttonPow,calculatorX+5,calculatorY+6,3,3)
+  showButton(buttonPercent,calculatorX+8,calculatorY+6,3,3)
+  showButton(buttonZero,calculatorX+5,calculatorY+18,3,3)
+  showButton(buttonOne,calculatorX+2,calculatorY+15,3,3)
+  showButton(buttonTwo,calculatorX+5,calculatorY+15,3,3)
+  showButton(buttonThree,calculatorX+8,calculatorY+15,3,3)
+  showButton(buttonFour,calculatorX+2,calculatorY+12,3,3)
+  showButton(buttonFive,calculatorX+5,calculatorY+12,3,3)
+  showButton(buttonSix,calculatorX+8,calculatorY+12,3,3)
+  showButton(buttonSeven,calculatorX+2,calculatorY+9,3,3)
+  showButton(buttonEight,calculatorX+5,calculatorY+9,3,3)
+  showButton(buttonNine,calculatorX+8,calculatorY+9,3,3)
+  showButton(buttonClear,calculatorX+12,calculatorY+6,5,3)
+ minimizedFlag = false
+
+func calculatorMinimize()
+ hideButton(buttonX)
+ hideButton(buttonSize)
+ hideButton(buttonClose)
+ hideButton(buttonOptions)
+ hideButton(buttonMult)
+ hideButton(buttonDiv)
+ hideButton(buttonSub)
+ hideButton(buttonSum)
+ hideButton(buttonPow)
+ hideButton(buttonPercent)
+ hideButton(buttonZero)
+ hideButton(buttonOne)
+ hideButton(buttonTwo)
+ hideButton(buttonThree)
+ hideButton(buttonFour)
+ hideButton(buttonFive)
+ hideButton(buttonSix)
+ hideButton(buttonSeven)
+ hideButton(buttonEight)
+ hideButton(buttonNine)
+ hideButton(buttonDecimal)
+ hideButton(buttonIgual)
+ hideButton(buttonClear)
+ minimizedFlag = true
+
+func calculatorMinimizeOptions()
+ hideButton(buttonX)
+ hideButton(buttonSize)
+ hideButton(buttonClose)
+ hideButton(buttonOptions)
+ hideButton(buttonMult)
+ hideButton(buttonDiv)
+ hideButton(buttonSub)
+ hideButton(buttonSum)
+ hideButton(buttonPow)
+ hideButton(buttonPercent)
+ hideButton(buttonZero)
+ hideButton(buttonOne)
+ hideButton(buttonTwo)
+ hideButton(buttonThree)
+ hideButton(buttonFour)
+ hideButton(buttonFive)
+ hideButton(buttonSix)
+ hideButton(buttonSeven)
+ hideButton(buttonEight)
+ hideButton(buttonNine)
+ hideButton(buttonDecimal)
+ hideButton(buttonIgual)
+ hideButton(buttonClear)
+
+func calculatorChangeSize()
+ ?optionsFlag
+  ?sizeFlag = 0
+   sizeFlag = 1
+  :?sizeFlag = 1
+   sizeFlag = 2
+  :?sizeFlag = 2
+   sizeFlag = 0
+ :
+  ?sizeFlag = 0
+   showButton(buttonX,calculatorX+18,calculatorY+1,1,1)
+   showButton(buttonSize,calculatorX+16,calculatorY+1,1,1)
+   showButton(buttonClose,calculatorX+14,calculatorY+1,1,1)
+   showButton(buttonOptions,calculatorX+2,calculatorY+1,9,1)
+   showButton(buttonDecimal,calculatorX+2,calculatorY+18,3,3)
+   showButton(buttonIgual,calculatorX+10,calculatorY+18,3,3)
+   showButton(buttonSum,calculatorX+15,calculatorY+9,5,3)
+   showButton(buttonSub,calculatorX+15,calculatorY+12,5,3)
+   showButton(buttonMult,calculatorX+15,calculatorY+15,5,3)
+   showButton(buttonDiv,calculatorX+15,calculatorY+18,5,3)
+   showButton(buttonPow,calculatorX+10,calculatorY+6,3,3)
+   showButton(buttonPercent,calculatorX+6,calculatorY+6,3,3)
+   showButton(buttonZero,calculatorX+6,calculatorY+18,3,3)
+   showButton(buttonOne,calculatorX+2,calculatorY+15,3,3)
+   showButton(buttonTwo,calculatorX+6,calculatorY+15,3,3)
+   showButton(buttonThree,calculatorX+10,calculatorY+15,3,3)
+   showButton(buttonFour,calculatorX+2,calculatorY+12,3,3)
+   showButton(buttonFive,calculatorX+6,calculatorY+12,3,3)
+   showButton(buttonSix,calculatorX+10,calculatorY+12,3,3)
+   showButton(buttonSeven,calculatorX+2,calculatorY+9,3,3)
+   showButton(buttonEight,calculatorX+6,calculatorY+9,3,3)
+   showButton(buttonNine,calculatorX+10,calculatorY+9,3,3)
+   showButton(buttonClear,calculatorX+15,calculatorY+6,5,3)
+   sizeFlag = 1
+  :?sizeFlag = 1
+   showButton(buttonX,calculatorX+15,calculatorY+1,1,1)
+   showButton(buttonSize,calculatorX+13,calculatorY+1,1,1)
+   showButton(buttonClose,calculatorX+11,calculatorY+1,1,1)
+   showButton(buttonOptions,calculatorX+2,calculatorY+1,8,1)
+   showButton(buttonDecimal,calculatorX+2,calculatorY+18,3,3)
+   showButton(buttonIgual,calculatorX+8,calculatorY+18,3,3)
+   showButton(buttonSum,calculatorX+12,calculatorY+9,5,3)
+   showButton(buttonSub,calculatorX+12,calculatorY+12,5,3)
+   showButton(buttonMult,calculatorX+12,calculatorY+15,5,3)
+   showButton(buttonDiv,calculatorX+12,calculatorY+18,5,3)
+   showButton(buttonPow,calculatorX+5,calculatorY+6,3,3)
+   showButton(buttonPercent,calculatorX+8,calculatorY+6,3,3)
+   showButton(buttonZero,calculatorX+5,calculatorY+18,3,3)
+   showButton(buttonOne,calculatorX+2,calculatorY+15,3,3)
+   showButton(buttonTwo,calculatorX+5,calculatorY+15,3,3)
+   showButton(buttonThree,calculatorX+8,calculatorY+15,3,3)
+   showButton(buttonFour,calculatorX+2,calculatorY+12,3,3)
+   showButton(buttonFive,calculatorX+5,calculatorY+12,3,3)
+   showButton(buttonSix,calculatorX+8,calculatorY+12,3,3)
+   showButton(buttonSeven,calculatorX+2,calculatorY+9,3,3)
+   showButton(buttonEight,calculatorX+5,calculatorY+9,3,3)
+   showButton(buttonNine,calculatorX+8,calculatorY+9,3,3)
+   showButton(buttonClear,calculatorX+12,calculatorY+6,5,3)
+   sizeFlag = 2
+  :?sizeFlag = 2
+   showButton(buttonX,calculatorX+24,calculatorY+1,1,1)
+   showButton(buttonSize,calculatorX+22,calculatorY+1,1,1)
+   showButton(buttonClose,calculatorX+20,calculatorY+1,1,1)
+   showButton(buttonOptions,calculatorX+2,calculatorY+1,9,1)
+   showButton(buttonDecimal,calculatorX+2,calculatorY+19,5,3)
+   showButton(buttonIgual,calculatorX+14,calculatorY+19,5,3)
+   showButton(buttonSum,calculatorX+21,calculatorY+10,5,3)
+   showButton(buttonSub,calculatorX+21,calculatorY+13,5,3)
+   showButton(buttonMult,calculatorX+21,calculatorY+16,5,3)
+   showButton(buttonDiv,calculatorX+21,calculatorY+19,5,3)
+   showButton(buttonPow,calculatorX+8,calculatorY+7,5,3)
+   showButton(buttonPercent,calculatorX+14,calculatorY+7,5,3)
+   showButton(buttonZero,calculatorX+8,calculatorY+19,5,3)
+   showButton(buttonOne,calculatorX+2,calculatorY+16,5,3)
+   showButton(buttonTwo,calculatorX+8,calculatorY+16,5,3)
+   showButton(buttonThree,calculatorX+14,calculatorY+16,5,3)
+   showButton(buttonFour,calculatorX+2,calculatorY+13,5,3)
+   showButton(buttonFive,calculatorX+8,calculatorY+13,5,3)
+   showButton(buttonSix,calculatorX+14,calculatorY+13,5,3)
+   showButton(buttonSeven,calculatorX+2,calculatorY+10,5,3)
+   showButton(buttonEight,calculatorX+8,calculatorY+10,5,3)
+   showButton(buttonNine,calculatorX+14,calculatorY+10,5,3)
+   showButton(buttonClear,calculatorX+21,calculatorY+7,5,3)
+   sizeFlag = 0
+ storage.Set("SizeFlag", sizeFlag)
+
+func calculatorNumber(button)
+ ?elementFlag
+  ?elementDecimalFlag
+   elementFirst = elementFirst + (int.Parse(button.text)/elementDecimal)
+   elementDecimal = elementDecimal*10.0
+  :
+   elementFirst = elementFirst*10.0 + int.Parse(button.text)
+ :
+  ?elementDecimalFlag
+   elementSecond = elementSecond + (int.Parse(button.text)/elementDecimal)
+   elementDecimal = elementDecimal*10.0
+  :
+   elementSecond = elementSecond*10.0 + int.Parse(button.text)
+
+func calculatorDecimal()
+ elementDecimalFlag = true
+
+func calculatorOperation(button)
+ ?elementSecond ! 0
+  calculatorEqual()
+  elementFirst = elementOutput
+  elementOperation = button.text
+  elementDecimal = 10.0
+  elementDecimalFlag = false
+  elementFlag = false
+ :
+  elementOperation = button.text
+  elementDecimal = 10.0
+  elementDecimalFlag = false
+  elementFlag = false
+
+func calculatorPercent()
+ ?elementOperation = "X"
+  elementOutput = elementFirst*(elementSecond/100.0)
+  elementFirst = elementOutput
+ :?elementOperation = "+"
+  elementOutput = elementFirst+(elementFirst*(elementSecond/100.0))
+  elementFirst = elementOutput
+ :?elementOperation = "-"
+  elementOutput = elementFirst-(elementFirst*(elementSecond/100.0))
+  elementFirst = elementOutput
+ :
+  elementOutput = "Err"
+  elementFirst = 0
+ elementDecimal = 10.0
+ elementDecimalFlag = false
+ elementFirst = 0.0
+ elementSecond = 0.0
+ elementOperation = ""
+ elementFlag = true
+ 
+
+func calculatorEqual()
+ ?elementOperation = "+"
+  elementOutput = elementFirst+elementSecond
+ :?elementOperation = "-"
+  elementOutput = elementFirst-elementSecond
+ :?elementOperation = "X"
+  elementOutput = elementFirst*elementSecond
+ :?elementOperation = "/"
+  elementOutput = elementFirst/elementSecond
+ :?elementOperation = "^"
+  elementOutput = math.Pow(elementFirst,elementSecond)
+ elementDecimal = 10.0
+ elementDecimalFlag = false
+ elementFirst = elementOutput
+ elementSecond = 0.0
+ elementOperation = ""
+ elementFlag = true
+
+func calculatorClear()
+ elementFirst = 0.0
+ elementSecond = 0.0
+ elementOutput = 0
+ elementOperation = ""
+ elementShown=null
+ elementDecimal = 10.0
+ elementDecimalFlag = false
+ elementFlag = true
+
+func optionsClose()
+ hideButton(buttonOptionsX)
+ hideButton(buttonOptionsX)
+ hideButton(buttonBorderColor)
+ hideButton(buttonScreenColor)
+ hideButton(buttonBackgroundColor)
+ hideButton(buttonScreenTextColor)
+ hideButton(buttonButtonColor)
+ hideButton(buttonButtonTextColor)
+ hideButton(buttonCalculatorPlacement)
+ hideButton(buttonMinimizedPlacement)
+ hideButton(buttonMinimizedColor)
+ hideButton(buttonMinimizedIconColor)
+ hideButton( buttonChangeSize)
+ optionsFlag = false
+ calculatorOpen()
+
+func optionsHide()
+ hideButton(buttonOptionsX)
+ hideButton(buttonOptionsX)
+ hideButton(buttonBorderColor)
+ hideButton(buttonScreenColor)
+ hideButton(buttonBackgroundColor)
+ hideButton(buttonScreenTextColor)
+ hideButton(buttonButtonColor)
+ hideButton(buttonButtonTextColor)
+ hideButton(buttonCalculatorPlacement)
+ hideButton(buttonMinimizedPlacement)
+ hideButton(buttonMinimizedColor)
+ hideButton(buttonMinimizedIconColor)
+ hideButton( buttonChangeSize)
+
+func calculatorOptions()
+ calculatorMinimizeOptions()
+ showButton(buttonOptionsX,optionsX+21,optionsY+1,1,1)
+ showButton(buttonBorderColor,optionsX+1,optionsY+3,22,1)
+ showButton(buttonScreenColor,optionsX+1,optionsY+4,22,1)
+ showButton(buttonBackgroundColor,optionsX+1,optionsY+5,22,1)
+ showButton(buttonScreenTextColor,optionsX+1,optionsY+6,22,1)
+ showButton(buttonButtonColor,optionsX+1,optionsY+7,22,1)
+ showButton(buttonButtonTextColor,optionsX+1,optionsY+8,22,1)
+ showButton(buttonCalculatorPlacement,optionsX+1,optionsY+9,22,1)
+ showButton(buttonMinimizedPlacement,optionsX+1,optionsY+10,22,1)
+ showButton(buttonMinimizedColor,optionsX+1,optionsY+11,22,1)
+ showButton(buttonMinimizedIconColor,optionsX+1,optionsY+12,22,1)
+ showButton( buttonChangeSize,optionsX+1,optionsY+13,22,1)
+ optionsFlag = true
+
+func optionsCloseColor()
+ optionsColorFlag = false
+ hideButton(buttonOptionsColorBlue)
+ hideButton(buttonOptionsColorCyan)
+ hideButton(buttonOptionsColorGreen)
+ hideButton(buttonOptionsColorGrey)
+ hideButton(buttonOptionsColorRed)
+ hideButton(buttonOptionsColorWhite)
+ hideButton(buttonOptionsColorX)
+ hideButton(buttonOptionsColorYellow)
+ hideButton(buttonOptionsColorZero)
+ hideButton(buttonOptionsColorOne)
+ hideButton(buttonOptionsColorTwo)
+ hideButton(buttonOptionsColorThree)
+ hideButton(buttonOptionsColorFour)
+ hideButton(buttonOptionsColorFive)
+ hideButton(buttonOptionsColorSix)
+ hideButton(buttonOptionsColorSeven)
+ hideButton(buttonOptionsColorEight)
+ hideButton(buttonOptionsColorNine)
+ hideButton(buttonOptionsColorA)
+ hideButton(buttonOptionsColorB)
+ hideButton(buttonOptionsColorC)
+ hideButton(buttonOptionsColorD)
+ hideButton(buttonOptionsColorE)
+ hideButton(buttonOptionsColorF)
+ calculatorOptions()
+
+func optionsColorButton(button)
+ ?button.text = "w"
+  selectedColor = "#white"
+ :?button.text = "c"
+  selectedColor = "#cyan"
+ :?button.text = "y"
+  selectedColor =  "#yellow"
+ :?button.text = "g"
+  selectedColor = "#green"
+ :?button.text = "b"
+  selectedColor = "#blue"
+ :?button.text = "r"
+  selectedColor = "#red"
+ :?button.text = "m"
+  selectedColor = "#202020"
+ colorChanged = true
+
+func optionsHex(button)
+ ?hexFlag
+  selectedColor = selectedColor+button.text
+ :
+  selectedColor = "#"+button.text
+  hexFlag = true
+
+func optionsColorButtons()
+ optionsHide()
+ optionsColorFlag = true
+ hexFlag = false
+ showButton(buttonOptionsColorBlue,optionsX+14,optionsY+7,1,1)
+ showButton(buttonOptionsColorCyan,optionsX+5,optionsY+7,1,1)
+ showButton(buttonOptionsColorGreen,optionsX+11,optionsY+7,1,1)
+ showButton(buttonOptionsColorGrey,optionsX+20,optionsY+7,1,1)
+ showButton(buttonOptionsColorRed,optionsX+17,optionsY+7,1,1)
+ showButton(buttonOptionsColorWhite,optionsX+2,optionsY+7,1,1)
+ showButton(buttonOptionsColorX,optionsX+21,optionsY+1,1,1)
+ showButton(buttonOptionsColorYellow,optionsX+8,optionsY+7,1,1)
+ showButton(buttonOptionsColorZero,optionsX+2,optionsY+11,1,1)
+ showButton(buttonOptionsColorOne,optionsX+4,optionsY+11,1,1)
+ showButton(buttonOptionsColorTwo,optionsX+6,optionsY+11,1,1)
+ showButton(buttonOptionsColorThree,optionsX+8,optionsY+11,1,1)
+ showButton(buttonOptionsColorFour,optionsX+10,optionsY+11,1,1)
+ showButton(buttonOptionsColorFive,optionsX+12,optionsY+11,1,1)
+ showButton(buttonOptionsColorSix,optionsX+14,optionsY+11,1,1)
+ showButton(buttonOptionsColorSeven,optionsX+16,optionsY+11,1,1)
+ showButton(buttonOptionsColorEight,optionsX+18,optionsY+11,1,1)
+ showButton(buttonOptionsColorNine,optionsX+20,optionsY+11,1,1)
+ showButton(buttonOptionsColorA,optionsX+2,optionsY+12,1,1)
+ showButton(buttonOptionsColorB,optionsX+4,optionsY+12,1,1)
+ showButton(buttonOptionsColorC,optionsX+6,optionsY+12,1,1)
+ showButton(buttonOptionsColorD,optionsX+8,optionsY+12,1,1)
+ showButton(buttonOptionsColorE,optionsX+10,optionsY+12,1,1)
+ showButton(buttonOptionsColorF,optionsX+12,optionsY+12,1,1)
+
+func optionsColorMenu(button)
+ menuName = button.text
+ optionsColorButtons()
+
+func optionsPlaceClose()
+ hideButton(buttonOptionsPlaceX)
+ hideButton(buttonOptionsPlaceClear)
+ hideButton(buttonOptionsPlaceClearX)
+ hideButton(buttonOptionsPlaceClearY)
+ hideButton(buttonPlaceLeft)
+ hideButton(buttonPlaceRight)
+ hideButton(buttonPlaceDown)
+ hideButton(buttonPlaceUp)
+ hideButton(buttonOptionsPlaceXZero)
+ hideButton(buttonOptionsPlaceXOne)
+ hideButton(buttonOptionsPlaceXTwo)
+ hideButton(buttonOptionsPlaceXThree)
+ hideButton(buttonOptionsPlaceXFour)
+ hideButton(buttonOptionsPlaceXFive)
+ hideButton(buttonOptionsPlaceXSix)
+ hideButton(buttonOptionsPlaceXSeven)
+ hideButton(buttonOptionsPlaceXEight)
+ hideButton(buttonOptionsPlaceXNine)
+ hideButton(buttonOptionsPlaceYZero)
+ hideButton(buttonOptionsPlaceYOne)
+ hideButton(buttonOptionsPlaceYTwo)
+ hideButton(buttonOptionsPlaceYThree)
+ hideButton(buttonOptionsPlaceYFour)
+ hideButton(buttonOptionsPlaceYFive)
+ hideButton(buttonOptionsPlaceYSix)
+ hideButton(buttonOptionsPlaceYSeven)
+ hideButton(buttonOptionsPlaceYEight)
+ hideButton(buttonOptionsPlaceYNine)
+ optionsPlaceFlag = false
+ calculatorOptions()
+
+func optionsPlaceMenu(button)
+ optionsHide()
+ menuName = button.text
+ optionsPlaceFlag = true
+ ?button.text = "Minimized placement"
+  minimizedFlag = true
+ showButton(buttonOptionsPlaceX,optionsX+21,optionsY+1,1,1)
+ showButton(buttonOptionsPlaceClear,optionsX+2,optionsY+6,5,1)
+ showButton(buttonOptionsPlaceClearX,optionsX+2,optionsY+12,5,1)
+ showButton(buttonOptionsPlaceClearY,optionsX+2,optionsY+15,5,1)
+ showButton(buttonPlaceLeft,optionsX+2,optionsY+7,1,1)
+ showButton(buttonPlaceRight,optionsX+4,optionsY+7,1,1)
+ showButton(buttonPlaceDown,optionsX+6,optionsY+7,1,1)
+ showButton(buttonPlaceUp,optionsX+8,optionsY+7,1,1)
+ showButton(buttonOptionsPlaceXZero,optionsX+2,optionsY+11,1,1)
+ showButton(buttonOptionsPlaceXOne,optionsX+4,optionsY+11,1,1)
+ showButton(buttonOptionsPlaceXTwo,optionsX+6,optionsY+11,1,1)
+ showButton(buttonOptionsPlaceXThree,optionsX+8,optionsY+11,1,1)
+ showButton(buttonOptionsPlaceXFour,optionsX+10,optionsY+11,1,1)
+ showButton(buttonOptionsPlaceXFive,optionsX+12,optionsY+11,1,1)
+ showButton(buttonOptionsPlaceXSix,optionsX+14,optionsY+11,1,1)
+ showButton(buttonOptionsPlaceXSeven,optionsX+16,optionsY+11,1,1)
+ showButton(buttonOptionsPlaceXEight,optionsX+18,optionsY+11,1,1)
+ showButton(buttonOptionsPlaceXNine,optionsX+20,optionsY+11,1,1)
+ showButton(buttonOptionsPlaceYZero,optionsX+2,optionsY+14,1,1)
+ showButton(buttonOptionsPlaceYOne,optionsX+4,optionsY+14,1,1)
+ showButton(buttonOptionsPlaceYTwo,optionsX+6,optionsY+14,1,1)
+ showButton(buttonOptionsPlaceYThree,optionsX+8,optionsY+14,1,1)
+ showButton(buttonOptionsPlaceYFour,optionsX+10,optionsY+14,1,1)
+ showButton(buttonOptionsPlaceYFive,optionsX+12,optionsY+14,1,1)
+ showButton(buttonOptionsPlaceYSix,optionsX+14,optionsY+14,1,1)
+ showButton(buttonOptionsPlaceYSeven,optionsX+16,optionsY+14,1,1)
+ showButton(buttonOptionsPlaceYEight,optionsX+18,optionsY+14,1,1)
+ showButton(buttonOptionsPlaceYNine,optionsX+20,optionsY+14,1,1)
+
+func clearPlacement(button)
+ ?minimizedFlag
+  ?button.text = "ClearX"
+   minimizedX = 0
+  :?button.text = "ClearY"
+   minimizedY = 0
+  :
+   minimizedX = 0
+   minimizedY = 0
+ :
+  ?button.text = "ClearX"
+   calculatorX = 0
+  :?button.text = "ClearY"
+   calculatorY = 0
+  :
+   calculatorX = 0
+   calculatorY = 0
+ storage.Set("MinimizedX", minimizedX)
+ storage.Set("MinimizedY", minimizedY)
+ storage.Set("CalculatorX", calculatorX)
+ storage.Set("CalculatorY", calculatorY)
+
+
+func placementMovemente(button)
+ ?minimizedFlag
+  ?button.text = "←"
+   minimizedX--
+  ?button.text = "→"
+   minimizedX++
+  ?button.text = "↓"
+   minimizedY++
+  ?button.text = "↑"
+   minimizedY--
+  minimizedX = math.Clamp(minimizedX,0,screen.w-5)
+  minimizedY = math.Clamp(minimizedY,0,screen.h-3)
+ :
+  ?button.text = "←"
+   calculatorX--
+  ?button.text = "→"
+   calculatorX++
+  ?button.text = "↓"
+   calculatorY++
+  ?button.text = "↑"
+   calculatorY--
+  calculatorX = math.Clamp(calculatorX,0,screen.w-19)
+  calculatorY =  math.Clamp(calculatorY,0,screen.h-22)
+ storage.Set("MinimizedX", minimizedX)
+ storage.Set("MinimizedY", minimizedY)
+ storage.Set("CalculatorX", calculatorX)
+ storage.Set("CalculatorY", calculatorY)
+
+func placementX(button)
+ ?minimizedFlag
+  minimizedX = minimizedX*10+int.Parse(button.text)
+ :
+  calculatorX = calculatorX*10+int.Parse(button.text)
+
+func placementY(button)
+ ?minimizedFlag
+  minimizedY = minimizedY*10+int.Parse(button.text)
+ :
+  calculatorY = calculatorY*10+int.Parse(button.text)
+func hideButton(button)
+ button.x = 99
+ button.y = 99
+
+func showButton(button,x,y,w,h)
+ button.x = x
+ button.y = y
+ button.w = w
+ button.h = h
+
+?minimizedFlag
+ printMinimizedIcon()
+:
+ ?sizeFlag = 0
+  printCalculatorBig()
+ :?sizeFlag = 1
+  printCalculatorMedium()
+ :?sizeFlag = 2
+  printCalculatorSmall()
+?optionsFlag
+ >`@optionsX@,@optionsY@,@options@
+ ?colorChanged
+  ?menuName = "Border color"
+   calculatorColor = selectedColor
+   storage.Set("CalculatorColor", calculatorColor)
+  :?menuName = "Screen color"
+   calculatorScreenColor = selectedColor
+   storage.Set("CalculatorScreenColor", calculatorScreenColor)
+  :?menuName = "Screen text color"
+   calculatorTextColor = selectedColor
+   storage.Set("CalculatorTextColor", calculatorTextColor)
+  :?menuName = "Button color"
+   calculatorButtonColor = selectedColor
+   storage.Set("CalculatorButtonColor", calculatorButtonColor)
+  :?menuName = "Button text color"
+   calculatorKeyboardColor = selectedColor
+   storage.Set("CalculatorKeyboardColor", calculatorKeyboardColor)
+  :?menuName = "Minimized color"
+   minimizedColor = selectedColor
+   storage.Set("MinimizedColor", minimizedColor)
+  :?menuName = "Minimized icon color"
+   minimizedIconColor = selectedColor
+   storage.Set("MinimizedIconColor", minimizedIconColor)
+  :?menuName = "Background color"
+   calculatorScreenBgColor = selectedColor
+   storage.Set("CalculatorScreenBgColor", calculatorScreenBgColor)
+  colorChanged = false
+ ?optionsColorFlag
+  >`@optionsX@,@optionsY@,@optionsColor@
+  >`@optionsX+2@,@optionsY+3@,@menuName@
+  >`@optionsX+7@,@optionsY+10@,@selectedColor@
+  >`@optionsX+2@,@optionsY+7@,█
+  >`@optionsX+5@,@optionsY+7@,#cyan,█
+  >`@optionsX+8@,@optionsY+7@,#yellow,█
+  >`@optionsX+11@,@optionsY+7@,#green,█
+  >`@optionsX+14@,@optionsY+7@,#blue,█
+  >`@optionsX+17@,@optionsY+7@,#red,█
+  >`@optionsX+20@,@optionsY+7@,#202020,█
+  ?hexFlag & string.Size(selectedColor) = 7
+   hexFlag = false
+   colorChanged = true
+ ?optionsPlaceFlag
+  >`@optionsX@,@optionsY@,@optionsPlace@
+  >`@optionsX+2@,@optionsY+3@,@menuName@
+  ?minimizedFlag
+   >`@optionsX+6@,@optionsY+5@,@minimizedX@
+   >`@optionsX+15@,@optionsY+5@,@minimizedY@
+   >`@optionsX+6@,@optionsY+10@,@minimizedX@
+   >`@optionsX+6@,@optionsY+13@,@minimizedY@
+  :
+   >`@optionsX+6@,@optionsY+5@,@calculatorX@
+   >`@optionsX+15@,@optionsY+5@,@calculatorY@
+   >`@optionsX+6@,@optionsY+10@,@calculatorX@
+   >`@optionsX+6@,@optionsY+13@,@calculatorY@

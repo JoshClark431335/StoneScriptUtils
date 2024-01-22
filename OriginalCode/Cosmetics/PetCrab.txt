@@ -1,0 +1,250 @@
+
+// Pet Crab
+// by: Agerak
+// v2.0
+
+var crabColor
+var shellColor
+crabColor = #FF4444
+shellColor = #FFFF99
+
+var keepDistance = -20 // distance at which the movement animation will play (stateScuttle)
+var maxX = -15         // closest offset pet will get to character.  Closer to 0, closer to character
+var maxDistance = -100 // if the pet exceeds this distance, it will teleport to this distance (cannot be further away than this)
+var targetZ = -1       // We want to start the drawing 1 unit above the player agent
+var headcrab = 0       //if the crab gets in front of the player, he will jump on his head
+var mandibles = 0      //if in headcrab mode, allows idle animation without spam during continuous scuttle
+
+?loc.loop
+  keepDistance = -20
+  maxX = -15
+  maxDistance = -100
+  targetZ = -1
+  headcrab = 0
+  mandibles = 0
+
+var x = 0
+var y = 0
+var myX = 0
+var myZ = 0
+var lastPlayerX = 0
+var lastPlayerZ = 0
+
+var stateNone = 0
+var stateIdle = 1
+var stateScuttle = 2
+var currentState = stateNone
+var stateTime = 0
+
+func SetState(newState)
+  ?newState = stateScuttle & headcrab = 0
+    play ant_walk // sound played when pet moves
+  currentState = newState
+  stateTime = 0
+  ?mandibles >= 5
+    mandibles = 0
+
+?currentState = stateNone | time = 1
+  lastPlayerX = pos.x
+  lastPlayerZ = pos.z
+  myX = keepDistance
+  myZ = targetZ
+
+  // Start further away if the crab is summoned while the location is already running
+  ?time > 1
+    myX = maxDistance
+
+  SetState(stateIdle)
+
+myX = myX - (pos.x - lastPlayerX) // If player has moved, increment myX (distance from player)
+
+stateTime++
+
+?myX >= -8 & headcrab = 0
+  headcrab = 1
+  targetZ = -4
+  maxX = -5
+  keepDistance = -4
+?headcrab = 1
+  ?myX ! -5
+    myX = -5
+  
+
+?currentState = stateIdle
+  ?myX < maxDistance | myX > -maxDistance
+    myX = maxDistance
+  ?headcrab = 0
+    myZ = myZ - (pos.z - lastPlayerZ)
+
+  ?myX < keepDistance
+    SetState(stateScuttle)
+
+:?currentState = stateScuttle
+  ?headcrab
+    myX = maxX
+  :?myX < maxX
+    myX++
+
+  ?stateTime >= 6
+    ?myZ > targetZ
+      myZ--
+    :?myZ < targetZ
+      myZ++
+
+  ?stateTime >= 12
+    ?headcrab = 1
+      mandibles++
+    SetState(stateIdle)
+
+lastPlayerX = pos.x
+lastPlayerZ = pos.z
+
+// Draw
+?currentState = stateIdle
+  >o@myX@,@myZ@,@crabColor@,ascii
+#
+#
+#
+####{Oo}
+##//(;;)\
+asciiend
+  >o@myX@,@myZ@,@shellColor@,ascii
+###__
+##(__)_
+#(_____)_
+#(__####_)
+asciiend
+  x = myX + 2
+  y = myZ + 3
+  ?face = "( ^^"
+    >o@x@,@y@,@crabColor@,ascii
+###^^
+asciiend
+  :?face = "( TT"
+    >o@x@,@y@,@crabColor@,ascii
+###><
+asciiend
+  :?face = "°°"
+    ?time % 10 = 0 & myX > keepDistance
+      myX--
+    ?time % 4 <= 1
+      >o@x@,@y@,@crabColor@,ascii
+##[oO]
+<<{::}>
+asciiend
+    ?time % 4 > 1
+      >o@x@,@y@,@crabColor@,ascii
+##{Oo}
+//(;;)\
+asciiend
+  :?stateTime % 50 >= 48
+    >o@x@,@y@,@crabColor@,ascii
+###O-
+##{::}
+asciiend
+  :?stateTime % 50 >= 46
+    >o@x@,@y@,@crabColor@,ascii
+###=-
+##("")
+asciiend
+  :?stateTime % 50 >= 44
+    >o@x@,@y@,@crabColor@,ascii
+###--
+##{::}
+asciiend
+
+?currentState = stateScuttle
+  ?stateTime/3 = 0
+    >o@myX@,@myZ@,@crabColor@,ascii
+#
+#
+#
+####{Oo}
+##>/(;;)|
+asciiend
+    >o@myX@,@myZ@,@shellColor@,ascii
+###__
+##(__)__
+##(_____)
+#(__####_)
+asciiend
+
+  :?stateTime/3 = 1
+    >o@myX@,@myZ@,@crabColor@,ascii
+#
+#
+#
+####{Oo}
+##\>(;;)/
+asciiend
+    >o@myX@,@myZ@,@shellColor@,ascii
+####__
+###(__)_
+##(_____)
+#(__####_)
+asciiend
+
+  :?stateTime/3 = 2
+    >o@myX@,@myZ@,@crabColor@,ascii
+#
+#
+#
+####{Oo}
+##|\(;;)>
+asciiend
+    >o@myX@,@myZ@,@shellColor@,ascii
+####__
+##_(__)
+#(_____)_
+#(__####_)
+asciiend
+
+  :?stateTime/3 = 3
+    >o@myX@,@myZ@,@crabColor@,ascii
+#
+#
+#
+####{Oo}
+##/|(;;)\
+asciiend
+    >o@myX@,@myZ@,@shellColor@,ascii
+###__
+##(__)_
+#(_____)_
+#(__####_)
+asciiend
+  x = myX + 2
+  y = myZ + 3
+  ?face = "( ^^"
+    >o@x@,@y@,@crabColor@,ascii
+###^^
+asciiend
+  :?face = "°°"
+    ?time % 10 = 0 & myX > keepDistance
+      myX--
+    ?time % 4 <= 1
+      >o@x@,@y@,@crabColor@,ascii
+##[oO]
+<<{::}>
+asciiend
+    ?time % 4 > 1
+      >o@x@,@y@,@crabColor@,ascii
+##{Oo}
+//(;;)\
+asciiend
+  :?mandibles >= 4 & stateTime % 50 >= 10
+    >o@x@,@y@,@crabColor@,ascii
+###O-
+##{::}
+asciiend
+  :?mandibles >= 4 & stateTime % 50 >= 8
+    >o@x@,@y@,@crabColor@,ascii
+###=-
+##("")
+asciiend
+  :?mandibles >= 4 & stateTime % 50 >= 6
+    >o@x@,@y@,@crabColor@,ascii
+###--
+##{::}
+asciiend
+

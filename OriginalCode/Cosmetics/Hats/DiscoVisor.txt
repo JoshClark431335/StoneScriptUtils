@@ -1,0 +1,81 @@
+// Disco Visor version 0.1 by Fyda
+
+// Description: A visor for your stoneperson, inspired by a certain
+// pair of... foolish delinquents.
+// The visor blinks at different rates depending on the level.
+
+// To use: "import discovisor" in the Mind Stone.
+// NOTE: Big Head must be enabled!
+
+// set up variables
+var isBeat
+var fpbForLevel = 15
+
+// define the frames per beat for each level
+// beats may not line up exactly as we are limited to whole numbers :(
+?loc = rocky
+ fpbForLevel = 20
+ ?foe = dysangelos
+  fpbForLevel = 8
+?loc = deadwood
+ fpbForLevel = 13
+ ?foe = xyloalgia & foe.distance < 10
+  fpbForLevel = 5
+?loc = caves
+ fpbForLevel = 32
+  ?foe = bolesh
+   fpbForLevel = 10
+?loc = waterfall
+ fpbForLevel = 30
+?loc = forest
+ fpbForLevel = 27
+ ?loc = shroom
+  fpbForLevel = 9
+?loc = haunted
+ fpbForLevel = 13
+ ?foe = pallas
+  fpbForLevel = 10
+?loc = mine
+ fpbForLevel = 11
+ ?foe = guardian & foe.distance < 22
+  fpbForLevel = 4
+?loc = icy ridge
+ fpbForLevel = 15
+ ?foe = yeti
+  fpbForLevel = 8
+?loc = bridge
+ fpbForLevel = 60
+?loc = temple
+ fpbForLevel = 20
+ ?foe = nagaraja
+  fpbForLevel = 6
+   
+// are we on a beat?  
+?time % fpbForLevel ! 0
+ isBeat = 0
+:
+ isBeat = 1
+
+// helmet aside from the visor
+>h-3,-1,#8a8a8a,ascii
+┊####┊
+Θ####Θ
+asciiend
+
+// flash the visor if we're on a beat
+?isBeat = 1
+ >h-2,0,#rainbow,ascii
+███▓▒
+asciiend
+
+// or don't if we're not
+?isBeat = 0
+ >h-2,0,#3a3a3a,ascii
+███▓▒
+asciiend
+
+// debug display (uncomment to enable)
+//?isBeat = 1
+// >`0,0,#00ff00,♪
+//?isBeat = 0
+//  >`0,0,#ff0000,♫
