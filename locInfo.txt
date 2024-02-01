@@ -10,10 +10,10 @@ func is_boss_loc()
     return screen.x = 2*69
   :?loc = deadwood_valley
     var boss_screen = ［1,1,5,5,5, 6,6,6,6,6,
-      ^6,1,1,1,1
+      ^6,1,1,1,1]
   :?loc = caustic_caves
     var boss_screen = ［1,1,5,5,4, 9,9,9,9,9,
-    ^8,8,8,1,1
+    ^8,8,8,1,1]
   :?loc = fungus_forest
     return loc = fungus_forest_boss
   :?loc = undead_crypt & loc!undead_crypt_intro
@@ -23,7 +23,7 @@ func is_boss_loc()
   :?loc = icy_ridge
     var boss_screen = ［］
   :?loc = temple
-    return false
+    return loc = nagaraja
   :
     return false
   return screen.x =
