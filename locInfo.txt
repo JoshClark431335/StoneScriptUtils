@@ -47,7 +47,7 @@ func is_miniboss_loc()
   :?loc = icy_ridge
     var miniboss_screen = [6,5,5,1,1]
   :?loc = temple
-    return false
+    var miniboss_screen = [15,15,15,15,15]
   :
     return false
   return screen.x = miniboss_screen[
